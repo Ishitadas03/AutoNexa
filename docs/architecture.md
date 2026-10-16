@@ -95,12 +95,17 @@ flowchart TD
   - Provides streaming real-time status updates via Server-Sent Events (SSE) or WebSockets.
   - Implements dependency injection for core services, ensuring loose coupling and testability.
 
-### 3.3 Data Processing Subsystem
-- **Role**: Robust data validation, cleaning, and transformation.
-- **Key Responsibilities**:
-  - **Schema & Type Inference**: Automatically categorizes columns into numerical, categorical, datetime, text, or identifier types.
-  - **Data Quality & Leakage Detection**: Identifies perfect target proxies, excessive cardinality, class imbalance, and data drift risks.
-  - **Pre-processing Pipelines**: Implements scikit-learn compatible transformers for missing value imputation, one-hot/target encoding, and feature scaling.
+### 3.3 Data Ingestion & Processing Subsystem (Step 3 Implemented)
+- **Role**: Robust data validation, cleaning, and tabular profiling.
+- **Implemented Capabilities (Step 3)**:
+  - **Chunked Multipart Streaming**: Ingests `.csv` files in 64 KB chunks, dynamically enforcing a configurable size ceiling (`MAX_UPLOAD_SIZE_BYTES`, default 10 MB) without loading unconstrained files into memory.
+  - **Path Traversal & Safe Identifiers**: Isolates client-provided filenames to display metadata; persists files under server-generated UUIDv4 filenames (`{dataset_id}.csv`) strictly within `resolved_upload_dir`.
+  - **Pre-Validation**: Rejects non-CSV extensions, empty files (0 bytes), whitespace-only payloads, headerless files, files with no data rows, and structurally inconsistent row lengths.
+  - **Automated Summary Profiling**: Automatically computes dataset metrics including total rows, total columns, column names, inferred data types (`dtypes`), missing value counts per column, duplicate row counts, DataFrame memory consumption, and disk file size.
+  - **Privacy & Safety Guarantees**: Raw row data and internal absolute server paths are never returned in API payloads or logged.
+- **Planned Capabilities (Upcoming Phases)**:
+  - **Automated Data Quality & Leakage Detection**: Identifies proxy targets, high cardinality risk, and feature drift.
+  - **Preprocessing Pipelines**: Implements scikit-learn compatible transformers for missing value imputation, one-hot/target encoding, and feature scaling.
 
 ### 3.4 AutoML Engine
 - **Role**: Intelligent algorithm selection and resource-budgeted optimization.

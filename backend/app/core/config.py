@@ -1,6 +1,7 @@
 """Centralized application settings and configuration management."""
 
 from functools import lru_cache
+from pathlib import Path
 from typing import List
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -70,6 +71,29 @@ class Settings(BaseSettings):
         validation_alias="BACKEND_CORS_ORIGINS",
         description="List of allowed CORS origins for client applications",
     )
+
+    # Storage & Upload Configuration
+    upload_dir: str = Field(
+        default="uploads",
+        validation_alias=AliasChoices("UPLOAD_DIR"),
+        description="Directory where uploaded datasets are stored",
+    )
+    max_upload_size_bytes: int = Field(
+        default=10 * 1024 * 1024,  # 10 MB default
+        validation_alias=AliasChoices("MAX_UPLOAD_SIZE_BYTES", "MAX_UPLOAD_SIZE"),
+        description="Maximum permitted upload size in bytes (default 10 MB)",
+    )
+
+    @property
+    def resolved_upload_dir(self) -> Path:
+        """Return absolute Path for uploads directory, creating it if needed."""
+        path = Path(self.upload_dir)
+        if not path.is_absolute():
+            # Resolve relative to the backend directory
+            base_dir = Path(__file__).resolve().parent.parent.parent
+            path = (base_dir / self.upload_dir).resolve()
+        path.mkdir(parents=True, exist_ok=True)
+        return path
 
 
 @lru_cache
