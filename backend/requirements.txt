@@ -11,6 +11,7 @@ pydantic-settings==2.16.0
 pandas==3.0.6
 numpy==2.4.6
 scikit-learn==1.9.1
+mlflow==3.17.1
 
 # Testing & Asynchronous HTTP Client
 pytest==9.1.1

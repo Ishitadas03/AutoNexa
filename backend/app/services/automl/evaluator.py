@@ -121,21 +121,74 @@ class ModelEvaluator:
         return metrics
 
     @classmethod
+    def aggregate_cv_results(
+        cls,
+        fold_metrics_list: List[Dict[str, Any]],
+        primary_metric: str,
+    ) -> Tuple[Dict[str, Any], List[float], Optional[float], Optional[float], int]:
+        """Aggregate metrics across cross-validation folds.
+
+        Computes:
+        - valid_folds_count: number of folds that yielded valid finite primary metric scores
+        - cv_scores: list of primary metric scores across valid folds
+        - cv_mean: average primary metric score across valid folds (or None if count < 1)
+        - cv_std: sample standard deviation with ddof=1 only when >= 2 valid folds exist (otherwise None)
+        - mean_metrics: dict of averaged scalar metrics across folds
+
+        Never replaces undefined metrics with zero.
+        """
+        if not fold_metrics_list:
+            return {}, [], None, None, 0
+
+        valid_scores: List[float] = [
+            f[primary_metric]
+            for f in fold_metrics_list
+            if f.get(primary_metric) is not None and isinstance(f[primary_metric], (int, float))
+        ]
+        valid_count = len(valid_scores)
+
+        cv_mean = sanitize_float(sum(valid_scores) / valid_count) if valid_count >= 1 else None
+
+        if valid_count >= 2:
+            import statistics
+            cv_std = sanitize_float(statistics.stdev(valid_scores))
+        else:
+            cv_std = None
+
+        # Aggregate scalar metrics across folds
+        all_keys = set().union(*(f.keys() for f in fold_metrics_list))
+        mean_metrics: Dict[str, Any] = {}
+        for key in sorted(all_keys):
+            if key == "confusion_matrix":
+                continue
+            vals = [
+                f[key] for f in fold_metrics_list
+                if f.get(key) is not None and isinstance(f[key], (int, float))
+            ]
+            if vals:
+                mean_metrics[key] = sanitize_float(sum(vals) / len(vals))
+            else:
+                mean_metrics[key] = None
+
+        return mean_metrics, valid_scores, cv_mean, cv_std, valid_count
+
+    @classmethod
     def rank_models(
         cls,
         results: List[ModelEvaluationResult],
         primary_metric: str,
         greater_is_better: bool,
     ) -> List[str]:
-        """Sort successful candidate models from best to worst based on the primary metric."""
+        """Sort successful candidate models from best to worst based on CV mean or holdout primary metric."""
         successful = [r for r in results if r.status == ModelStatus.SUCCESSFUL]
         if not successful:
             return []
 
         def get_sort_key(res: ModelEvaluationResult) -> float:
-            score = res.metrics.get(primary_metric)
+            # Use cv_mean if available (cross-validation), otherwise use holdout metric
+            score = res.cv_mean if res.cv_mean is not None else res.metrics.get(primary_metric)
             if score is None:
-                # If metric undefined, assign worst possible numerical score
+                # If metric is undefined, place at the very end of ranking without substituting zero
                 return -float("inf") if greater_is_better else float("inf")
             return float(score)
 

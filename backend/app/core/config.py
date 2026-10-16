@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -89,6 +89,16 @@ class Settings(BaseSettings):
         default="experiments",
         validation_alias=AliasChoices("EXPERIMENTS_DIR"),
         description="Directory where experiment metadata and artifacts are stored",
+    )
+    enable_mlflow_tracking: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("ENABLE_MLFLOW_TRACKING"),
+        description="Toggle for logging experiments and candidate runs to MLflow",
+    )
+    mlflow_tracking_uri: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("MLFLOW_TRACKING_URI"),
+        description="Custom MLflow tracking URI; if omitted, defaults to file:<experiments_dir>/mlruns",
     )
     max_dataset_rows: int = Field(
         default=100000,

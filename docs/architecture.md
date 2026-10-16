@@ -94,8 +94,7 @@ flowchart TD
   - Exposes RESTful endpoints for task initialization, job status, and leaderboard queries.
   - Provides streaming real-time status updates via Server-Sent Events (SSE) or WebSockets.
   - Implements dependency injection for core services, ensuring loose coupling and testability.
-
-### 3.3 Data Ingestion, Intelligence & Processing Subsystem (Steps 3, 4 & 5 Implemented)
+### 3.3 Data Ingestion, Intelligence & Processing Subsystem (Steps 3, 4, 5 & 6 Implemented)
 - **Role**: Robust data validation, tabular profiling, data quality auditing, and ML task detection.
 - **Implemented Capabilities**:
   - **Chunked Multipart Streaming**: Ingests `.csv` files in 64 KB chunks, dynamically enforcing a configurable size ceiling (`MAX_UPLOAD_SIZE_BYTES`, default 10 MB) without loading unconstrained files into memory.
@@ -105,11 +104,11 @@ flowchart TD
   - **Dataset Intelligence & Role Classification**: Categorizes columns into semantic roles (`numeric`, `categorical`, `identifier`, `datetime`, `text`).
   - **Data Quality Diagnostics**: Evaluates missingness ratios, flags critical missingness (>50%), identifies constant and near-constant features (dominant value >= 95%), and highlights high-cardinality categorical variables.
   - **ML Task Detection & Heuristics**: Analyzes candidate targets, inferring `binary_classification`, `multiclass_classification`, or `regression` based on data types, unique class counts, and cardinality. Detects severe class imbalance (minority class < 10% or ratio > 4:1) and potential target leakage via Pearson correlation (|r| >= 0.98).
-  - **User Decisions vs. Heuristic Recommendations**: Supports explicit `task_override` between classification and regression while enforcing strict type compatibility.
-  - **Leakage-Free Preprocessing Pipelines**: Separate training/testing splits before fitting. `ColumnTransformer` combines `SimpleImputer(strategy="median")` + `StandardScaler()` for numeric columns with `SimpleImputer(strategy="most_frequent")` + `OneHotEncoder(handle_unknown="ignore", sparse_output=False)` for categorical columns.
+  - **Cryptographic Dataset Fingerprinting**: Calculates SHA-256 hash of the stored CSV dataset to track data integrity and detect content changes across experiment runs without logging raw rows or PII.
+  - **Memory-Safe Preprocessing Pipelines**: Separate training/testing splits before fitting. `ColumnTransformer` combines `SimpleImputer(strategy="median")` + `StandardScaler()` for numeric columns with `SimpleImputer(strategy="most_frequent")` + `OneHotEncoder(handle_unknown="ignore", sparse_output=False, max_categories=25)` for categorical columns.
   - **Privacy & Safety Guarantees**: Raw row data and internal absolute server paths are never returned in API payloads or logged. Source files are never modified during analysis or training.
 
-### 3.4 AutoML Engine (Step 5 Implemented)
+### 3.4 AutoML Engine (Steps 5 & 6 Implemented)
 - **Role**: Intelligent algorithm selection and resource-budgeted optimization.
 - **Implemented Capabilities**:
   - **Model Registry Architecture**: Decoupled estimator factory supporting seamless candidate additions without altering orchestration logic.
@@ -125,34 +124,38 @@ flowchart TD
     - `decision_tree_regressor`: DecisionTreeRegressor with depth pruning (`max_depth=10`).
     - `random_forest_regressor`: RandomForestRegressor ensemble (`n_estimators=50`, `max_depth=12`, `n_jobs=1`).
     - `hist_gradient_boosting_regressor`: HistGradientBoostingRegressor with early stopping.
+  - **Configurable Evaluation Strategies**:
+    - `holdout`: Single split fitting on train partition and evaluating on holdout test partition.
+    - `cross_validation`: K-fold CV ($2 \le k \le 10$) with `StratifiedKFold` for classification and `KFold` for regression.
+  - **Untouched Test Set Protocol**: In CV mode, candidate selection operates strictly within the training partition. The selected winning model is refitted and evaluated once on the untouched holdout test partition to compute independent final performance metrics (`test_metrics`).
+  - **Stratification Fallback**: When classification classes have fewer samples than requested folds, gracefully falls back to non-stratified `KFold` with documented audit warnings, or rejects requests when configured with `cv_rare_class_fallback=false`.
   - **Resource-Aware Scheduling**: Bounded dataset dimensions (`MAX_DATASET_ROWS=100000`, `MAX_DATASET_COLUMNS=500`), bounded wall-clock training budget (5–300s), and thread-controlled fitting (`n_jobs=1`).
-  - **Fault Isolation**: Per-candidate try-except isolation records sanitized failure diagnostics without aborting the experiment.
-  - **Planned Capabilities**:
-    - **Hyperparameter Optimization (HPO)**: Adaptive Bayesian search with Optuna.
-    - **Asynchronous Task Queue**: Distributed training workers via Celery / Redis.
+  - **Fault Isolation**: Per-candidate and per-fold isolation records sanitized failure diagnostics and distinguishes timeouts (`skipped_timeout`) from model failures (`failed`).
 
-### 3.5 Evaluation, Explainability & Research Benchmarking (Step 5 Implemented)
+### 3.5 Evaluation, Explainability & Research Benchmarking (Steps 5 & 6 Implemented)
 - **Role**: Rigorous empirical validation and interpretability.
 - **Implemented Capabilities**:
   - **Multi-Metric Evaluation Engine**:
     - Classification: `accuracy`, `precision_weighted`, `precision_macro`, `recall_weighted`, `recall_macro`, `f1_weighted`, `f1_macro`, `roc_auc`, and `confusion_matrix`.
     - Regression: `rmse`, `mae`, and `r2`.
-  - **Dynamic & Direction-Aware Ranking**: Configurable primary metric with explicit direction awareness (`higher_is_better` vs `lower_is_better` for error metrics).
+  - **Statistical Fold Aggregation**: Computes valid fold counts, per-fold scores, mean score (`cv_mean`), and sample standard deviation (`cv_std`, with `ddof=1` only when $\ge 2$ valid scores exist; returns `null` otherwise).
+  - **Dynamic & Direction-Aware Ranking**: Configurable primary metric with explicit direction awareness (`higher_is_better` vs `lower_is_better` for error metrics). Never substitutes zero for missing metrics during ranking.
   - **Safe Metric Sanitization**: Guaranteed finite JSON primitives (`NaN` and `Infinity` replaced with `null`).
-  - **Stratified Holdout Splitting**: Preserves class distribution for classification with automatic graceful fallback when singleton classes exist.
 - **Planned Capabilities**:
   - **Explainable AI (SHAP)**: Global and local SHAP attributions for tree and linear models.
   - **Quantum ML Benchmarking**: PennyLane variational quantum circuits benchmarked against classical baselines.
 
-### 3.6 Experiment Tracking & Model Registry (Step 5 Implemented)
+### 3.6 Experiment Tracking & Model Registry (Steps 5 & 6 Implemented)
 - **Role**: Reproducibility, lineage, and deployment readiness.
 - **Implemented Capabilities**:
+  - **Hierarchical MLflow Experiment Tracking**:
+    - **Parent Runs**: Track overall experiment configuration (`dataset_id`, `dataset_fingerprint`, `target_column`, `task_type`, `evaluation_strategy`, `cv_folds`, `test_size`, `random_state`, `primary_metric`), software environment versions, total durations, and winning model tags. Registers `metadata.json` as an artifact.
+    - **Nested Child Runs**: One run per evaluated candidate model capturing parameters, durations, CV fold metrics, mean, std, and status.
+    - **Fault-Tolerant Resilience**: Tracking errors or unreachable backends are caught gracefully, persisting `tracking_status="failed"` and sanitized warnings without aborting training.
   - **Safe Local Artifact Storage**: Dedicated `experiments/{experiment_id}/` storage with path traversal protection.
   - **Atomic Metadata Persistence**: `metadata.json` written atomically via temporary files to avoid partial or corrupted states.
   - **Pipeline Export**: Complete scikit-learn `Pipeline` (fitted preprocessor + winning estimator) persisted to `best_model.joblib`.
-  - **Audit Metadata**: Records dataset ID, target column, task type, split proportions, random seed, candidate results, training durations, and software environment package versions.
-- **Planned Capabilities**:
-  - **MLflow Tracking**: Remote experiment logging and model registry staging.
+  - **Audit Metadata**: Records dataset ID, SHA-256 fingerprint, target column, task type, split proportions, random seed, candidate results, training durations, test metrics, and software environment package versions.
 
 ---
 
