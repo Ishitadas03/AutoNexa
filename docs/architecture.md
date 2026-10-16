@@ -95,22 +95,25 @@ flowchart TD
   - Provides streaming real-time status updates via Server-Sent Events (SSE) or WebSockets.
   - Implements dependency injection for core services, ensuring loose coupling and testability.
 
-### 3.3 Data Ingestion & Processing Subsystem (Step 3 Implemented)
-- **Role**: Robust data validation, cleaning, and tabular profiling.
-- **Implemented Capabilities (Step 3)**:
+### 3.3 Data Ingestion, Intelligence & Processing Subsystem (Steps 3 & 4 Implemented)
+- **Role**: Robust data validation, tabular profiling, data quality auditing, and ML task detection.
+- **Implemented Capabilities (Steps 3 & 4)**:
   - **Chunked Multipart Streaming**: Ingests `.csv` files in 64 KB chunks, dynamically enforcing a configurable size ceiling (`MAX_UPLOAD_SIZE_BYTES`, default 10 MB) without loading unconstrained files into memory.
   - **Path Traversal & Safe Identifiers**: Isolates client-provided filenames to display metadata; persists files under server-generated UUIDv4 filenames (`{dataset_id}.csv`) strictly within `resolved_upload_dir`.
   - **Pre-Validation**: Rejects non-CSV extensions, empty files (0 bytes), whitespace-only payloads, headerless files, files with no data rows, and structurally inconsistent row lengths.
   - **Automated Summary Profiling**: Automatically computes dataset metrics including total rows, total columns, column names, inferred data types (`dtypes`), missing value counts per column, duplicate row counts, DataFrame memory consumption, and disk file size.
-  - **Privacy & Safety Guarantees**: Raw row data and internal absolute server paths are never returned in API payloads or logged.
+  - **Dataset Intelligence & Role Classification**: Categorizes columns into semantic roles (`numeric`, `categorical`, `identifier`, `datetime`, `text`).
+  - **Data Quality Diagnostics**: Evaluates missingness ratios, flags critical missingness (>50%), identifies constant and near-constant features (dominant value >= 95%), and highlights high-cardinality categorical variables.
+  - **ML Task Detection & Heuristics**: Analyzes candidate targets, inferring `binary_classification`, `multiclass_classification`, or `regression` based on data types, unique class counts, and cardinality. Detects severe class imbalance (minority class < 10% or ratio > 4:1) and potential target leakage via Pearson correlation (|r| >= 0.98).
+  - **User Decisions vs. Heuristic Recommendations**: Supports explicit `task_override` between classification and regression while enforcing strict type compatibility.
+  - **Privacy & Safety Guarantees**: Raw row data and internal absolute server paths are never returned in API payloads or logged. Source files are never modified during analysis.
 - **Planned Capabilities (Upcoming Phases)**:
-  - **Automated Data Quality & Leakage Detection**: Identifies proxy targets, high cardinality risk, and feature drift.
   - **Preprocessing Pipelines**: Implements scikit-learn compatible transformers for missing value imputation, one-hot/target encoding, and feature scaling.
+  - **Feature Selection & Automated Engineering**: Generates interaction terms, polynomial features, and frequency encodings under computational budgets.
 
 ### 3.4 AutoML Engine
 - **Role**: Intelligent algorithm selection and resource-budgeted optimization.
 - **Key Responsibilities**:
-  - **Task Detection**: Automatically determines task type (Binary Classification, Multi-class Classification, Regression).
   - **Candidate Generation**: Evaluates a family of baselines (e.g., Logistic/Ridge regression, Random Forest, Gradient Boosted Trees).
   - **Resource-Aware Scheduling**: Dynamically adapts candidate depth and cross-validation folds according to CPU/memory availability and time limits.
   - **Hyperparameter Optimization (Planned)**: Structured exploration over hyperparameter spaces using adaptive search strategies.

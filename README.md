@@ -8,6 +8,7 @@ An extensible, research-oriented Automated Machine Learning (AutoML) platform de
 
 AutoNexa provides an automated, reproducible pipeline for tabular machine learning workflows:
 - **Intelligent Ingestion & EDA**: Ingests tabular formats (CSV), infers schemas, profiles data distributions, and catches data quality anomalies and target leakages.
+- **Dataset Intelligence & Task Detection**: Automatically audits feature roles, evaluates data quality risks (missingness, constants, class imbalance, leakage), and recommends suitable ML tasks (classification vs. regression) with heuristic rationales.
 - **Resource-Aware AutoML**: Dynamically evaluates candidate models (linear baselines, tree-based models, and ensembles) under strict time and resource budgets.
 - **Explainable AI (XAI)**: Native SHAP integration to provide global feature importance and individual prediction attributions.
 - **Reproducible Experimentation**: Tracks trials, configurations, and artifacts via MLflow.
@@ -17,17 +18,16 @@ AutoNexa provides an automated, reproducible pipeline for tabular machine learni
 
 ## 2. Current Development Status
 
-- **Status**: **Phase 3 — Secure CSV Dataset Ingestion, Validation & Profiling (Complete)**
+- **Status**: **Phase 4 — Dataset Intelligence, Data Quality & ML Task Detection (Complete)**
 - **Scope Implemented**:
   - Modular FastAPI application entry point initialized ([`backend/app/main.py`](file:///c:/Users/ishit/AutoNexa/backend/app/main.py)).
   - Centralized type-safe settings management powered by `pydantic-settings` ([`backend/app/core/config.py`](file:///c:/Users/ishit/AutoNexa/backend/app/core/config.py)).
   - System health-check endpoint ([`GET /api/v1/health`](http://127.0.0.1:8000/api/v1/health)) with strict Pydantic response contract ([`backend/app/schemas/health.py`](file:///c:/Users/ishit/AutoNexa/backend/app/schemas/health.py)).
-  - Secure chunked CSV ingestion endpoint ([`POST /api/v1/datasets/upload`](http://127.0.0.1:8000/docs#/Datasets/upload_dataset_api_v1_datasets_upload_post)) with path-traversal protection and dynamic streaming size ceiling enforcement.
-  - Tabular structural validation (enforcing non-empty, non-whitespace, parseable delimited structure with headers and data rows) and statistical profiling service ([`backend/app/services/dataset_service.py`](file:///c:/Users/ishit/AutoNexa/backend/app/services/dataset_service.py)).
+  - Secure chunked CSV ingestion endpoint ([`POST /api/v1/datasets/upload`](http://127.0.0.1:8000/docs#/Datasets/upload_dataset_api_v1_datasets_upload_post)) with path-traversal protection and dynamic streaming size ceiling enforcement ([`backend/app/services/dataset_service.py`](file:///c:/Users/ishit/AutoNexa/backend/app/services/dataset_service.py)).
+  - Comprehensive Dataset Intelligence & Task Detection endpoint ([`POST /api/v1/datasets/{dataset_id}/analyze`](http://127.0.0.1:8000/docs#/Datasets/analyze_dataset_api_v1_datasets__dataset_id__analyze_post)) providing feature role classification, quality warnings (missingness, constants, high cardinality, class imbalance, potential leakage), candidate target detection, and heuristic ML task recommendations with override support ([`backend/app/services/analysis_service.py`](file:///c:/Users/ishit/AutoNexa/backend/app/services/analysis_service.py)).
   - Interactive Swagger UI documentation at [`/docs`](http://127.0.0.1:8000/docs) and OpenAPI specification at [`/openapi.json`](http://127.0.0.1:8000/openapi.json).
-  - 18 automated tests ([`backend/tests/test_health.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_health.py) and [`backend/tests/test_datasets.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_datasets.py)) covering all edge cases, malformed payloads, size bounds, and cleanup mechanisms.
+  - 33 automated tests across [`backend/tests/test_health.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_health.py), [`backend/tests/test_datasets.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_datasets.py), and [`backend/tests/test_analysis.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_analysis.py) covering all functional requirements, security guards, and edge cases.
 - **Upcoming Phases**:
-  - Phase 4: Automated Task Detection & Data Quality / Leakage Audit Service.
   - Phase 5: AutoML Model Selection & Resource-Aware Training Pipeline.
   - Phase 6: Model Explainability (SHAP) & MLflow Tracking.
   - Phase 7: Next.js Frontend UI Dashboard & Visualizations.
@@ -65,41 +65,44 @@ Ensure the following tools are installed on your host system:
 AutoNexa/
 ├── backend/
 │   ├── app/
-│   │   ├── __init__.py          # Main application package
-│   │   ├── main.py              # FastAPI application entry point & factory
+│   │   ├── __init__.py            # Main application package
+│   │   ├── main.py                # FastAPI application entry point & factory
 │   │   ├── api/
-│   │   │   ├── __init__.py      # Aggregated API router
+│   │   │   ├── __init__.py        # Aggregated API router
 │   │   │   └── routes/
-│   │   │       ├── __init__.py  # Route package initialization
-│   │   │       ├── health.py    # Health-check route definition
-│   │   │       └── datasets.py  # Dataset upload & profiling route definition
+│   │   │       ├── __init__.py    # Route package initialization
+│   │   │       ├── health.py      # Health-check route definition
+│   │   │       └── datasets.py    # Dataset upload, profiling & analysis routes
 │   │   ├── core/
-│   │   │   ├── __init__.py      # Core package exports
-│   │   │   └── config.py        # Centralized Pydantic settings
+│   │   │   ├── __init__.py        # Core package exports
+│   │   │   └── config.py          # Centralized Pydantic settings
 │   │   ├── schemas/
-│   │   │   ├── __init__.py      # Schema exports
-│   │   │   ├── health.py        # Health response Pydantic model
-│   │   │   └── dataset.py       # Dataset profile Pydantic model
+│   │   │   ├── __init__.py        # Schema exports
+│   │   │   ├── health.py          # Health response Pydantic model
+│   │   │   ├── dataset.py         # Dataset profile Pydantic model
+│   │   │   └── analysis.py        # Dataset intelligence & task detection schemas
 │   │   └── services/
-│   │       ├── __init__.py      # Service layer package exports
-│   │       └── dataset_service.py # Dataset ingestion, validation & profiling service
+│   │       ├── __init__.py        # Service layer package exports
+│   │       ├── dataset_service.py # Ingestion, validation & profiling service
+│   │       └── analysis_service.py # Dataset intelligence, diagnostics & task detection
 │   ├── tests/
-│   │   ├── __init__.py          # Test suite package
-│   │   ├── test_health.py       # Health endpoint & OpenAPI automated tests
-│   │   └── test_datasets.py     # Dataset ingestion, validation & profile tests
+│   │   ├── __init__.py            # Test suite package
+│   │   ├── test_health.py         # Health endpoint automated tests
+│   │   ├── test_datasets.py       # Dataset upload and validation tests
+│   │   └── test_analysis.py       # Dataset intelligence & task detection tests
 │   ├── uploads/
-│   │   └── .gitkeep             # Local dataset upload directory (ignored in git)
-│   ├── requirements.txt         # Pinned backend dependencies
-│   ├── .env.example             # Safe environment configuration template
-│   └── .venv/                   # Python 3.11 virtual environment (ignored in git)
+│   │   └── .gitkeep               # Local dataset upload directory (ignored in git)
+│   ├── requirements.txt           # Pinned backend dependencies
+│   ├── .env.example               # Safe environment configuration template
+│   └── .venv/                     # Python 3.11 virtual environment (ignored in git)
 ├── frontend/
-│   └── .gitkeep                 # Placeholder for Next.js frontend application
+│   └── .gitkeep                   # Placeholder for Next.js frontend application
 ├── docs/
-│   └── architecture.md          # Planned high-level system architecture
+│   └── architecture.md            # Planned high-level system architecture
 ├── experiments/
-│   └── .gitkeep                 # Experiment logs and tracking artifacts
-├── .gitignore                   # Comprehensive git ignore rules
-└── README.md                    # Project documentation
+│   └── .gitkeep                   # Experiment logs and tracking artifacts
+├── .gitignore                     # Comprehensive git ignore rules
+└── README.md                      # Project documentation
 ```
 
 ---
@@ -166,46 +169,28 @@ python -m uvicorn app.main:app --reload
 Once running, the server is accessible at:
 - **Health Check Endpoint**: [http://127.0.0.1:8000/api/v1/health](http://127.0.0.1:8000/api/v1/health)
 - **Dataset Upload Endpoint**: [http://127.0.0.1:8000/api/v1/datasets/upload](http://127.0.0.1:8000/api/v1/datasets/upload)
+- **Dataset Analysis Endpoint**: [http://127.0.0.1:8000/api/v1/datasets/{dataset_id}/analyze](http://127.0.0.1:8000/api/v1/datasets/{dataset_id}/analyze)
 - **Interactive Swagger UI Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 - **ReDoc Documentation**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 - **OpenAPI JSON Specification**: [http://127.0.0.1:8000/openapi.json](http://127.0.0.1:8000/openapi.json)
 
 ---
 
-## 8. API Specification & Endpoints
+## 8. API Specifications & Endpoints
 
-### 8.1 Health-Check Endpoint: `GET /api/v1/health`
+### 8.1 Health-Check: `GET /api/v1/health`
 
-Validates that the AutoNexa application server is online and operational. This endpoint is purposefully decoupled from external databases, ML engines, and caches.
+Validates that the AutoNexa application server is online and operational. Decoupled from external databases and ML training.
 
-#### Sample Request:
 ```bash
 curl -X GET http://127.0.0.1:8000/api/v1/health
 ```
 
-#### Sample Response (HTTP 200 OK):
-```json
-{
-  "status": "healthy",
-  "app_name": "AutoNexa",
-  "version": "0.1.0"
-}
-```
-
 ---
 
-### 8.2 Dataset Upload & Profiling Endpoint: `POST /api/v1/datasets/upload`
+### 8.2 Dataset Upload & Profiling: `POST /api/v1/datasets/upload`
 
 Uploads, validates, stores, and profiles a tabular CSV dataset.
-
-#### Security & Validation Rules:
-1. **Extension & Content Validation**: Requires a valid `.csv` filename extension.
-2. **Streaming Size Limit Enforcement**: Streams files in 64 KB chunks, rejecting payloads exceeding `MAX_UPLOAD_SIZE_BYTES` (default 10 MB) with HTTP 413 without loading entire files into memory.
-3. **Empty & Whitespace-Only Rejection**: Rejects 0-byte files and whitespace-only files with HTTP 400.
-4. **Delimited Structure Validation**: Requires valid CSV headers and at least one data row. Rejects malformed rows with inconsistent column counts.
-5. **Path Traversal Protection**: Client filenames are strictly sanitized and retained solely as display metadata. Files are saved on disk as `{dataset_id}.csv` using random UUIDs inside the verified `upload_dir`.
-6. **Zero Orphan Files**: Any validation failure, size breach, or abort automatically cleans up partial and temporary files on disk.
-7. **Privacy Preservation**: Raw dataset rows and absolute filesystem paths are never returned in responses.
 
 #### Minimal `curl` Example:
 ```bash
@@ -214,64 +199,151 @@ curl -X POST http://127.0.0.1:8000/api/v1/datasets/upload \
   -F "file=@california_housing.csv;type=text/csv"
 ```
 
-#### Sample Response (HTTP 201 Created):
+---
+
+### 8.3 Dataset Intelligence & ML Task Detection: `POST /api/v1/datasets/{dataset_id}/analyze`
+
+Performs deep structural diagnostics, data quality auditing, candidate target detection, and ML task inference on an uploaded dataset.
+
+#### Request Payload Model (Optional):
+```json
+{
+  "target_column": "purchased",
+  "task_override": "classification"
+}
+```
+*Note: If no body or an empty object `{}` is supplied, the endpoint computes full dataset diagnostics and lists candidate targets without enforcing a specific prediction task.*
+
+#### Sample `curl` Command:
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/datasets/7e4a1c5d-2b99-4d6b-9c71-2f738a901e4a/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"target_column": "churn"}'
+```
+
+#### Illustrative Response (HTTP 200 OK):
 ```json
 {
   "dataset_id": "7e4a1c5d-2b99-4d6b-9c71-2f738a901e4a",
-  "filename": "california_housing.csv",
   "rows": 1000,
-  "columns": 6,
-  "column_names": ["id", "square_feet", "bedrooms", "bathrooms", "price", "neighborhood"],
-  "data_types": {
-    "id": "int64",
-    "square_feet": "float64",
-    "bedrooms": "int64",
-    "bathrooms": "float64",
-    "price": "float64",
-    "neighborhood": "object"
-  },
-  "missing_values": {
-    "id": 0,
-    "square_feet": 15,
-    "bedrooms": 0,
-    "bathrooms": 2,
-    "price": 0,
-    "neighborhood": 4
-  },
-  "duplicate_rows": 0,
-  "memory_usage_bytes": 48216,
-  "file_size_bytes": 24580
+  "columns": 5,
+  "column_summaries": [
+    {
+      "name": "user_id",
+      "inferred_type": "int64",
+      "role": "identifier",
+      "missing_count": 0,
+      "missing_percentage": 0.0,
+      "unique_count": 1000,
+      "is_constant": false,
+      "is_near_constant": false,
+      "is_high_cardinality": false
+    },
+    {
+      "name": "age",
+      "inferred_type": "float64",
+      "role": "numeric",
+      "missing_count": 15,
+      "missing_percentage": 1.5,
+      "unique_count": 65,
+      "is_constant": false,
+      "is_near_constant": false,
+      "is_high_cardinality": false
+    },
+    {
+      "name": "churn",
+      "inferred_type": "int64",
+      "role": "numeric",
+      "missing_count": 0,
+      "missing_percentage": 0.0,
+      "unique_count": 2,
+      "is_constant": false,
+      "is_near_constant": false,
+      "is_high_cardinality": false
+    }
+  ],
+  "numeric_columns": ["user_id", "age", "churn"],
+  "categorical_columns": [],
+  "duplicate_rows_count": 0,
+  "duplicate_rows_percentage": 0.0,
+  "candidate_targets": [
+    {
+      "column_name": "churn",
+      "reason": "Column name 'churn' matches common target naming conventions.",
+      "suggested_task": "binary_classification"
+    }
+  ],
+  "quality_warnings": [],
+  "task_recommendation": {
+    "target_column": "churn",
+    "task_type": "binary_classification",
+    "confidence": "medium",
+    "rationale": "Target is numeric with exactly 2 distinct values ([0, 1]). Recommending binary classification. If continuous bounded modeling is desired, set task_override='regression'.",
+    "class_distribution": {
+      "0": 850,
+      "1": 150
+    },
+    "is_class_imbalanced": false,
+    "minority_class_percentage": 15.0,
+    "heuristic_disclaimer": "Heuristic task detection provides an automated recommendation based on data types and cardinality. It does not guarantee task suitability for all research or business objectives. Use task_override if domain requirements differ."
+  }
 }
 ```
 
 ---
 
-## 9. Running Automated Tests
+## 9. Task Detection Heuristics & Data Quality Audits
 
-Run the full automated test suite (18 tests) from the `backend/` directory:
+### 9.1 ML Task Detection Rules
+1. **Categorical / Text Targets**:
+   - Distinct values == 2 $\rightarrow$ `binary_classification` (High confidence).
+   - Distinct values > 2 $\rightarrow$ `multiclass_classification` (High confidence).
+2. **Numeric Targets**:
+   - Exactly 2 distinct numeric values (e.g., `0` and `1`) $\rightarrow$ `binary_classification` (Medium confidence, with explicit note on continuous modeling option).
+   - Discrete integer with $\le 10$ unique values $\rightarrow$ `multiclass_classification` (Medium confidence).
+   - Continuous float or $\ge 11$ unique values $\rightarrow$ `regression` (High confidence).
+3. **Task Overrides**:
+   - `task_override='regression'` is verified against target type; rejected if target is non-numeric text.
+   - `task_override='classification'` is verified against target type; rejected if target is continuous float with $> 100$ unique values.
+4. **Safety & Disclaimers**:
+   - Heuristics are explicitly disclaimed as automated guidance rather than definitive ground truth. Users retain full control via `task_override`.
+
+### 9.2 Data Quality & Risk Diagnostics
+- **Critical Missingness**: Flags columns with $> 50\%$ missing values (`CRITICAL_MISSINGNESS`) or $> 20\%$ missing values (`HIGH_MISSINGNESS`).
+- **Constant & Near-Constant Features**: Identifies columns with 1 unique value (`CONSTANT_COLUMN`) or dominant value $\ge 95\%$ frequency (`NEAR_CONSTANT_COLUMN`).
+- **High Cardinality**: Flags categorical features with $> 50$ distinct categories or ratio $> 30\%$ of total rows (`HIGH_CARDINALITY`).
+- **Class Imbalance**: Warns when minority class comprises $< 10\%$ of samples or majority-to-minority ratio exceeds $4:1$ (`CLASS_IMBALANCE`).
+- **Target Leakage**: Evaluates linear correlation ($|r| \ge 0.98$) between candidate numeric features and the target (`POTENTIAL_TARGET_LEAKAGE`).
+
+---
+
+## 10. Running Automated Tests
+
+Run the full automated test suite (33 tests) from the `backend/` directory:
 
 ```bash
 python -m pytest -q
 ```
 
-Or for detailed test execution output:
+Or for verbose test output:
 
 ```bash
 python -m pytest -v
 ```
 
-The test suite validates:
-- Endpoint health and configuration reflection.
-- Valid CSV upload, schema generation, and summary metrics.
-- Rejection of non-CSV extensions, empty files, whitespace-only files, malformed rows, and header-only files.
-- Chunked streaming upload size limits (HTTP 413).
-- Path traversal immunity in client filenames.
-- Complete cleanup of orphan/partial files upon validation errors.
-- Prevention of raw data row or server filesystem path leakage in responses.
+The test suite covers:
+- System health and configuration integrity.
+- Dataset upload, streaming size bounds, path traversal guards, and partial file cleanup.
+- Dataset intelligence analysis, role classification, and diagnostics.
+- Target selection validation (constant, all-null, non-existent).
+- Heuristic task detection (binary classification, multiclass classification, regression).
+- Explicit task overrides and type-compatibility guards.
+- Missingness statistics, constant features, high cardinality, class imbalance, and leakage warnings.
+- Verification that no raw rows or absolute server paths leak into responses.
 
 ---
 
-## 10. Configuration Management
+## 11. Configuration Management
 
 Configuration is handled centrally using `pydantic-settings` in [`backend/app/core/config.py`](file:///c:/Users/ishit/AutoNexa/backend/app/core/config.py). Variables can be overridden via environment variables or a local `.env` file.
 
@@ -301,14 +373,14 @@ cp .env.example .env
 
 ---
 
-## 11. Current Limitations (Step 3)
+## 12. Current Limitations (Step 4)
 
-- **File Format**: Only comma-delimited tabular CSV files are currently supported. Parquet, TSV, and Excel ingestion will be introduced in subsequent iterations.
-- **Storage Tier**: Ingested datasets are securely stored on local disk within the configured `upload_dir`. Cloud object stores (e.g. S3/GCS) are planned for distributed deployments.
-- **Profiling Scope**: Profiling computes foundational tabular metrics (row/column counts, missingness, duplicates, memory footprint, and data types). Advanced statistical profiling, multicollinearity detection, and target leakage audits are reserved for Step 4.
+- **Diagnostic Only**: Analysis identifies quality issues, class imbalance, and candidate targets, but does not mutate, drop, or transform the underlying dataset file.
+- **Leakage Detection**: Leakage detection currently evaluates high linear correlation ($|r| \ge 0.98$); non-linear mutual information leakage checks will be integrated into feature engineering in Phase 5.
+- **Model Training**: No machine learning models are trained in this phase. Candidate model generation and hyperparameter search occur in Phase 5.
 
 ---
 
-## 12. License
+## 13. License
 
 This project is licensed under the Apache 2.0 License.
