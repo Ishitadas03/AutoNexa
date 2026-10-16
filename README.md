@@ -1,12 +1,12 @@
-# AutoML Research Lab (AutoNexa)
+# AutoNexa (AutoML Research Lab)
 
-An extensible, research-oriented Automated Machine Learning (AutoML) platform designed for tabular datasets. AutoML Research Lab accelerates the workflow from raw tabular data ingestion to model selection, hyperparameter optimization, explainability, experiment tracking, and quantum machine learning benchmarking.
+An extensible, research-oriented Automated Machine Learning (AutoML) platform designed for tabular datasets. AutoNexa accelerates the workflow from raw tabular data ingestion to model selection, hyperparameter optimization, explainability, experiment tracking, and quantum machine learning benchmarking.
 
 ---
 
 ## 1. Project Overview
 
-AutoML Research Lab provides an automated, reproducible pipeline for tabular machine learning workflows:
+AutoNexa provides an automated, reproducible pipeline for tabular machine learning workflows:
 - **Intelligent Ingestion & EDA**: Ingests tabular formats (CSV, Parquet), infers schemas, profiles data distributions, and catches data quality anomalies and target leakages.
 - **Resource-Aware AutoML**: Dynamically evaluates candidate models (linear baselines, tree-based models, and ensembles) under strict time and resource budgets.
 - **Explainable AI (XAI)**: Native SHAP integration to provide global feature importance and individual prediction attributions.
@@ -17,20 +17,19 @@ AutoML Research Lab provides an automated, reproducible pipeline for tabular mac
 
 ## 2. Current Development Status
 
-- **Status**: **Phase 1 — Project Foundation (Complete)**
+- **Status**: **Phase 2 — Backend Foundation & Health-Check API (Complete)**
 - **Scope Implemented**:
-  - Research repository architecture established.
-  - Backend package hierarchy structured (`app/api`, `app/core`, `app/schemas`, `app/services`, `tests`, `uploads`).
-  - Isolated Python 3.11 virtual environment initialized.
-  - Core web and machine learning foundation dependencies installed and verified.
-  - Safe environment configuration templates (`.env.example`) and comprehensive `.gitignore` configured.
-  - High-level system architecture documented in [`docs/architecture.md`](docs/architecture.md).
+  - Modular FastAPI application entry point initialized ([`backend/app/main.py`](file:///c:/Users/ishit/AutoNexa/backend/app/main.py)).
+  - Centralized type-safe settings management powered by `pydantic-settings` ([`backend/app/core/config.py`](file:///c:/Users/ishit/AutoNexa/backend/app/core/config.py)).
+  - System health-check endpoint ([`GET /api/v1/health`](http://127.0.0.1:8000/api/v1/health)) with strict Pydantic response contract ([`backend/app/schemas/health.py`](file:///c:/Users/ishit/AutoNexa/backend/app/schemas/health.py)).
+  - Interactive Swagger UI documentation at [`/docs`](http://127.0.0.1:8000/docs) and OpenAPI specification at [`/openapi.json`](http://127.0.0.1:8000/openapi.json).
+  - Comprehensive automated test suite ([`backend/tests/test_health.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_health.py)) validating status codes, response schemas, configuration reflection, and documentation routes.
 - **Upcoming Phases**:
-  - Phase 2: Core Data Ingestion & Quality Analysis Service.
-  - Phase 3: AutoML Model Selection & Resource-Aware Training Pipeline.
-  - Phase 4: Model Explainability (SHAP) & MLflow Tracking.
-  - Phase 5: Next.js Frontend UI Dashboard & Visualizations.
-  - Phase 6: PennyLane Classical vs. Quantum Benchmarking Module.
+  - Phase 3: Core Data Ingestion & Quality Analysis Service.
+  - Phase 4: AutoML Model Selection & Resource-Aware Training Pipeline.
+  - Phase 5: Model Explainability (SHAP) & MLflow Tracking.
+  - Phase 6: Next.js Frontend UI Dashboard & Visualizations.
+  - Phase 7: PennyLane Classical vs. Quantum Benchmarking Module.
 
 ---
 
@@ -56,9 +55,6 @@ Ensure the following tools are installed on your host system:
 | **Git** | 2.x+ | Version control |
 | **Node.js** | 18.x or 20.x+ | Future Next.js frontend |
 
-> [!NOTE]
-> Python 3.11 is strictly recommended for optimal compatibility across core scientific and machine learning libraries (e.g., NumPy, Scikit-Learn, PyTorch/PennyLane).
-
 ---
 
 ## 5. Project Directory Structure
@@ -68,16 +64,23 @@ AutoNexa/
 ├── backend/
 │   ├── app/
 │   │   ├── __init__.py          # Main application package
+│   │   ├── main.py              # FastAPI application entry point & factory
 │   │   ├── api/
-│   │   │   └── __init__.py      # API routers and endpoints
+│   │   │   ├── __init__.py      # Aggregated API router
+│   │   │   └── routes/
+│   │   │       ├── __init__.py  # Route package initialization
+│   │   │       └── health.py    # Health-check route definition
 │   │   ├── core/
-│   │   │   └── __init__.py      # Application configuration and settings
+│   │   │   ├── __init__.py      # Core package exports
+│   │   │   └── config.py        # Centralized Pydantic settings
 │   │   ├── schemas/
-│   │   │   └── __init__.py      # Pydantic schemas and data contracts
+│   │   │   ├── __init__.py      # Schema exports
+│   │   │   └── health.py        # Health response Pydantic model
 │   │   └── services/
-│   │       └── __init__.py      # Business logic and ML services
+│   │       └── __init__.py      # Service layer package
 │   ├── tests/
-│   │   └── __init__.py          # Unit and integration test suite
+│   │   ├── __init__.py          # Test suite package
+│   │   └── test_health.py       # Health endpoint & OpenAPI automated tests
 │   ├── uploads/
 │   │   └── .gitkeep             # Local dataset upload directory (ignored in git)
 │   ├── requirements.txt         # Pinned backend dependencies
@@ -118,8 +121,6 @@ Using Python 3.11:
 
 ### Step 6.3: Activate the Virtual Environment
 
-Choose the command matching your shell:
-
 - **Windows PowerShell**:
   ```powershell
   .\.venv\Scripts\Activate.ps1
@@ -136,11 +137,6 @@ Choose the command matching your shell:
   source .venv/bin/activate
   ```
 
-- **Fish Shell**:
-  ```fish
-  source .venv/bin/activate.fish
-  ```
-
 ### Step 6.4: Install Dependencies
 
 With the virtual environment activated:
@@ -152,34 +148,68 @@ pip install -r requirements.txt
 
 ---
 
-## 7. Verifying the Setup
+## 7. Starting the Development Server
 
-To verify that the Python environment and all required dependencies are correctly installed, run the following verification checks inside `backend/`:
+To launch the AutoNexa backend development server with auto-reload:
 
-### 1. Verify Python Interpreter & Version
 ```bash
-python --version
+# Ensure you are inside the backend directory with .venv active
+python -m uvicorn app.main:app --reload
 ```
-*Expected output:* `Python 3.11.x`
 
-### 2. Verify Dependency Integrity
-```bash
-python -m pip check
-```
-*Expected output:* `No broken requirements found.`
-
-### 3. Verify Package Imports
-Run the automated import test:
-```bash
-python -c "import fastapi, uvicorn, pandas, numpy, sklearn, multipart, pydantic_settings, pytest, httpx; print('All core modules imported successfully!')"
-```
-*Expected output:* `All core modules imported successfully!`
+Once running, the server is accessible at:
+- **Health Check Endpoint**: [http://127.0.0.1:8000/api/v1/health](http://127.0.0.1:8000/api/v1/health)
+- **Interactive Swagger UI Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **ReDoc Documentation**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
+- **OpenAPI JSON Specification**: [http://127.0.0.1:8000/openapi.json](http://127.0.0.1:8000/openapi.json)
 
 ---
 
-## 8. Configuration
+## 8. Health-Check API Specification
 
-Copy the template environment file to `.env`:
+### Endpoint: `GET /api/v1/health`
+
+Validates that the AutoNexa application server is online and operational. This endpoint is purposefully decoupled from external databases, ML engines, and caches.
+
+#### Sample Request:
+```bash
+curl -X GET http://127.0.0.1:8000/api/v1/health
+```
+
+#### Sample Response (HTTP 200 OK):
+```json
+{
+  "status": "healthy",
+  "app_name": "AutoNexa",
+  "version": "0.1.0"
+}
+```
+
+---
+
+## 9. Running Automated Tests
+
+Run the test suite from the `backend/` directory:
+
+```bash
+python -m pytest -q
+```
+
+Or for detailed test execution output:
+
+```bash
+python -m pytest -v
+```
+
+All 5 core endpoint and schema tests will execute using FastAPI's `TestClient`.
+
+---
+
+## 10. Configuration Management
+
+Configuration is handled centrally using `pydantic-settings` in [`backend/app/core/config.py`](file:///c:/Users/ishit/AutoNexa/backend/app/core/config.py). Variables can be overridden via environment variables or a local `.env` file.
+
+To customize settings, copy the example environment file:
 
 ```bash
 # On Windows PowerShell
@@ -189,10 +219,20 @@ Copy-Item .env.example .env
 cp .env.example .env
 ```
 
-The default values in `.env.example` are pre-configured for safe local development and do not require external credentials or API keys.
+| Variable | Default Value | Description |
+| :--- | :--- | :--- |
+| `APP_NAME` | `"AutoNexa"` | Name of the application |
+| `APP_VERSION` | `"0.1.0"` | Current semantic version |
+| `APP_DESCRIPTION` | `"An automated machine-learning research platform..."` | OpenAPI description |
+| `API_V1_PREFIX` | `"/api/v1"` | URL prefix for version 1 API routes |
+| `ENVIRONMENT` | `"development"` | Environment runtime mode |
+| `DEBUG` | `false` | Enable/disable debug diagnostics |
+| `SERVER_HOST` | `"127.0.0.1"` | Host address for server binding |
+| `SERVER_PORT` | `8000` | Port for server binding |
+| `BACKEND_CORS_ORIGINS` | `["http://localhost:3000","http://127.0.0.1:3000"]` | Allowed frontend origins |
 
 ---
 
-## 9. License
+## 11. License
 
 This project is licensed under the Apache 2.0 License.
