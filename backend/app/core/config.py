@@ -84,6 +84,28 @@ class Settings(BaseSettings):
         description="Maximum permitted upload size in bytes (default 10 MB)",
     )
 
+    # AutoML Training & Experiments Configuration
+    experiments_dir: str = Field(
+        default="experiments",
+        validation_alias=AliasChoices("EXPERIMENTS_DIR"),
+        description="Directory where experiment metadata and artifacts are stored",
+    )
+    max_dataset_rows: int = Field(
+        default=100000,
+        validation_alias=AliasChoices("MAX_DATASET_ROWS"),
+        description="Maximum permitted rows for dataset training",
+    )
+    max_dataset_columns: int = Field(
+        default=500,
+        validation_alias=AliasChoices("MAX_DATASET_COLUMNS"),
+        description="Maximum permitted columns for dataset training",
+    )
+    max_training_budget_seconds: int = Field(
+        default=300,
+        validation_alias=AliasChoices("MAX_TRAINING_BUDGET_SECONDS"),
+        description="Maximum allowed training budget in seconds (default 300s)",
+    )
+
     @property
     def resolved_upload_dir(self) -> Path:
         """Return absolute Path for uploads directory, creating it if needed."""
@@ -92,6 +114,20 @@ class Settings(BaseSettings):
             # Resolve relative to the backend directory
             base_dir = Path(__file__).resolve().parent.parent.parent
             path = (base_dir / self.upload_dir).resolve()
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def resolved_experiments_dir(self) -> Path:
+        """Return absolute Path for experiments directory, creating it if needed."""
+        path = Path(self.experiments_dir)
+        if not path.is_absolute():
+            base_dir = Path(__file__).resolve().parent.parent.parent
+            # Check if experiments exists at project root (parent of backend)
+            if (base_dir.parent / self.experiments_dir).is_dir():
+                path = (base_dir.parent / self.experiments_dir).resolve()
+            else:
+                path = (base_dir / self.experiments_dir).resolve()
         path.mkdir(parents=True, exist_ok=True)
         return path
 

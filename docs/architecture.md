@@ -95,9 +95,9 @@ flowchart TD
   - Provides streaming real-time status updates via Server-Sent Events (SSE) or WebSockets.
   - Implements dependency injection for core services, ensuring loose coupling and testability.
 
-### 3.3 Data Ingestion, Intelligence & Processing Subsystem (Steps 3 & 4 Implemented)
+### 3.3 Data Ingestion, Intelligence & Processing Subsystem (Steps 3, 4 & 5 Implemented)
 - **Role**: Robust data validation, tabular profiling, data quality auditing, and ML task detection.
-- **Implemented Capabilities (Steps 3 & 4)**:
+- **Implemented Capabilities**:
   - **Chunked Multipart Streaming**: Ingests `.csv` files in 64 KB chunks, dynamically enforcing a configurable size ceiling (`MAX_UPLOAD_SIZE_BYTES`, default 10 MB) without loading unconstrained files into memory.
   - **Path Traversal & Safe Identifiers**: Isolates client-provided filenames to display metadata; persists files under server-generated UUIDv4 filenames (`{dataset_id}.csv`) strictly within `resolved_upload_dir`.
   - **Pre-Validation**: Rejects non-CSV extensions, empty files (0 bytes), whitespace-only payloads, headerless files, files with no data rows, and structurally inconsistent row lengths.
@@ -106,30 +106,53 @@ flowchart TD
   - **Data Quality Diagnostics**: Evaluates missingness ratios, flags critical missingness (>50%), identifies constant and near-constant features (dominant value >= 95%), and highlights high-cardinality categorical variables.
   - **ML Task Detection & Heuristics**: Analyzes candidate targets, inferring `binary_classification`, `multiclass_classification`, or `regression` based on data types, unique class counts, and cardinality. Detects severe class imbalance (minority class < 10% or ratio > 4:1) and potential target leakage via Pearson correlation (|r| >= 0.98).
   - **User Decisions vs. Heuristic Recommendations**: Supports explicit `task_override` between classification and regression while enforcing strict type compatibility.
-  - **Privacy & Safety Guarantees**: Raw row data and internal absolute server paths are never returned in API payloads or logged. Source files are never modified during analysis.
-- **Planned Capabilities (Upcoming Phases)**:
-  - **Preprocessing Pipelines**: Implements scikit-learn compatible transformers for missing value imputation, one-hot/target encoding, and feature scaling.
-  - **Feature Selection & Automated Engineering**: Generates interaction terms, polynomial features, and frequency encodings under computational budgets.
+  - **Leakage-Free Preprocessing Pipelines**: Separate training/testing splits before fitting. `ColumnTransformer` combines `SimpleImputer(strategy="median")` + `StandardScaler()` for numeric columns with `SimpleImputer(strategy="most_frequent")` + `OneHotEncoder(handle_unknown="ignore", sparse_output=False)` for categorical columns.
+  - **Privacy & Safety Guarantees**: Raw row data and internal absolute server paths are never returned in API payloads or logged. Source files are never modified during analysis or training.
 
-### 3.4 AutoML Engine
+### 3.4 AutoML Engine (Step 5 Implemented)
 - **Role**: Intelligent algorithm selection and resource-budgeted optimization.
-- **Key Responsibilities**:
-  - **Candidate Generation**: Evaluates a family of baselines (e.g., Logistic/Ridge regression, Random Forest, Gradient Boosted Trees).
-  - **Resource-Aware Scheduling**: Dynamically adapts candidate depth and cross-validation folds according to CPU/memory availability and time limits.
-  - **Hyperparameter Optimization (Planned)**: Structured exploration over hyperparameter spaces using adaptive search strategies.
+- **Implemented Capabilities**:
+  - **Model Registry Architecture**: Decoupled estimator factory supporting seamless candidate additions without altering orchestration logic.
+  - **Classification Candidate Estimators**:
+    - `dummy`: DummyClassifier baseline (`strategy="most_frequent"`).
+    - `logistic_regression`: L2-penalized Logistic Regression with bounded iterations.
+    - `decision_tree`: DecisionTreeClassifier with depth pruning (`max_depth=10`).
+    - `random_forest`: RandomForestClassifier ensemble (`n_estimators=50`, `max_depth=12`, `n_jobs=1`).
+    - `hist_gradient_boosting`: HistGradientBoostingClassifier with native categorical handling and early stopping.
+  - **Regression Candidate Estimators**:
+    - `dummy_regressor`: DummyRegressor baseline (`strategy="mean"`).
+    - `linear_regression`: L2-penalized Ridge regression (`alpha=1.0`).
+    - `decision_tree_regressor`: DecisionTreeRegressor with depth pruning (`max_depth=10`).
+    - `random_forest_regressor`: RandomForestRegressor ensemble (`n_estimators=50`, `max_depth=12`, `n_jobs=1`).
+    - `hist_gradient_boosting_regressor`: HistGradientBoostingRegressor with early stopping.
+  - **Resource-Aware Scheduling**: Bounded dataset dimensions (`MAX_DATASET_ROWS=100000`, `MAX_DATASET_COLUMNS=500`), bounded wall-clock training budget (5–300s), and thread-controlled fitting (`n_jobs=1`).
+  - **Fault Isolation**: Per-candidate try-except isolation records sanitized failure diagnostics without aborting the experiment.
+  - **Planned Capabilities**:
+    - **Hyperparameter Optimization (HPO)**: Adaptive Bayesian search with Optuna.
+    - **Asynchronous Task Queue**: Distributed training workers via Celery / Redis.
 
-### 3.5 Evaluation, Explainability & Research Benchmarking
+### 3.5 Evaluation, Explainability & Research Benchmarking (Step 5 Implemented)
 - **Role**: Rigorous empirical validation and interpretability.
-- **Key Responsibilities**:
-  - **Multi-Metric Evaluation**: Computes standard metrics (ROC-AUC, PR-AUC, F1, Log-Loss, RMSE, MAE, R²) with confidence intervals.
-  - **Explainable AI (SHAP)**: Computes TreeSHAP and KernelSHAP values to provide global feature importance and local sample-level attribution.
-  - **Quantum ML Benchmarking (Planned)**: Encodes tabular features into quantum states using PennyLane variational quantum circuits (VQC) to empirically benchmark classical models against quantum classifiers on standardized datasets.
+- **Implemented Capabilities**:
+  - **Multi-Metric Evaluation Engine**:
+    - Classification: `accuracy`, `precision_weighted`, `precision_macro`, `recall_weighted`, `recall_macro`, `f1_weighted`, `f1_macro`, `roc_auc`, and `confusion_matrix`.
+    - Regression: `rmse`, `mae`, and `r2`.
+  - **Dynamic & Direction-Aware Ranking**: Configurable primary metric with explicit direction awareness (`higher_is_better` vs `lower_is_better` for error metrics).
+  - **Safe Metric Sanitization**: Guaranteed finite JSON primitives (`NaN` and `Infinity` replaced with `null`).
+  - **Stratified Holdout Splitting**: Preserves class distribution for classification with automatic graceful fallback when singleton classes exist.
+- **Planned Capabilities**:
+  - **Explainable AI (SHAP)**: Global and local SHAP attributions for tree and linear models.
+  - **Quantum ML Benchmarking**: PennyLane variational quantum circuits benchmarked against classical baselines.
 
-### 3.6 Experiment Tracking & Model Registry
+### 3.6 Experiment Tracking & Model Registry (Step 5 Implemented)
 - **Role**: Reproducibility, lineage, and deployment readiness.
-- **Key Responsibilities**:
-  - Logs hyperparameter configurations, metrics, and environment fingerprints.
-  - Packages the winning model alongside its end-to-end preprocessing pipeline for export.
+- **Implemented Capabilities**:
+  - **Safe Local Artifact Storage**: Dedicated `experiments/{experiment_id}/` storage with path traversal protection.
+  - **Atomic Metadata Persistence**: `metadata.json` written atomically via temporary files to avoid partial or corrupted states.
+  - **Pipeline Export**: Complete scikit-learn `Pipeline` (fitted preprocessor + winning estimator) persisted to `best_model.joblib`.
+  - **Audit Metadata**: Records dataset ID, target column, task type, split proportions, random seed, candidate results, training durations, and software environment package versions.
+- **Planned Capabilities**:
+  - **MLflow Tracking**: Remote experiment logging and model registry staging.
 
 ---
 

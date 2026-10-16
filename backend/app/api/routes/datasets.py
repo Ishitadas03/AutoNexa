@@ -1,11 +1,13 @@
-"""Dataset ingestion, profiling, and intelligence analysis endpoints."""
+"""Dataset ingestion, profiling, intelligence analysis, and AutoML training endpoints."""
 
 from typing import Optional
 from fastapi import APIRouter, Depends, File, UploadFile, status
 
 from app.schemas.analysis import AnalysisRequest, AnalysisResponse
 from app.schemas.dataset import DatasetProfileResponse
+from app.schemas.training import TrainingRequest, TrainingResponse
 from app.services.analysis_service import AnalysisService, get_analysis_service
+from app.services.automl.training_service import TrainingService, get_training_service
 from app.services.dataset_service import DatasetService, get_dataset_service
 
 router = APIRouter(prefix="/datasets", tags=["Datasets"])
@@ -48,3 +50,24 @@ def analyze_dataset(
 ) -> AnalysisResponse:
     """Analyze an uploaded dataset and infer machine learning task configuration."""
     return service.analyze(dataset_id=dataset_id, request=request)
+
+
+@router.post(
+    "/{dataset_id}/train",
+    response_model=TrainingResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Execute Resource-Aware AutoML Model Selection and Training",
+    description=(
+        "Executes a leakage-safe AutoML training pipeline on an uploaded dataset. "
+        "Splits data into train and holdout validation sets, fits scikit-learn candidate estimators "
+        "(including baselines, linear/tree models, and ensemble boosting), enforces training time "
+        "budgets and dataset bounds, computes holdout metrics, ranks models, and persists experiment artifacts."
+    ),
+)
+def train_dataset(
+    dataset_id: str,
+    request: TrainingRequest,
+    service: TrainingService = Depends(get_training_service),
+) -> TrainingResponse:
+    """Train candidate machine learning models under resource constraints and return experiment leaderboard."""
+    return service.train_experiment(dataset_id=dataset_id, request=request)
