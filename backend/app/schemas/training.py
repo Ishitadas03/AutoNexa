@@ -169,6 +169,7 @@ class TrainingResponse(BaseModel):
     train_rows: int = Field(..., ge=1, description="Number of samples used for candidate training and validation folds")
     test_rows: int = Field(..., ge=0, description="Number of samples reserved for final holdout evaluation (0 if holdout_test disabled)")
     features_count: int = Field(..., ge=1, description="Number of feature columns utilized (excluding target)")
+    feature_names: Optional[List[str]] = Field(default=None, description="Ordered list of feature column names used for training")
     models_evaluated: List[ModelEvaluationResult] = Field(..., description="Detailed per-model evaluation results")
     ranked_models: List[str] = Field(
         ...,

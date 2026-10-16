@@ -157,6 +157,31 @@ flowchart TD
   - **Pipeline Export**: Complete scikit-learn `Pipeline` (fitted preprocessor + winning estimator) persisted to `best_model.joblib`.
   - **Audit Metadata**: Records dataset ID, SHA-256 fingerprint, target column, task type, split proportions, random seed, candidate results, training durations, test metrics, and software environment package versions.
 
+### 3.7 Model Export, Safe Loading & Prediction Subsystem (Step 7 Implemented)
+- **Role**: Secure artifact retrieval, schema validation, and reproducible tabular inference.
+- **Implemented Capabilities**:
+  - **Read-Only Experiment Inspection (`GET /api/v1/experiments/{experiment_id}`)**:
+    - Validates experiment identifier format (`^[a-zA-Z0-9_\-]+$`) and path bounds.
+    - Inspects persisted `metadata.json` and checks filesystem presence of `best_model.joblib`.
+    - Computes and exposes SHA-256 artifact checksum and file size.
+    - Exposes expected `feature_names`, `numeric_features`, and `categorical_features` without deserializing model binaries during inspection.
+    - Strictly avoids exposing absolute server filesystem paths, secrets, or internal stack traces.
+  - **Safe Artifact Deserialization**:
+    - Restricts model loading strictly to server-controlled internal directories (`resolved_experiments_dir / experiment_id / best_model.joblib`).
+    - Explicitly treats joblib/pickle files as trusted internal artifacts only; rejects arbitrary client-supplied paths or serialized model uploads.
+    - Traps and sanitizes deserialization failures into clean HTTP 500 error responses (`"Model artifact is corrupted or incompatible"`).
+  - **Tabular JSON Inference Engine (`POST /api/v1/experiments/{experiment_id}/predict`)**:
+    - **Schema & Bound Validation**: Validates record count ($\ge 1$, $\le 1000$). Strictly verifies all required `feature_names` and rejects unexpected extra features.
+    - **Feature Order Realignment**: Reorders incoming dictionary records into the exact feature column ordering used during training.
+    - **End-to-End Pipeline Evaluation**: Passes inputs through the fitted `Pipeline` (imputation, scaling, one-hot encoding, and estimator) without calling `.fit()` or altering trained parameters.
+    - **Classification & Probabilities**: Returns predicted labels and class probability distributions mapped to class labels when supported by the fitted estimator.
+    - **Regression**: Returns continuous numerical predictions.
+    - **Scalar Sanitization**: Sanitizes non-finite values (`NaN`, `Inf`) to `null` to ensure compliant JSON responses.
+  - **Batch CSV Inference Engine (`POST /api/v1/experiments/{experiment_id}/predict-csv`)**:
+    - Streams and validates CSV uploads with size ceiling (`MAX_PREDICTION_CSV_SIZE_BYTES=5MB`) and row limit (`MAX_PREDICTION_CSV_ROWS=10000`).
+    - Features are validated against expected training columns. Target column is optional: if present in the input CSV (e.g., holdout evaluation data), it is safely excluded from inference features.
+    - Emits a downloadable enriched CSV containing original input columns, `predicted_{target_column}`, and `probability_{class}` columns.
+
 ---
 
 ## 4. Architectural Principles
@@ -164,4 +189,4 @@ flowchart TD
 1. **Modularity & Separation of Concerns**: Clear service boundaries allow replacing individual components (e.g., swapping preprocessors or optimizers) without altering the API layer.
 2. **Reproducibility by Design**: Every experiment run records exact seeds, package versions, and data hashes to guarantee replicable research results.
 3. **Resource Sensitivity**: Automated execution must respect system constraints to prevent out-of-memory crashes on constrained hardware.
-4. **Security & Data Privacy**: Safe handling of user-submitted files, strict size limits, and sanitization of file paths without arbitrary code execution.
+4. **Security & Data Privacy**: Safe handling of user-submitted files, strict size limits, sanitization of file paths without arbitrary code execution, and containment of serialized model loading.

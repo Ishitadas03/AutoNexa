@@ -116,6 +116,23 @@ class Settings(BaseSettings):
         description="Maximum allowed training budget in seconds (default 300s)",
     )
 
+    # Inference & Prediction Limits
+    max_prediction_records: int = Field(
+        default=1000,
+        validation_alias=AliasChoices("MAX_PREDICTION_RECORDS"),
+        description="Maximum permitted records in a single JSON prediction request",
+    )
+    max_prediction_csv_rows: int = Field(
+        default=10000,
+        validation_alias=AliasChoices("MAX_PREDICTION_CSV_ROWS"),
+        description="Maximum permitted rows in a single CSV batch prediction request",
+    )
+    max_prediction_csv_size_bytes: int = Field(
+        default=5 * 1024 * 1024,  # 5 MB
+        validation_alias=AliasChoices("MAX_PREDICTION_CSV_SIZE_BYTES"),
+        description="Maximum permitted upload size for CSV batch prediction in bytes (default 5 MB)",
+    )
+
     @property
     def resolved_upload_dir(self) -> Path:
         """Return absolute Path for uploads directory, creating it if needed."""

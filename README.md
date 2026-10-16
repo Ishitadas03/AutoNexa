@@ -18,7 +18,7 @@ AutoNexa provides an automated, reproducible pipeline for tabular machine learni
 
 ## 2. Current Development Status
 
-- **Status**: **Phase 6 — Reliable Model Evaluation & Experiment Tracking (Complete)**
+- **Status**: **Phase 7 — Model Export, Safe Loading & Prediction API (Complete)**
 - **Scope Implemented**:
   - Modular FastAPI application entry point initialized ([`backend/app/main.py`](file:///c:/Users/ishit/AutoNexa/backend/app/main.py)).
   - Centralized type-safe settings management powered by `pydantic-settings` ([`backend/app/core/config.py`](file:///c:/Users/ishit/AutoNexa/backend/app/core/config.py)).
@@ -26,11 +26,14 @@ AutoNexa provides an automated, reproducible pipeline for tabular machine learni
   - Secure chunked CSV ingestion endpoint ([`POST /api/v1/datasets/upload`](http://127.0.0.1:8000/docs#/Datasets/upload_dataset_api_v1_datasets_upload_post)) with path-traversal protection and dynamic streaming size ceiling enforcement ([`backend/app/services/dataset_service.py`](file:///c:/Users/ishit/AutoNexa/backend/app/services/dataset_service.py)).
   - Comprehensive Dataset Intelligence & Task Detection endpoint ([`POST /api/v1/datasets/{dataset_id}/analyze`](http://127.0.0.1:8000/docs#/Datasets/analyze_dataset_api_v1_datasets__dataset_id__analyze_post)) providing feature role classification, quality warnings, candidate target detection, and heuristic ML task recommendations with override support ([`backend/app/services/analysis_service.py`](file:///c:/Users/ishit/AutoNexa/backend/app/services/analysis_service.py)).
   - Reliable AutoML Model Selection & Training endpoint ([`POST /api/v1/datasets/{dataset_id}/train`](http://127.0.0.1:8000/docs#/Datasets/train_models_api_v1_datasets__dataset_id__train_post)) with configurable evaluation strategies (`holdout` and `cross_validation`), sample standard deviation calculation (`ddof=1`), untouched final holdout evaluation, SHA-256 dataset fingerprinting, and hierarchical MLflow tracking ([`backend/app/services/automl/`](file:///c:/Users/ishit/AutoNexa/backend/app/services/automl/)).
+  - Read-only Experiment Inspection endpoint ([`GET /api/v1/experiments/{experiment_id}`](http://127.0.0.1:8000/docs#/Experiments/inspect_experiment_api_v1_experiments__experiment_id__get)) returning validated metadata, model leaderboard, expected feature schema, artifact disk availability, and SHA-256 integrity checksums without exposing server filesystem paths or secrets.
+  - Secure Tabular Prediction endpoint ([`POST /api/v1/experiments/{experiment_id}/predict`](http://127.0.0.1:8000/docs#/Experiments/predict_api_v1_experiments__experiment_id__predict_post)) accepting bounded JSON records, strictly validating feature columns, enforcing training feature ordering, utilizing the fitted pipeline for imputation, scaling, and encoding, returning predictions, and outputting class probabilities for classification when supported by the estimator.
+  - Batch CSV Prediction endpoint ([`POST /api/v1/experiments/{experiment_id}/predict-csv`](http://127.0.0.1:8000/docs#/Experiments/predict_csv_api_v1_experiments__experiment_id__predict_csv_post)) streaming CSV inputs, validating feature schema, safely handling optional target columns, and returning a downloadable enriched CSV with predictions and probabilities.
   - Interactive Swagger UI documentation at [`/docs`](http://127.0.0.1:8000/docs) and OpenAPI specification at [`/openapi.json`](http://127.0.0.1:8000/openapi.json).
-  - 68 automated tests across [`backend/tests/test_health.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_health.py), [`backend/tests/test_datasets.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_datasets.py), [`backend/tests/test_analysis.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_analysis.py), [`backend/tests/test_training.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_training.py), and [`backend/tests/test_tracking.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_tracking.py) covering all functional requirements, security guards, leakage-free pipelines, and edge cases.
+  - 83 automated tests across [`backend/tests/test_health.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_health.py), [`backend/tests/test_datasets.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_datasets.py), [`backend/tests/test_analysis.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_analysis.py), [`backend/tests/test_training.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_training.py), [`backend/tests/test_tracking.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_tracking.py), and [`backend/tests/test_prediction.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_prediction.py) covering all functional requirements, security guards, leakage-free pipelines, artifact integrity, and inference edge cases.
 - **Upcoming Phases**:
-  - Phase 7: Next.js Frontend UI Dashboard & Visualizations.
-  - Phase 8: PennyLane Classical vs. Quantum Benchmarking Module.
+  - Phase 8: Next.js Frontend UI Dashboard & Visualizations.
+  - Phase 9: PennyLane Classical vs. Quantum Benchmarking Module.
 
 ---
 
@@ -371,9 +374,139 @@ AutoNexa integrates a modular `MLflowTracker` layer:
 
 ---
 
-## 10. Running Automated Tests
+## 10. Model Inspection & Prediction Workflow (Step 7)
 
-Run the full automated test suite (68 tests) from the `backend/` directory:
+AutoNexa provides a secure, fully documented inference workflow that allows users to inspect trained experiments, retrieve feature requirements, and generate predictions on new tabular data using the persisted winning pipeline.
+
+### 10.1 Experiment & Model Inspection (`GET /api/v1/experiments/{experiment_id}`)
+
+Retrieves a sanitized, validated summary of a completed AutoML experiment:
+- **Status & Integrity**: Confirms training completion status, disk presence of `metadata.json` and `best_model.joblib`, and SHA-256 artifact checksums.
+- **Feature Specification**: Exposes the exact ordered list of expected `feature_names`, identified `numeric_features`, and `categorical_features`.
+- **Performance & Protocol**: Reports winning model ID, primary metric scores, independent final test metrics, and full model rankings.
+- **Security Notice**: Does not expose absolute filesystem paths, server directory structures, secrets, or internal stack traces.
+
+#### Example Request:
+```bash
+curl -X GET "http://127.0.0.1:8000/api/v1/experiments/ebd18e6e-331d-4cf5-836a-8265a6109e4a"
+```
+
+#### Example Response:
+```json
+{
+  "experiment_id": "ebd18e6e-331d-4cf5-836a-8265a6109e4a",
+  "status": "completed",
+  "dataset_id": "96c251da-81a0-4394-9b77-ce9c13ba7242",
+  "dataset_fingerprint": "a1b2c3d4e5f6...",
+  "target_column": "churn",
+  "task_type": "binary_classification",
+  "evaluation_strategy": "holdout",
+  "primary_metric": "f1_weighted",
+  "primary_metric_greater_is_better": true,
+  "best_model": "logistic_regression",
+  "best_score": 0.88,
+  "test_metrics": null,
+  "ranked_models": ["logistic_regression", "random_forest"],
+  "features_count": 3,
+  "feature_names": ["age", "city", "income"],
+  "numeric_features": ["age", "income"],
+  "categorical_features": ["city"],
+  "artifact_availability": {
+    "metadata_exists": true,
+    "model_file_exists": true,
+    "model_format": "joblib",
+    "model_size_bytes": 4058,
+    "model_sha256": "f8354673f502ad25ff81c1d74cf79358ef2cc202039f4f99ac476e85d4a54ceb"
+  },
+  "tracking_status": "completed",
+  "mlflow_run_id": "run-xyz-123",
+  "mlflow_experiment_id": "0",
+  "tracking_warning": null,
+  "evaluation_protocol": "Holdout evaluation...",
+  "total_duration_seconds": 1.42,
+  "package_versions": {
+    "scikit-learn": "1.7.0",
+    "pandas": "2.2.3",
+    "numpy": "2.2.6",
+    "joblib": "1.5.0",
+    "mlflow": "3.17.1"
+  },
+  "security_notice": "Joblib/pickle-based artifacts can execute arbitrary code during deserialization. AutoNexa restricts model loading to trusted internal server artifacts only and never accepts arbitrary client-provided model files."
+}
+```
+
+### 10.2 JSON Tabular Prediction (`POST /api/v1/experiments/{experiment_id}/predict`)
+
+Accepts a bounded list of tabular records, strictly verifies feature schema, and applies the fitted scikit-learn pipeline transformations without retraining:
+- **Feature Schema Enforcement**: Requires all expected `feature_names` to be present; rejects missing columns and unexpected extra columns with HTTP 400.
+- **Column Order Preservation**: Input record keys can arrive in arbitrary order; the service automatically realigns records into the exact feature order learned during model training.
+- **Leakage-Free Preprocessing**: Imputation (`SimpleImputer`), scaling (`StandardScaler`), and one-hot encoding (`OneHotEncoder`) learned during training are applied consistently.
+- **Unseen Categories & Missing Values**: Missing numeric/categorical values are imputed according to the training strategy. Unseen categories are safely encoded as zeros (`handle_unknown="ignore"`).
+- **Classification vs. Regression**:
+  - **Classification**: Returns predicted class labels (`predictions: ["yes", "no"]`) and per-record class probability distributions (`probabilities: [{"yes": 0.85, "no": 0.15}]`) when supported by the fitted estimator.
+  - **Regression**: Returns continuous numeric predictions (`predictions: [250000.0, 480000.0]`) and `probabilities: null`.
+- **Scalar Sanitization**: Non-finite values (`NaN`, `Inf`, `-Inf`) are sanitized to `null` to ensure compliant JSON responses.
+
+#### Example Request:
+```bash
+curl -X POST "http://127.0.0.1:8000/api/v1/experiments/ebd18e6e-331d-4cf5-836a-8265a6109e4a/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "records": [
+      {"age": 26, "city": "Kolkata", "income": 44000},
+      {"age": 55, "city": "Siliguri", "income": 105000}
+    ]
+  }'
+```
+
+#### Example Response (Classification):
+```json
+{
+  "experiment_id": "ebd18e6e-331d-4cf5-836a-8265a6109e4a",
+  "task_type": "binary_classification",
+  "target_column": "churn",
+  "selected_model": "logistic_regression",
+  "prediction_count": 2,
+  "predictions": [0, 1],
+  "probabilities": [
+    {"0": 0.869626, "1": 0.130374},
+    {"0": 0.054008, "1": 0.945992}
+  ],
+  "class_labels": ["0", "1"],
+  "warnings": null
+}
+```
+
+### 10.3 Batch CSV Prediction (`POST /api/v1/experiments/{experiment_id}/predict-csv`)
+
+Accepts an uploaded CSV file, validates expected feature schema, executes batch prediction, and returns a downloadable CSV:
+- **Streaming & Size Bounds**: Enforces maximum CSV upload size (`MAX_PREDICTION_CSV_SIZE_BYTES`, default 5 MB) and maximum row limit (`MAX_PREDICTION_CSV_ROWS`, default 10,000 rows).
+- **Target Column Policy**: Target column is **not required** in inference inputs. If the target column is present (e.g. from an evaluation holdout test file), it is safely excluded from inference features without raising an error.
+- **Downloadable CSV**: Returns `Content-Type: text/csv` with `Content-Disposition: attachment; filename="predictions_{experiment_id}.csv"`. The downloaded CSV includes all original feature columns appended with `predicted_{target_column}` and `probability_{class}` columns.
+
+#### Example Request:
+```bash
+curl -X POST "http://127.0.0.1:8000/api/v1/experiments/ebd18e6e-331d-4cf5-836a-8265a6109e4a/predict-csv" \
+  -F "file=@batch_data.csv" \
+  --output predictions.csv
+```
+
+### 10.4 Artifact Deserialization Security Architecture
+
+> [!WARNING]
+> **Joblib / Pickle Security Advisory**: Serialized Python model artifacts (`.joblib`, `.pkl`) execute arbitrary Python bytecode during deserialization. They are **not safe** by default.
+
+To prevent remote code execution (RCE) and path traversal attacks, AutoNexa enforces strict security boundaries:
+1. **Server-Controlled Paths Only**: Model artifacts are strictly loaded from internal paths resolved inside `settings.resolved_experiments_dir`.
+2. **Rejection of External Artifacts**: The API never accepts arbitrary filesystem paths, URLs, or user-uploaded `.joblib` / `.pkl` files for deserialization.
+3. **Path Traversal Guards**: Experiment IDs are strictly validated using regex `^[a-zA-Z0-9_\-]+$`, and resolved paths are checked with `.is_relative_to(base_dir)`.
+4. **Integrity Checksums**: Artifact SHA-256 hashes and file sizes are recorded at creation time and exposed via inspection for cryptographic verification.
+
+---
+
+## 11. Running Automated Tests
+
+Run the full automated test suite (83 tests) from the `backend/` directory:
 
 ```bash
 python -m pytest -q
@@ -402,10 +535,21 @@ The test suite covers:
 - Hierarchical MLflow parent runs and nested candidate runs.
 - MLflow tracking disabled behavior and exception resilience.
 - Atomic experiment metadata and model artifact persistence.
+- Experiment metadata inspection, artifact presence, and SHA-256 checksums.
+- Path traversal rejection on experiment IDs.
+- Classification predictions with class probabilities and class label mapping.
+- Regression predictions with continuous numeric outputs.
+- Rejection of missing feature columns and unexpected extra columns.
+- Feature ordering invariance across arbitrary input key orderings.
+- Missing value imputation and unseen category handling in prediction records.
+- Handling of missing or corrupted serialized model artifacts.
+- Bounded prediction batch limits and oversized payload rejection.
+- Zero retraining during inference verification.
+- Batch CSV prediction streaming, target column tolerance, and downloadable CSV response generation.
 
 ---
 
-## 11. Configuration Management
+## 12. Configuration Management
 
 Configuration is handled centrally using `pydantic-settings` in [`backend/app/core/config.py`](file:///c:/Users/ishit/AutoNexa/backend/app/core/config.py). Variables can be overridden via environment variables or a local `.env` file.
 
@@ -437,11 +581,14 @@ cp .env.example .env
 | `MAX_DATASET_ROWS` | `100000` | Maximum allowable rows for AutoML training |
 | `MAX_DATASET_COLUMNS` | `500` | Maximum allowable columns for AutoML training |
 | `MAX_TRAINING_BUDGET_SECONDS` | `300` | Maximum allowable time budget in seconds |
+| `MAX_PREDICTION_RECORDS` | `1000` | Maximum permitted records in a single JSON prediction request |
+| `MAX_PREDICTION_CSV_ROWS` | `10000` | Maximum permitted rows in a single CSV batch prediction request |
+| `MAX_PREDICTION_CSV_SIZE_BYTES`| `5242880` (5 MB) | Maximum upload size for CSV batch prediction in bytes |
 | `BACKEND_CORS_ORIGINS` | `["http://localhost:3000","http://127.0.0.1:3000"]` | Allowed frontend origins |
 
 ---
 
-## 12. Current Limitations (Step 6)
+## 13. Current Limitations (Step 7)
 
 - **Synchronous Training Execution**: Training runs synchronously within the HTTP request cycle under bounded time budgets (max 300s). Asynchronous background job queues (e.g. Celery / Redis) are intentionally deferred to future iterations.
 - **Tabular Data Only**: The current pipeline exclusively supports tabular CSV inputs. Image, audio, text, and time-series modalities are not supported.

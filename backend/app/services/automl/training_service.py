@@ -1,11 +1,12 @@
 """AutoML training orchestrator, leakage-safe data splitting, and experiment persistence."""
 
+import hashlib
 import json
 import logging
 from pathlib import Path
+from typing import Dict, List, Optional
 import tempfile
 import time
-from typing import Dict, List, Optional
 import uuid
 
 from fastapi import HTTPException, status
@@ -552,10 +553,31 @@ class TrainingService:
         exp_dir.mkdir(parents=True, exist_ok=True)
         artifacts_saved = False
         metadata_file = exp_dir / "metadata.json"
+        model_file = exp_dir / "best_model.joblib"
+        model_sha256 = None
+        model_size_bytes = None
 
         try:
+            # 12a. Persist best model binary first if available
+            if best_model_id and best_model_id in fitted_pipelines:
+                with tempfile.NamedTemporaryFile("wb", dir=exp_dir, delete=False) as tf:
+                    temp_model_path = Path(tf.name)
+                joblib.dump(fitted_pipelines[best_model_id], temp_model_path)
+                temp_model_path.replace(model_file)
+                artifacts_saved = True
+
+                # Compute model artifact integrity hash and size
+                model_size_bytes = model_file.stat().st_size
+                hasher = hashlib.sha256()
+                with open(model_file, "rb") as mf:
+                    for chunk in iter(lambda: mf.read(65536), b""):
+                        hasher.update(chunk)
+                model_sha256 = hasher.hexdigest()
+
+            # 12b. Prepare metadata dictionary with feature schema, integrity checksums, and package versions
             metadata_dict = {
                 "experiment_id": experiment_id,
+                "status": "completed" if artifacts_saved else "failed",
                 "dataset_id": dataset_id,
                 "dataset_fingerprint": dataset_fingerprint,
                 "target_column": target_col,
@@ -569,6 +591,9 @@ class TrainingService:
                 "train_rows": train_rows,
                 "test_rows": test_rows,
                 "features_count": X.shape[1],
+                "feature_names": list(X.columns),
+                "numeric_features": num_cols,
+                "categorical_features": cat_cols,
                 "ranked_models": ranked_model_ids,
                 "best_model": best_model_id,
                 "best_score": best_score,
@@ -580,10 +605,17 @@ class TrainingService:
                 "tracking_warning": tracking_warning,
                 "total_duration_seconds": total_duration,
                 "models_evaluated": [r.model_dump() for r in results],
+                "artifacts": {
+                    "model_filename": "best_model.joblib",
+                    "model_format": "joblib",
+                    "model_sha256": model_sha256,
+                    "model_size_bytes": model_size_bytes,
+                },
                 "package_versions": {
                     "scikit-learn": sklearn.__version__,
                     "pandas": pd.__version__,
                     "numpy": np.__version__,
+                    "joblib": joblib.__version__,
                     "mlflow": getattr(tracker._mlflow, "__version__", "unknown") if tracker._mlflow else "not_installed",
                 },
             }
@@ -593,15 +625,6 @@ class TrainingService:
                 json.dump(metadata_dict, tf, indent=2)
                 temp_meta_path = Path(tf.name)
             temp_meta_path.replace(metadata_file)
-
-            # Persist best model binary if available
-            if best_model_id and best_model_id in fitted_pipelines:
-                model_file = exp_dir / "best_model.joblib"
-                with tempfile.NamedTemporaryFile("wb", dir=exp_dir, delete=False) as tf:
-                    temp_model_path = Path(tf.name)
-                joblib.dump(fitted_pipelines[best_model_id], temp_model_path)
-                temp_model_path.replace(model_file)
-                artifacts_saved = True
 
         except Exception as exc:
             logger.error("Failed to persist experiment artifacts for %s: %s", experiment_id, exc)
@@ -640,6 +663,7 @@ class TrainingService:
             train_rows=train_rows,
             test_rows=test_rows,
             features_count=X.shape[1],
+            feature_names=list(X.columns),
             models_evaluated=results,
             ranked_models=ranked_model_ids,
             best_model=best_model_id,

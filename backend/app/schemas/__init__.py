@@ -13,6 +13,12 @@ from app.schemas.analysis import (
 )
 from app.schemas.dataset import DatasetProfileResponse
 from app.schemas.health import HealthResponse
+from app.schemas.prediction import (
+    ArtifactAvailability,
+    ExperimentInspectionResponse,
+    PredictionRequest,
+    PredictionResponse,
+)
 from app.schemas.training import (
     ModelEvaluationResult,
     ModelStatus,
@@ -23,12 +29,16 @@ from app.schemas.training import (
 __all__ = [
     "AnalysisRequest",
     "AnalysisResponse",
+    "ArtifactAvailability",
     "ColumnRole",
     "ColumnSummary",
     "DatasetProfileResponse",
+    "ExperimentInspectionResponse",
     "HealthResponse",
     "ModelEvaluationResult",
     "ModelStatus",
+    "PredictionRequest",
+    "PredictionResponse",
     "QualityWarning",
     "TargetCandidate",
     "TaskRecommendation",
