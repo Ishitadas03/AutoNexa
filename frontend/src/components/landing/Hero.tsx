@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ArrowRight, Play, Database, Cpu, FileSpreadsheet, Activity } from "lucide-react";
+import { ArrowRight, Play, Database, Sparkles, BarChart3, ShieldCheck } from "lucide-react";
 import HeroWorkflowGraphic from "./HeroWorkflowGraphic";
 
 interface HeroProps {
@@ -18,81 +18,93 @@ export default function Hero({ onLaunchWorkspace }: HeroProps) {
   };
 
   return (
-    <section className="relative pt-12 pb-16 md:pt-20 md:pb-24 bg-[#070D0C] bg-tech-grid border-b border-[#2A4E42]/60 overflow-hidden">
-      {/* Subtle ambient emerald radial glow */}
+    <section className="relative pt-6 pb-10 lg:pt-8 lg:pb-14 bg-[#021414] border-b border-[#0E4A40]/60 overflow-hidden">
+      {/* Ambient glowing radial light centered on the right pipeline */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-35"
+        className="pointer-events-none absolute inset-0 opacity-55"
         style={{
-          background: "radial-gradient(ellipse 80% 50% at 50% 10%, rgba(104, 231, 181, 0.15), transparent 75%)",
+          background:
+            "radial-gradient(ellipse 65% 55% at 55% 45%, rgba(0, 85, 75, 0.45), transparent 75%)",
         }}
       />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-4xl mx-auto mb-10">
-          {/* Eyebrow Label */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#0D1815] border border-[#2A4E42] mb-5 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-[#68E7B5] animate-pulse shadow-[0_0_8px_#68E7B5]" />
-            <span className="text-[11px] font-mono uppercase tracking-widest text-[#68E7B5]">
-              AutoNexa AI Research Lab
-            </span>
-          </div>
-
-          {/* Large Headline - Editorial Serif Typography from Reference */}
-          <h1 className="font-editorial text-4xl sm:text-6xl md:text-7xl font-normal text-[#F1EFE1] tracking-tight leading-[1.08] mb-6">
-            From Raw Data<br />
-            to <span className="text-[#68E7B5] italic">Reliable Models.</span>
-          </h1>
-
-          {/* Supporting Text */}
-          <p className="max-w-2xl mx-auto text-sm sm:text-base md:text-lg text-[#AEBEB5] leading-relaxed mb-8 font-normal font-sans">
-            A powerful AutoML platform for tabular data. Upload, analyze, train, compare and deploy machine learning models — all in one place.
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
-            <button
-              onClick={onLaunchWorkspace}
-              className="btn-autonexa-primary w-full sm:w-auto px-7 py-3 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Start with a CSV</span>
-              <ArrowRight className="w-4 h-4 stroke-[2.2]" />
-            </button>
-            <button
-              onClick={scrollToWorkflow}
-              className="btn-autonexa-secondary w-full sm:w-auto px-6 py-3 text-sm font-medium flex items-center justify-center gap-2.5 cursor-pointer"
-            >
-              <Play className="w-3.5 h-3.5 fill-current text-[#68E7B5]" />
-              <span>Explore the Workflow</span>
-            </button>
-          </div>
-
-          {/* 4 Feature Capability Pills (Underneath CTAs, exactly like Reference) */}
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-[#AEBEB5] font-sans">
-            <div className="flex items-center gap-2">
-              <Database className="w-4 h-4 text-[#68E7B5]" />
-              <span>CSV-based AutoML</span>
+      <div className="relative max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-12">
+        {/* Panoramic 2-Column Split: Left Copy & Right 5-Stage Isometric Workflow */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 items-center mb-8">
+          
+          {/* ===================================================================
+              LEFT COLUMN: Headline, Copy, Action CTAs
+              =================================================================== */}
+          <div className="xl:col-span-5 flex flex-col justify-center text-left z-10">
+            {/* Eyebrow Label */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#031C18]/90 border border-[#0E4A40] mb-5 w-fit shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-[#4EECBF] shadow-[0_0_8px_#4EECBF]" />
+              <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#4EECBF] font-semibold">
+                AUTONEXA AI RESEARCH LAB
+              </span>
             </div>
-            <div className="flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-[#68E7B5]" />
-              <span>Multiple ML Models</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-[#68E7B5]" />
-              <span>Experiment Tracking</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#68E7B5]" />
-              <span>Prediction Playground</span>
+
+            {/* Large Editorial Headline Matching Reference Image */}
+            <h1 className="font-editorial text-4xl sm:text-5xl md:text-6xl xl:text-[68px] font-normal text-[#F1EFE1] tracking-tight leading-[1.06] mb-5">
+              From Raw Data<br />
+              to <span className="text-[#4EECBF] italic">Reliable Models.</span>
+            </h1>
+
+            {/* Supporting Text */}
+            <p className="text-sm sm:text-base text-[#9AB3A8] leading-relaxed mb-8 font-normal font-sans max-w-lg">
+              A powerful AutoML platform for tabular data. Upload, analyze, train, compare and deploy machine learning models — all in one place.
+            </p>
+
+            {/* Action CTA Buttons */}
+            <div className="flex flex-wrap items-center gap-3.5">
+              <button
+                onClick={onLaunchWorkspace}
+                className="px-6 py-3 rounded-full bg-[#4EECBF] hover:bg-[#3dd8ab] text-[#051512] font-semibold text-xs sm:text-sm flex items-center gap-2 shadow-[0_0_24px_rgba(78,236,191,0.45)] transition-all cursor-pointer"
+              >
+                <span>Start with a CSV</span>
+                <ArrowRight className="w-4 h-4 stroke-[2.4]" />
+              </button>
+              <button
+                onClick={scrollToWorkflow}
+                className="px-6 py-3 rounded-full bg-[#041512] border border-[#0E4A40] text-[#F1EFE1] hover:border-[#4EECBF]/60 hover:bg-[#07241E] font-medium text-xs sm:text-sm flex items-center gap-2.5 transition-all cursor-pointer"
+              >
+                <Play className="w-3.5 h-3.5 fill-[#4EECBF] text-[#4EECBF]" />
+                <span>Explore the Workflow</span>
+              </button>
             </div>
           </div>
+
+          {/* ===================================================================
+              RIGHT COLUMN: 5-Stage Isometric Connected System with Mascot
+              =================================================================== */}
+          <div className="xl:col-span-7 w-full">
+            <HeroWorkflowGraphic onSelectStage={() => scrollToPipeline()} />
+          </div>
+
         </div>
 
         {/* ===================================================================
-            HERO ISOMETRIC CONNECTED WORKFLOW SYSTEM WITH ROBOT MASCOT
+            BOTTOM ROW: 4 Capability Feature Badges Spanning Horizontally
             =================================================================== */}
-        <div className="mt-8 pt-4">
-          <HeroWorkflowGraphic onSelectStage={(stage) => scrollToPipeline()} />
+        <div className="flex flex-wrap items-center gap-6 sm:gap-10 lg:gap-14 text-xs text-[#9AB3A8] font-sans pt-4 border-t border-[#0E4A40]/40">
+          <div className="flex items-center gap-2.5">
+            <Database className="w-4 h-4 text-[#4EECBF] stroke-[2.2]" />
+            <span className="text-[12px] text-[#9AB3A8] font-medium">CSV-based AutoML</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Sparkles className="w-4 h-4 text-[#4EECBF] stroke-[2.2]" />
+            <span className="text-[12px] text-[#9AB3A8] font-medium">Multiple ML Models</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <BarChart3 className="w-4 h-4 text-[#4EECBF] stroke-[2.2]" />
+            <span className="text-[12px] text-[#9AB3A8] font-medium">Experiment Tracking</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-[#4EECBF] stroke-[2.2]" />
+            <span className="text-[12px] text-[#9AB3A8] font-medium">Prediction Playground</span>
+          </div>
         </div>
+
       </div>
     </section>
   );

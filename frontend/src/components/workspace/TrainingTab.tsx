@@ -14,6 +14,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { DatasetProfileResponse, TrainingRequest } from "@/types/api";
+import RobotMascot from "@/components/landing/RobotMascot";
 
 interface TrainingTabProps {
   activeDataset: DatasetProfileResponse | null;
@@ -424,11 +425,22 @@ export default function TrainingTab({
           {/* Column 3: Execution Control & Live Status Card */}
           <div className="space-y-6">
             <div className="p-6 rounded-2xl autonexa-card-elevated space-y-5">
-              <div className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-[#68E7B5] fill-current" />
-                <h3 className="text-sm font-bold text-[#F1EFE1] font-mono uppercase tracking-wide">
-                  Execution Center
-                </h3>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-[#68E7B5] fill-current" />
+                  <h3 className="text-sm font-bold text-[#F1EFE1] font-mono uppercase tracking-wide">
+                    Execution Center
+                  </h3>
+                </div>
+                <div className="relative -my-3">
+                  <RobotMascot
+                    size="xs"
+                    state={isTraining ? "working" : "thinking"}
+                    message={isTraining ? `Training (${trainingDuration}s)...` : "Configuring..."}
+                    showMessage={isTraining}
+                    isInteractive={true}
+                  />
+                </div>
               </div>
 
               <div className="space-y-2 text-xs font-mono text-[#AEBEB5]">

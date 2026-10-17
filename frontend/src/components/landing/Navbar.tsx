@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ArrowRight, Menu, X, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Menu, X } from "lucide-react";
 
 interface NavbarProps {
   onLaunchWorkspace: () => void;
@@ -23,51 +23,55 @@ export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps)
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-[#070D0C]/90 backdrop-blur-md border-b border-[#2A4E42]/60">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Brand Logo - Geometric mark + AutoNexa */}
+    <nav className="sticky top-0 z-50 w-full bg-[#021414]/95 backdrop-blur-md border-b border-[#0E4A40]/70">
+      <div className="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-12">
+        <div className="flex items-center justify-between h-18">
+          {/* Brand Logo - Geometric open delta A mark + AutoNexa matching reference */}
           <div
             className="flex items-center gap-3 cursor-pointer select-none group"
             onClick={() => scrollTo("top", "home")}
           >
-            <div className="w-8 h-8 relative flex items-center justify-center">
-              <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+            <div className="w-8 h-8 relative flex items-center justify-center shrink-0">
+              <svg width="30" height="30" viewBox="0 0 36 36" fill="none" className="transition-transform group-hover:scale-105">
                 <path
-                  d="M16 4 L6 24 L11 24 L16 13 L21 24 L26 24 Z"
-                  fill="url(#navEmeraldGrad)"
+                  d="M7 31 L18 5 L29 31"
+                  stroke="#4EECBF"
+                  strokeWidth="3.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
-                <path
-                  d="M12 18 L20 18 L18 21 L14 21 Z"
-                  fill="#68E7B5"
+                <rect
+                  x="11"
+                  y="20"
+                  width="14"
+                  height="3.6"
+                  rx="1.8"
+                  fill="#4EECBF"
                 />
-                <defs>
-                  <linearGradient id="navEmeraldGrad" x1="6" y1="4" x2="26" y2="24" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#68E7B5" />
-                    <stop offset="1" stopColor="#2A916E" />
-                  </linearGradient>
-                </defs>
               </svg>
             </div>
-            <span className="text-lg font-bold tracking-tight text-[#F1EFE1] font-sans group-hover:text-[#68E7B5] transition-colors">
+            <span className="text-xl font-bold tracking-tight text-[#F1EFE1] font-sans group-hover:text-[#4EECBF] transition-colors">
               AutoNexa
             </span>
           </div>
 
           {/* Center Navigation Links (Matching Reference Concept) */}
-          <div className="hidden md:flex items-center gap-8 text-xs sm:text-sm font-medium">
+          <div className="hidden md:flex items-center gap-9 text-xs sm:text-sm font-medium">
             <button
               onClick={() => scrollTo("top", "home")}
-              className={`transition-colors py-1 cursor-pointer ${
-                activeLink === "home" ? "text-[#68E7B5] font-semibold" : "text-[#AEBEB5] hover:text-[#F1EFE1]"
+              className={`relative py-1 cursor-pointer transition-colors ${
+                activeLink === "home" ? "text-[#F1EFE1] font-semibold" : "text-[#9AB3A8] hover:text-[#F1EFE1]"
               }`}
             >
-              Home
+              <span>Home</span>
+              {activeLink === "home" && (
+                <span className="absolute -bottom-1.5 left-0 w-full h-[2.5px] bg-[#4EECBF] rounded-full shadow-[0_0_8px_#4EECBF]" />
+              )}
             </button>
             <button
               onClick={() => scrollTo("features", "features")}
               className={`transition-colors py-1 cursor-pointer ${
-                activeLink === "features" ? "text-[#68E7B5] font-semibold" : "text-[#AEBEB5] hover:text-[#F1EFE1]"
+                activeLink === "features" ? "text-[#4EECBF] font-semibold" : "text-[#9AB3A8] hover:text-[#F1EFE1]"
               }`}
             >
               Features
@@ -75,7 +79,7 @@ export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps)
             <button
               onClick={() => scrollTo("how-it-works", "how-it-works")}
               className={`transition-colors py-1 cursor-pointer ${
-                activeLink === "how-it-works" ? "text-[#68E7B5] font-semibold" : "text-[#AEBEB5] hover:text-[#F1EFE1]"
+                activeLink === "how-it-works" ? "text-[#4EECBF] font-semibold" : "text-[#9AB3A8] hover:text-[#F1EFE1]"
               }`}
             >
               How It Works
@@ -83,7 +87,7 @@ export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps)
             <button
               onClick={() => scrollTo("pipeline", "docs")}
               className={`transition-colors py-1 cursor-pointer ${
-                activeLink === "docs" ? "text-[#68E7B5] font-semibold" : "text-[#AEBEB5] hover:text-[#F1EFE1]"
+                activeLink === "docs" ? "text-[#4EECBF] font-semibold" : "text-[#9AB3A8] hover:text-[#F1EFE1]"
               }`}
             >
               Documentation
@@ -94,7 +98,7 @@ export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps)
                 onLaunchWorkspace();
               }}
               className={`transition-colors py-1 cursor-pointer ${
-                activeLink === "workspace" ? "text-[#68E7B5] font-semibold" : "text-[#AEBEB5] hover:text-[#F1EFE1]"
+                activeLink === "workspace" ? "text-[#4EECBF] font-semibold" : "text-[#9AB3A8] hover:text-[#F1EFE1]"
               }`}
             >
               Workspace
@@ -104,32 +108,28 @@ export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps)
           {/* Right Action CTAs: Backend Status Pill + Launch Workspace Button */}
           <div className="hidden md:flex items-center gap-3.5">
             {/* Status Pill */}
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0D1815] border border-[#2A4E42] text-xs font-mono">
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#031C18]/90 border border-[#0E4A40] text-xs font-mono">
               <span
                 className={`w-2 h-2 rounded-full ${
                   apiConnected === true
-                    ? "bg-[#68E7B5] shadow-[0_0_8px_#68E7B5]"
+                    ? "bg-[#4EECBF] shadow-[0_0_8px_#4EECBF]"
                     : apiConnected === false
                     ? "bg-[#EDC54C]"
-                    : "bg-[#AEBEB5] animate-pulse"
+                    : "bg-[#4EECBF] shadow-[0_0_8px_#4EECBF]"
                 }`}
               />
-              <span className="text-[#AEBEB5]">
-                {apiConnected === true
-                  ? "API Connected"
-                  : apiConnected === false
-                  ? "Simulation Mode"
-                  : "Checking API..."}
+              <span className="text-[#E2EDE8] text-xs font-sans">
+                {apiConnected === false ? "Simulation Mode" : "API Connected"}
               </span>
             </div>
 
             {/* Launch Workspace Button - Mint pill button from reference */}
             <button
               onClick={onLaunchWorkspace}
-              className="btn-autonexa-primary px-5 py-2 text-xs sm:text-sm flex items-center gap-2 cursor-pointer font-semibold"
+              className="px-5 py-2 rounded-full bg-[#4EECBF] hover:bg-[#3dd8ab] text-[#051512] font-semibold text-xs sm:text-sm flex items-center gap-2 shadow-[0_0_20px_rgba(78,236,191,0.35)] transition-all cursor-pointer"
             >
               <span>Launch Workspace</span>
-              <ArrowRight className="w-3.5 h-3.5 stroke-[2.2]" />
+              <ArrowRight className="w-3.5 h-3.5 stroke-[2.4]" />
             </button>
           </div>
 

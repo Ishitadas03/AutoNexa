@@ -14,6 +14,8 @@ import {
   CheckCircle2,
   Sparkles,
 } from "lucide-react";
+import RobotMascot from "./RobotMascot";
+import RobotAnimationGuideModal from "./RobotAnimationGuideModal";
 
 interface HowAutoNexaWorksProps {
   onLaunchWorkspace: () => void;
@@ -95,6 +97,7 @@ const SEVEN_STAGES = [
 export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorksProps) {
   const [selectedStage, setSelectedStage] = useState<string>("01");
   const [detailedViewOpen, setDetailedViewOpen] = useState(true);
+  const [robotModalOpen, setRobotModalOpen] = useState(false);
 
   const activeStageData = SEVEN_STAGES.find((s) => s.step === selectedStage) || SEVEN_STAGES[0];
 
@@ -111,17 +114,27 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
               A simple workflow from data to predictions.
             </h2>
           </div>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 max-w-lg">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 max-w-lg">
             <p className="text-xs sm:text-sm text-[#AEBEB5] font-sans">
               Follow every stage of the AutoML pipeline, designed for tabular data and real-world machine learning projects.
             </p>
-            <button
-              onClick={() => setDetailedViewOpen(!detailedViewOpen)}
-              className="btn-autonexa-secondary px-4 py-2 text-xs flex items-center gap-1.5 whitespace-nowrap cursor-pointer shrink-0 font-medium"
-            >
-              <span>{detailedViewOpen ? "Hide Details" : "View Detailed Guide"}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setRobotModalOpen(true)}
+                className="btn-autonexa-secondary px-3.5 py-2 text-xs flex items-center gap-1.5 whitespace-nowrap cursor-pointer shrink-0 font-medium border-[#68E7B5]/40 text-[#68E7B5] hover:bg-[#162A23]"
+                title="Open interactive Robot Animation Guide"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Animation Guide</span>
+              </button>
+              <button
+                onClick={() => setDetailedViewOpen(!detailedViewOpen)}
+                className="btn-autonexa-secondary px-4 py-2 text-xs flex items-center gap-1.5 whitespace-nowrap cursor-pointer shrink-0 font-medium"
+              >
+                <span>{detailedViewOpen ? "Hide Details" : "View Detailed Guide"}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -174,11 +187,19 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
         {detailedViewOpen && (
           <div className="autonexa-card-elevated p-6 sm:p-8 mt-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-[#2A4E42]">
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-mono font-bold text-[#68E7B5] bg-[#070D0C] px-3 py-1 rounded-full border border-[#2A4E42]">
-                  Stage {activeStageData.step}
-                </span>
-                <h3 className="text-lg font-bold text-[#F1EFE1]">{activeStageData.title}</h3>
+              <div className="flex items-center gap-4">
+                <div className="relative -my-2 shrink-0">
+                  <RobotMascot size="xs" stage={parseInt(activeStageData.step, 10)} isInteractive={true} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-mono font-bold text-[#68E7B5] bg-[#070D0C] px-3 py-1 rounded-full border border-[#2A4E42]">
+                      Stage {activeStageData.step}
+                    </span>
+                    <h3 className="text-lg font-bold text-[#F1EFE1]">{activeStageData.title}</h3>
+                  </div>
+                  <p className="text-xs text-[#AEBEB5] mt-0.5">{activeStageData.description}</p>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono text-[#AEBEB5] bg-[#070D0C] px-3 py-1 rounded-full border border-[#2A4E42]">
@@ -231,6 +252,12 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
             </div>
           </div>
         )}
+
+        {/* Robot Animation Guide Interactive Verification Modal */}
+        <RobotAnimationGuideModal
+          isOpen={robotModalOpen}
+          onClose={() => setRobotModalOpen(false)}
+        />
       </div>
     </section>
   );

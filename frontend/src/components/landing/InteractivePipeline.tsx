@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { DatasetProfileResponse } from "@/types/api";
+import RobotMascot from "./RobotMascot";
 
 interface InteractivePipelineProps {
   onLaunchWorkspace: () => void;
@@ -235,12 +236,20 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
             LIVE STAGE INTERACTIVE PREVIEW CANVAS
             =================================================================== */}
         <div className="autonexa-card-elevated p-6 sm:p-8">
-          <div className="flex items-center justify-between pb-4 mb-6 border-b border-[#2A4E42] text-xs font-mono">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-6 border-b border-[#2A4E42] text-xs font-mono gap-3">
             <div className="flex items-center gap-3">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#68E7B5] animate-pulse" />
-              <span className="text-[#F1EFE1] font-bold">
-                AutoNexa Tabular Engine // Stage 0{activeStage}: {PIPELINE_CARDS[activeStage - 1].title}
-              </span>
+              <div className="relative -my-2">
+                <RobotMascot size="xs" stage={activeStage} state={isTraining ? "working" : undefined} isInteractive={true} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#68E7B5] animate-pulse" />
+                  <span className="text-[#F1EFE1] font-bold">
+                    AutoNexa Tabular Engine // Stage 0{activeStage}: {PIPELINE_CARDS[activeStage - 1].title}
+                  </span>
+                </div>
+                <span className="text-[11px] text-[#AEBEB5]">Interactive AutoML Pipeline Assistant</span>
+              </div>
             </div>
             <div className="text-[#AEBEB5]">
               Active: <span className="text-[#68E7B5]">{current.filename}</span>
