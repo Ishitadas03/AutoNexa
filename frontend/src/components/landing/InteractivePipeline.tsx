@@ -258,7 +258,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
             {/* -------------------------------------------------------------
                 LEFT COLUMN: 3 Cards (Upload, Profiling, Features)
                 ------------------------------------------------------------- */}
-            <div className="lg:col-span-4 flex flex-col gap-4 sm:gap-5 z-20">
+            <div className="lg:col-span-3 xl:col-span-3 flex flex-col gap-4 sm:gap-5 z-20">
               {leftCards.map((card) => {
                 const Icon = card.icon;
                 const isSelected = activeStage === card.id;
@@ -270,7 +270,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                     onClick={() => setActiveStage(card.id)}
                     onMouseEnter={() => setHoveredStage(card.id)}
                     onMouseLeave={() => setHoveredStage(null)}
-                    className={`relative p-4 sm:p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center justify-between gap-3 group ${
+                    className={`relative p-4 sm:p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center justify-between gap-3 group min-h-[82px] ${
                       isSelected
                         ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_4px_20px_rgba(29,78,216,0.18)] scale-[1.01]"
                         : isHovered
@@ -278,9 +278,9 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                         : "bg-white border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1]"
                     }`}
                   >
-                    <div className="flex items-center gap-3.5 sm:gap-4">
+                    <div className="flex items-center gap-3 sm:gap-3.5">
                       <div
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
+                        className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
                           isSelected
                             ? "bg-[#DBEAFE] border-[#1D4ED8]/60 text-[#1D4ED8]"
                             : "bg-[#F1F5F9] border-[#E2E8F0] text-[#334155] group-hover:text-[#1D4ED8]"
@@ -299,7 +299,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                       </div>
 
                       <div>
-                        <h3 className="text-sm sm:text-base font-semibold text-[#0F172A] tracking-tight group-hover:text-[#1D4ED8] transition-colors mb-0.5">
+                        <h3 className="text-sm font-semibold text-[#0F172A] tracking-tight group-hover:text-[#1D4ED8] transition-colors mb-0.5">
                           {card.title}
                         </h3>
                         <p className="text-xs text-[#64748B] leading-snug line-clamp-2 font-normal">
@@ -327,30 +327,162 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
             </div>
 
             {/* -------------------------------------------------------------
-                CENTER COLUMN: Central Isometric Engine Plinth with Mascot
+                CENTER COLUMN: Central Workflow Network & Engine Plinth with Mascot
                 ------------------------------------------------------------- */}
-            <div className="lg:col-span-4 relative flex flex-col items-center justify-center my-4 lg:my-0 z-10">
+            <div className="lg:col-span-6 xl:col-span-6 relative flex flex-col items-center justify-center my-4 lg:my-0 z-10 px-0 sm:px-2">
               
-              <div className="relative w-full max-w-[380px] aspect-[490/390] mx-auto group">
+              <div className="relative w-full max-w-[620px] aspect-[437/225] mx-auto group select-none">
                 <div
-                  className="pointer-events-none absolute inset-0 -bottom-6 opacity-40 blur-xl -z-10"
+                  className="pointer-events-none absolute inset-0 -bottom-6 opacity-35 blur-2xl -z-10"
                   style={{
                     background:
-                      "radial-gradient(ellipse 65% 55% at 50% 65%, rgba(29, 78, 216, 0.15), transparent 75%)",
+                      "radial-gradient(ellipse 65% 55% at 50% 50%, rgba(29, 78, 216, 0.16), transparent 75%)",
                   }}
                 />
 
                 <Image
-                  src="/images/landing-ref/pipeline-engine-light@2x.png"
+                  src="/images/landing-ref/pipeline-engine-workflow-v3.png"
                   alt="AutoNexa AI Engine Central Plinth"
                   fill
-                  sizes="(max-width: 1024px) 100vw, 380px"
+                  sizes="(max-width: 1024px) 100vw, 620px"
                   priority
-                  className="object-contain pointer-events-none select-none transition-transform duration-700 group-hover:scale-105"
+                  className="object-contain pointer-events-none select-none transition-transform duration-700 group-hover:scale-[1.01]"
                   style={{
                     imageRendering: "-webkit-optimize-contrast",
                   }}
                 />
+
+                {/* SVG Live Energy Conduits & Pulse Stream (Exact 437x225 ViewBox Overlay) */}
+                <svg
+                  viewBox="0 0 437 225"
+                  className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <defs>
+                    <filter id="energyGlow" x="-30%" y="-30%" width="160%" height="160%">
+                      <feGaussianBlur stdDeviation="2.5" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+
+                  {/* Active highlight paths */}
+                  {activeStage === 1 && (
+                    <path
+                      d="M 0 34 L 24 34 C 50 34, 55 107, 103 107"
+                      stroke="#1D4ED8"
+                      strokeWidth="3.2"
+                      strokeOpacity="0.95"
+                      filter="url(#energyGlow)"
+                    />
+                  )}
+                  {activeStage === 2 && (
+                    <path
+                      d="M 0 106 L 103 107"
+                      stroke="#1D4ED8"
+                      strokeWidth="3.2"
+                      strokeOpacity="0.95"
+                      filter="url(#energyGlow)"
+                    />
+                  )}
+                  {activeStage === 3 && (
+                    <path
+                      d="M 0 176 L 24 176 C 50 176, 55 107, 103 107"
+                      stroke="#1D4ED8"
+                      strokeWidth="3.2"
+                      strokeOpacity="0.95"
+                      filter="url(#energyGlow)"
+                    />
+                  )}
+                  {activeStage === 4 && (
+                    <path
+                      d="M 323 107 C 372 107, 377 36, 418 36 L 437 36"
+                      stroke="#1D4ED8"
+                      strokeWidth="3.2"
+                      strokeOpacity="0.95"
+                      filter="url(#energyGlow)"
+                    />
+                  )}
+                  {activeStage === 5 && (
+                    <path
+                      d="M 323 107 L 437 108"
+                      stroke="#1D4ED8"
+                      strokeWidth="3.2"
+                      strokeOpacity="0.95"
+                      filter="url(#energyGlow)"
+                    />
+                  )}
+                  {activeStage === 6 && (
+                    <path
+                      d="M 323 107 C 372 107, 377 176, 418 176 L 437 176"
+                      stroke="#1D4ED8"
+                      strokeWidth="3.2"
+                      strokeOpacity="0.95"
+                      filter="url(#energyGlow)"
+                    />
+                  )}
+
+                  {/* Animated Energy Flow Particles */}
+                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)">
+                    <animateMotion
+                      dur="2.4s"
+                      repeatCount="indefinite"
+                      path="M 0 34 L 24 34 C 50 34, 55 107, 103 107"
+                    />
+                  </circle>
+                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)">
+                    <animateMotion
+                      dur="2.1s"
+                      repeatCount="indefinite"
+                      begin="0.7s"
+                      path="M 0 106 L 103 107"
+                    />
+                  </circle>
+                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)">
+                    <animateMotion
+                      dur="2.5s"
+                      repeatCount="indefinite"
+                      begin="1.2s"
+                      path="M 0 176 L 24 176 C 50 176, 55 107, 103 107"
+                    />
+                  </circle>
+
+                  {/* Junction Nodes Pulse Rings */}
+                  {(activeStage === 1 || activeStage === 2 || activeStage === 3) && (
+                    <circle cx="103" cy="107" r="7" stroke="#1D4ED8" strokeWidth="1.6" className="animate-ping opacity-85" />
+                  )}
+                  {(activeStage === 4 || activeStage === 5 || activeStage === 6) && (
+                    <circle cx="323" cy="107" r="7" stroke="#1D4ED8" strokeWidth="1.6" className="animate-ping opacity-85" />
+                  )}
+
+                  {/* Animated Outflow Energy Particles */}
+                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)">
+                    <animateMotion
+                      dur="2.4s"
+                      repeatCount="indefinite"
+                      path="M 323 107 C 372 107, 377 36, 418 36 L 437 36"
+                    />
+                  </circle>
+                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)">
+                    <animateMotion
+                      dur="2.1s"
+                      repeatCount="indefinite"
+                      begin="0.6s"
+                      path="M 323 107 L 437 108"
+                    />
+                  </circle>
+                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)">
+                    <animateMotion
+                      dur="2.6s"
+                      repeatCount="indefinite"
+                      begin="1.1s"
+                      path="M 323 107 C 372 107, 377 176, 418 176 L 437 176"
+                    />
+                  </circle>
+                </svg>
 
                 <div
                   onClick={() => setIsSimulating(!isSimulating)}
@@ -358,19 +490,12 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                   className="absolute inset-0 cursor-pointer"
                 />
               </div>
-
-              {/* Bottom Caption Under Engine */}
-              <div className="text-center mt-2">
-                <span className="text-[12px] font-mono text-[#64748B] tracking-wider font-medium">
-                  Task Selection &nbsp;•&nbsp; Model Training &nbsp;•&nbsp; Experiment Tracking
-                </span>
-              </div>
             </div>
 
             {/* -------------------------------------------------------------
                 RIGHT COLUMN: 3 Cards (Evaluation, Tracking, Predictions)
                 ------------------------------------------------------------- */}
-            <div className="lg:col-span-4 flex flex-col gap-4 sm:gap-5 z-20">
+            <div className="lg:col-span-3 xl:col-span-3 flex flex-col gap-4 sm:gap-5 z-20">
               {rightCards.map((card) => {
                 const Icon = card.icon;
                 const isSelected = activeStage === card.id;
@@ -382,7 +507,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                     onClick={() => setActiveStage(card.id)}
                     onMouseEnter={() => setHoveredStage(card.id)}
                     onMouseLeave={() => setHoveredStage(null)}
-                    className={`relative p-4 sm:p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center justify-between gap-3 group ${
+                    className={`relative p-4 sm:p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center justify-between gap-3 group min-h-[82px] ${
                       isSelected
                         ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_4px_20px_rgba(29,78,216,0.18)] scale-[1.01]"
                         : isHovered
@@ -404,9 +529,9 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                       )}
                     </div>
 
-                    <div className="flex items-center gap-3.5 sm:gap-4 flex-1">
+                    <div className="flex items-center gap-3 sm:gap-3.5 flex-1">
                       <div
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
+                        className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
                           isSelected
                             ? "bg-[#DBEAFE] border-[#1D4ED8]/60 text-[#1D4ED8]"
                             : "bg-[#F1F5F9] border-[#E2E8F0] text-[#334155] group-hover:text-[#1D4ED8]"
@@ -416,7 +541,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                       </div>
 
                       <div>
-                        <h3 className="text-sm sm:text-base font-semibold text-[#0F172A] tracking-tight group-hover:text-[#1D4ED8] transition-colors mb-0.5">
+                        <h3 className="text-sm font-semibold text-[#0F172A] tracking-tight group-hover:text-[#1D4ED8] transition-colors mb-0.5">
                           {card.title}
                         </h3>
                         <p className="text-xs text-[#64748B] leading-snug line-clamp-2 font-normal">
@@ -430,113 +555,6 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
             </div>
 
           </div>
-
-          {/* ===================================================================
-              SVG MOVABLE FLOW CONDUIT OVERLAY (VISIBLE ON DESKTOP SCREENS)
-              =================================================================== */}
-          <div className="hidden lg:block absolute inset-0 pointer-events-none z-15">
-            <svg
-              viewBox="0 0 1360 380"
-              className="w-full h-full overflow-visible"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              {/* Left Conduit 1: Card 1 (CSV Upload) -> Engine */}
-              <path
-                d="M 445 68 C 530 68, 550 215, 605 235"
-                stroke="#1D4ED8"
-                strokeWidth="2.4"
-                strokeOpacity={activeStage === 1 ? "1" : "0.5"}
-              />
-              <circle r="4.5" fill="#1D4ED8">
-                <animateMotion
-                  dur="2.5s"
-                  repeatCount="indefinite"
-                  path="M 445 68 C 530 68, 550 215, 605 235"
-                />
-              </circle>
-
-              {/* Left Conduit 2: Card 2 (Profiling) -> Engine */}
-              <path
-                d="M 445 188 C 520 188, 545 235, 605 245"
-                stroke="#1D4ED8"
-                strokeWidth="2.4"
-                strokeOpacity={activeStage === 2 ? "1" : "0.5"}
-              />
-              <circle r="4.5" fill="#1D4ED8">
-                <animateMotion
-                  dur="2.2s"
-                  repeatCount="indefinite"
-                  begin="0.7s"
-                  path="M 445 188 C 520 188, 545 235, 605 245"
-                />
-              </circle>
-
-              {/* Left Conduit 3: Card 3 (Data Features) -> Engine */}
-              <path
-                d="M 445 308 C 530 308, 550 255, 605 255"
-                stroke="#1D4ED8"
-                strokeWidth="2.4"
-                strokeOpacity={activeStage === 3 ? "1" : "0.5"}
-              />
-              <circle r="4.5" fill="#1D4ED8">
-                <animateMotion
-                  dur="2.6s"
-                  repeatCount="indefinite"
-                  begin="1.2s"
-                  path="M 445 308 C 530 308, 550 255, 605 255"
-                />
-              </circle>
-
-              {/* Right Conduit 4: Engine -> Card 4 (Model Evaluation) */}
-              <path
-                d="M 755 235 C 810 215, 830 68, 915 68"
-                stroke="#1D4ED8"
-                strokeWidth="2.4"
-                strokeOpacity={activeStage === 4 ? "1" : "0.5"}
-              />
-              <circle r="4.5" fill="#1D4ED8">
-                <animateMotion
-                  dur="2.5s"
-                  repeatCount="indefinite"
-                  path="M 755 235 C 810 215, 830 68, 915 68"
-                />
-              </circle>
-
-              {/* Right Conduit 5: Engine -> Card 5 (Experiment Tracking) */}
-              <path
-                d="M 755 245 C 815 235, 840 188, 915 188"
-                stroke="#1D4ED8"
-                strokeWidth="2.4"
-                strokeOpacity={activeStage === 5 ? "1" : "0.5"}
-              />
-              <circle r="4.5" fill="#1D4ED8">
-                <animateMotion
-                  dur="2.2s"
-                  repeatCount="indefinite"
-                  begin="0.6s"
-                  path="M 755 245 C 815 235, 840 188, 915 188"
-                />
-              </circle>
-
-              {/* Right Conduit 6: Engine -> Card 6 (Prediction Playground) */}
-              <path
-                d="M 755 255 C 810 255, 830 308, 915 308"
-                stroke="#1D4ED8"
-                strokeWidth="2.4"
-                strokeOpacity={activeStage === 6 ? "1" : "0.5"}
-              />
-              <circle r="4.5" fill="#1D4ED8">
-                <animateMotion
-                  dur="2.7s"
-                  repeatCount="indefinite"
-                  begin="1.1s"
-                  path="M 755 255 C 810 255, 830 308, 915 308"
-                />
-              </circle>
-            </svg>
-          </div>
-
         </div>
 
         {/* ===================================================================

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --navbar-height: 4.5rem; /* h-18 = 72px */
   --background: #F2F6F9;
   --background-secondary: #FFFFFF;
   --card-surface: #FFFFFF;

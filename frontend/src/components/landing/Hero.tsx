@@ -18,7 +18,10 @@ export default function Hero({ onLaunchWorkspace }: HeroProps) {
   };
 
   return (
-    <section className="relative pt-6 pb-12 lg:pt-10 lg:pb-16 bg-[#F2F6F9] border-b border-[#E2E8F0] overflow-hidden">
+    <section
+      className="relative bg-[#F2F6F9] border-b border-[#E2E8F0] overflow-hidden flex flex-col"
+      style={{ minHeight: 'calc(100svh - var(--navbar-height))' }}
+    >
       {/* Ambient soft glow centered on the right graphic */}
       <div
         className="pointer-events-none absolute inset-0 opacity-60"
@@ -28,9 +31,9 @@ export default function Hero({ onLaunchWorkspace }: HeroProps) {
         }}
       />
 
-      <div className="relative max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-12">
+      <div className="relative max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-12 w-full flex-1 flex flex-col justify-center py-8 lg:py-0">
         {/* Panoramic 2-Column Split: Left Copy & Right 3D Isometric Network */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center mb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
           
           {/* ===================================================================
               LEFT COLUMN: Headline, Copy, Action CTAs
@@ -77,17 +80,20 @@ export default function Hero({ onLaunchWorkspace }: HeroProps) {
 
           {/* ===================================================================
               RIGHT COLUMN: 3D Connected Isometric Network with Mascot
+              — Takes ~55% of width for visual impact
               =================================================================== */}
-          <div className="lg:col-span-7 w-full flex items-center justify-center">
+          <div className="lg:col-span-7 w-full flex items-center justify-center lg:scale-105 xl:scale-110 origin-center">
             <HeroWorkflowGraphic onSelectStage={() => scrollToSection("pipeline")} />
           </div>
 
         </div>
+      </div>
 
-        {/* ===================================================================
-            BOTTOM ROW: 4 Capability Feature Badges Matching Reference
-            =================================================================== */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 pt-8 border-t border-[#CBD5E1]/80">
+      {/* ===================================================================
+          BOTTOM ROW: 4 Capability Feature Badges — pinned to bottom of hero
+          =================================================================== */}
+      <div className="relative max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-12 w-full pb-6 lg:pb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 pt-6 border-t border-[#CBD5E1]/80">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-center shrink-0">
               <Database className="w-5 h-5 text-[#1E293B] stroke-[2]" />
@@ -128,8 +134,8 @@ export default function Hero({ onLaunchWorkspace }: HeroProps) {
             </div>
           </div>
         </div>
-
       </div>
+
     </section>
   );
 }
