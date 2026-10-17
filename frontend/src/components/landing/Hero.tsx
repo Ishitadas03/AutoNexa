@@ -1,121 +1,107 @@
 "use client";
 
 import React from "react";
-import dynamic from "next/dynamic";
-import { ArrowRight, Sparkles, ShieldCheck, Zap, Database, Layers } from "lucide-react";
-import PipelineWorkflow from "@/components/landing/PipelineWorkflow";
-
-// Lazy-load 3D scene with ssr false
-const HeroScene = dynamic(() => import("@/components/3d/HeroScene"), {
-  ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-      <div className="w-72 h-72 rounded-full bg-amber-500/10 blur-3xl animate-pulse" />
-    </div>
-  ),
-});
+import { ArrowRight, ChevronDown, Database, Cpu, ShieldCheck, Download, Fingerprint, Sparkles } from "lucide-react";
 
 interface HeroProps {
   onLaunchWorkspace: () => void;
-  apiConnected?: boolean | null;
 }
 
-export default function Hero({ onLaunchWorkspace, apiConnected }: HeroProps) {
-  const scrollToDocumentation = () => {
+export default function Hero({ onLaunchWorkspace }: HeroProps) {
+  const scrollToPipeline = () => {
     document.getElementById("pipeline")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <section className="relative overflow-hidden pt-10 pb-16 md:pt-16 md:pb-20 bg-grid-pattern">
-      {/* 3D Canvas Background */}
-      <HeroScene />
+    <section className="relative pt-16 pb-16 md:pt-24 md:pb-20 bg-[#06090c] bg-tech-grid border-b border-[#14221c] overflow-hidden">
+      {/* Subtle ambient emerald vignette (Ramotion atmosphere) */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-40"
+        style={{
+          background: "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(16, 185, 129, 0.16), transparent 75%)",
+        }}
+      />
 
-      {/* Atmospheric lighting glows */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-amber-500/10 blur-[140px] rounded-full pointer-events-none" />
-      <div className="absolute top-1/3 left-1/4 w-[350px] h-[300px] bg-sky-500/5 blur-[120px] rounded-full pointer-events-none" />
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        {/* Eyebrow Label matching reference */}
-        <div className="inline-flex items-center gap-2 mb-4 animate-fade-in-up">
-          <span className="text-xs sm:text-sm font-semibold text-amber-400 tracking-wider font-mono">
-            AutoNexa AI Research Lab
+      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        {/* Eyebrow Label - Minimal technical badge with emerald pulse */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#08140f] border border-emerald-900/60 mb-6 shadow-[0_0_15px_-3px_rgba(16,185,129,0.25)]">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+          <span className="text-[11px] font-mono uppercase tracking-widest text-emerald-300">
+            AutoNexa AI Research Lab // Tabular AutoML
           </span>
         </div>
 
-        {/* Large Headline */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1] mb-5 font-sans animate-fade-in-up-delay-1 max-w-4xl mx-auto">
-          From Raw Data to{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 drop-shadow-[0_0_35px_rgba(245,158,11,0.25)]">
-            Reliable Models.
+        {/* Large Headline - Ramotion signature typography with inline pill icons */}
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white tracking-tight leading-[1.2] mb-5 max-w-4xl mx-auto font-sans">
+          From Raw Data{" "}
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 mx-1 rounded-full bg-[#091f16] border border-emerald-500/40 text-emerald-300 text-xl sm:text-2xl md:text-3xl align-middle font-mono font-medium shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+            <Fingerprint className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400 shrink-0" />
+            <span>tabular</span>
+          </span>{" "}
+          to Reliable{" "}
+          <span className="text-emerald-400">Models</span>{" "}
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 mx-1 rounded-full bg-[#091f16] border border-emerald-500/40 text-emerald-300 text-xl sm:text-2xl md:text-3xl align-middle font-mono font-medium shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400 shrink-0" />
+            <span>AI</span>
           </span>
         </h1>
 
-        {/* Supporting Description matching reference */}
-        <p className="max-w-3xl mx-auto text-base sm:text-lg md:text-xl text-slate-300 font-normal leading-relaxed mb-8 animate-fade-in-up-delay-2">
-          The Premium, Research-Grade AutoML Platform for Data Scientists and ML Engineers.
+        {/* Supporting Description - Clean typography, slate grey */}
+        <p className="max-w-2xl mx-auto text-sm sm:text-base md:text-lg text-slate-400 leading-relaxed mb-9 font-normal">
+          A disciplined, open-source AutoML platform for exploring tabular datasets,
+          training verified estimators, tracking MLflow experiments, and exporting production-grade pipelines.
         </p>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 animate-fade-in-up-delay-3">
+        {/* Action Buttons - Ramotion glowing pill button + secondary slate button */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-14">
           <button
             onClick={onLaunchWorkspace}
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl btn-gold text-sm sm:text-base font-bold flex items-center justify-center gap-3 shadow-xl shadow-amber-500/20 cursor-pointer"
+            className="btn-ramotion w-full sm:w-auto px-7 py-3 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer"
           >
-            Launch Workspace
-            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+            <span>Launch Workspace</span>
+            <ArrowRight className="w-4 h-4 stroke-[2.2]" />
           </button>
           <button
-            onClick={scrollToDocumentation}
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl btn-gold-outline text-sm sm:text-base font-semibold flex items-center justify-center gap-2 cursor-pointer"
+            onClick={scrollToPipeline}
+            className="btn-secondary w-full sm:w-auto px-6 py-3 text-sm font-medium flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            Explore Documentation
+            <span>Explore Pipeline</span>
+            <ChevronDown className="w-4 h-4 text-slate-400" />
           </button>
         </div>
 
-        {/* =========================================================================
-            THE VISUAL CENTERPIECE: 3-PANEL INTERACTIVE WORKFLOW VISUALIZER
-            Placed directly below the hero CTA buttons matching reference design
-            ========================================================================= */}
-        <div className="w-full animate-fade-in-up-delay-3">
-          <PipelineWorkflow
-            onLaunchWorkspace={onLaunchWorkspace}
-            apiConnected={apiConnected}
-          />
-        </div>
-
-        {/* Value badges strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-5xl mx-auto mt-10 pt-8 border-t border-white/10">
-          <div className="p-3 rounded-lg glass-panel text-left">
-            <div className="flex items-center gap-2 text-amber-400 mb-1">
-              <ShieldCheck className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">Leakage-Free</span>
+        {/* 4 Restrained Technical Feature Pills */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl mx-auto pt-6 border-t border-[#14221c] text-xs font-mono text-slate-400 text-left">
+          <div className="p-3.5 rounded-xl bg-[#090e12] border border-[#14221c] hover:border-[#20362b] transition-colors">
+            <div className="flex items-center gap-2 text-slate-200 mb-1">
+              <Database className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="font-semibold text-[11px]">CSV-based AutoML</span>
             </div>
-            <p className="text-xs text-slate-400">Strict CV partition isolation</p>
+            <p className="text-[10px] text-slate-500 font-sans">Automated schema inference &amp; audits</p>
           </div>
 
-          <div className="p-3 rounded-lg glass-panel text-left">
-            <div className="flex items-center gap-2 text-sky-400 mb-1">
-              <Zap className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">Resource-Bounded</span>
+          <div className="p-3.5 rounded-xl bg-[#090e12] border border-[#14221c] hover:border-[#20362b] transition-colors">
+            <div className="flex items-center gap-2 text-slate-200 mb-1">
+              <Cpu className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="font-semibold text-[11px]">Multiple ML Models</span>
             </div>
-            <p className="text-xs text-slate-400">Time and row limits enforced</p>
+            <p className="text-[10px] text-slate-500 font-sans">Linear, ensemble &amp; tree architectures</p>
           </div>
 
-          <div className="p-3 rounded-lg glass-panel text-left">
-            <div className="flex items-center gap-2 text-emerald-400 mb-1">
-              <Layers className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">MLflow Lineage</span>
+          <div className="p-3.5 rounded-xl bg-[#090e12] border border-[#14221c] hover:border-[#20362b] transition-colors">
+            <div className="flex items-center gap-2 text-slate-200 mb-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="font-semibold text-[11px]">Leakage-Safe CV</span>
             </div>
-            <p className="text-xs text-slate-400">Parent &amp; nested child runs</p>
+            <p className="text-[10px] text-slate-500 font-sans">Stratified partitions fit strictly in-fold</p>
           </div>
 
-          <div className="p-3 rounded-lg glass-panel text-left">
-            <div className="flex items-center gap-2 text-amber-300 mb-1">
-              <Database className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">Safe Inference</span>
+          <div className="p-3.5 rounded-xl bg-[#090e12] border border-[#14221c] hover:border-[#20362b] transition-colors">
+            <div className="flex items-center gap-2 text-slate-200 mb-1">
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="font-semibold text-[11px]">Zero Retraining</span>
             </div>
-            <p className="text-xs text-slate-400">JSON &amp; CSV batch predictions</p>
+            <p className="text-[10px] text-slate-500 font-sans">Standalone scikit-learn pipeline artifacts</p>
           </div>
         </div>
       </div>

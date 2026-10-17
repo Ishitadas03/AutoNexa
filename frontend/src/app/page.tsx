@@ -3,9 +3,10 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
+import InteractivePipeline from "@/components/landing/InteractivePipeline";
+import HowAutoNexaWorks from "@/components/landing/HowAutoNexaWorks";
 import FeatureHighlights from "@/components/landing/FeatureHighlights";
-import PipelineTimeline from "@/components/landing/PipelineTimeline";
-import HowItWorks from "@/components/landing/HowItWorks";
+import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
 
 import WorkspaceLayout from "@/components/workspace/WorkspaceLayout";
@@ -293,7 +294,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080d11] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#06090c] text-slate-100 flex flex-col font-sans">
       {/* Toast Notifications Overlay */}
       <div className="fixed bottom-4 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none">
         {toasts.map((t) => (
@@ -324,10 +325,11 @@ export default function Home() {
         /* LANDING PAGE VIEW */
         <div className="flex-1 flex flex-col">
           <Navbar onLaunchWorkspace={() => setActiveView("workspace")} apiConnected={apiConnected} />
-          <Hero onLaunchWorkspace={() => setActiveView("workspace")} apiConnected={apiConnected} />
+          <Hero onLaunchWorkspace={() => setActiveView("workspace")} />
+          <InteractivePipeline onLaunchWorkspace={() => setActiveView("workspace")} />
+          <HowAutoNexaWorks onLaunchWorkspace={() => setActiveView("workspace")} />
           <FeatureHighlights />
-          <PipelineTimeline onLaunchWorkspace={() => setActiveView("workspace")} />
-          <HowItWorks onLaunchWorkspace={() => setActiveView("workspace")} />
+          <CTASection onLaunchWorkspace={() => setActiveView("workspace")} />
           <Footer onLaunchWorkspace={() => setActiveView("workspace")} apiConnected={apiConnected} />
         </div>
       ) : (

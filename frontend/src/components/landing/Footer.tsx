@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { Sparkles } from "lucide-react";
 
 interface FooterProps {
   onLaunchWorkspace: () => void;
@@ -9,56 +8,82 @@ interface FooterProps {
 }
 
 export default function Footer({ onLaunchWorkspace, apiConnected }: FooterProps) {
+  const scrollTo = (id: string) => {
+    if (id === "top") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
-    <footer className="border-t border-white/5 bg-[#060a0e] text-slate-400 py-10 px-4 sm:px-6 lg:px-8 text-xs">
+    <footer className="border-t border-[#14221c] bg-[#05080b] text-slate-400 py-10 px-4 sm:px-6 lg:px-8 text-xs">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-            <Sparkles className="w-4 h-4" />
+        {/* Brand Logo & Tagline */}
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollTo("top")}>
+          <div className="w-7 h-7 relative flex items-center justify-center">
+            <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+              <path
+                d="M16 4 L5 24 L10 24 L16 12 L22 24 L27 24 Z"
+                fill="url(#footerLogoEmeraldGrad)"
+              />
+              <path
+                d="M11 18 L21 18 L19 22 L13 22 Z"
+                fill="#10b981"
+              />
+              <defs>
+                <linearGradient id="footerLogoEmeraldGrad" x1="5" y1="4" x2="27" y2="24" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#34d399" />
+                  <stop offset="1" stopColor="#059669" />
+                </linearGradient>
+              </defs>
+            </svg>
           </div>
           <div>
-            <span className="text-sm font-bold text-white font-mono">AUTONEXA</span>
-            <span className="text-slate-500 ml-2">AI Research Lab</span>
+            <span className="text-sm font-bold text-white font-sans">AutoNexa</span>
+            <span className="text-emerald-400/80 ml-2 font-mono text-[11px]">AI Research Lab</span>
           </div>
         </div>
 
+        {/* Quick Links */}
         <div className="flex flex-wrap items-center justify-center gap-6 text-slate-400">
-          <button onClick={onLaunchWorkspace} className="hover:text-amber-400 transition-colors cursor-pointer">
+          <button onClick={() => scrollTo("top")} className="hover:text-emerald-400 transition-colors cursor-pointer">
+            Home
+          </button>
+          <button onClick={() => scrollTo("pipeline")} className="hover:text-emerald-400 transition-colors cursor-pointer">
+            Pipeline
+          </button>
+          <button onClick={() => scrollTo("how-it-works")} className="hover:text-emerald-400 transition-colors cursor-pointer">
+            How It Works
+          </button>
+          <button onClick={() => scrollTo("features")} className="hover:text-emerald-400 transition-colors cursor-pointer">
+            Features
+          </button>
+          <button onClick={onLaunchWorkspace} className="hover:text-emerald-400 transition-colors cursor-pointer">
             Workspace
           </button>
-          <a href="#workflow" className="hover:text-white transition-colors">
-            Workflow
-          </a>
-          <a href="#features" className="hover:text-white transition-colors">
-            Features
-          </a>
-          <a href="#pipeline" className="hover:text-white transition-colors">
-            Pipeline
-          </a>
-          <a href="#architecture" className="hover:text-white transition-colors">
-            Architecture
-          </a>
         </div>
 
-        <div className="flex items-center gap-3 text-[11px] text-slate-500">
+        {/* Status & License */}
+        <div className="flex items-center gap-3 text-[11px] text-slate-500 font-mono">
           <span className="flex items-center gap-1.5">
             <span
               className={`w-2 h-2 rounded-full ${
                 apiConnected === true
-                  ? "bg-emerald-400"
+                  ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"
                   : apiConnected === false
                   ? "bg-amber-400"
                   : "bg-slate-500 animate-pulse"
               }`}
             />
             {apiConnected === true
-              ? "FastAPI Connected"
+              ? "API Connected"
               : apiConnected === false
-              ? "FastAPI Disconnected"
+              ? "Simulation Mode"
               : "Checking API…"}
           </span>
           <span>•</span>
-          <span>Apache 2.0 License</span>
+          <span>© 2026 AutoNexa</span>
         </div>
       </div>
     </footer>
