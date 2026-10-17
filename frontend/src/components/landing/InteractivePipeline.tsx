@@ -263,7 +263,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
 
       {/* Outer scrollytelling container: pinned on desktop lg+ (260vh), natural flow on mobile/tablet */}
       <div ref={containerRef} className="relative lg:min-h-[260vh]">
-        <div className="lg:sticky lg:top-[var(--navbar-height)] lg:min-h-[calc(100vh-var(--navbar-height))] flex flex-col justify-center py-10 sm:py-14 overflow-hidden">
+        <div className="lg:sticky lg:top-[var(--navbar-height)] lg:min-h-[calc(100vh-var(--navbar-height))] flex flex-col justify-center py-6 sm:py-10 lg:py-14 overflow-hidden">
           
           {/* Ambient background glow */}
           <div
@@ -279,24 +279,24 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
             {/* ===================================================================
                 SECTION HEADER: Alternating Entrance Reveals
                 =================================================================== */}
-            <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
+            <div className="text-center max-w-2xl mx-auto mb-4 sm:mb-6 lg:mb-10">
               <ScrollReveal direction="down" distance={16}>
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#CBD5E1] mb-3 shadow-xs">
+                <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white border border-[#CBD5E1] mb-2 sm:mb-3 shadow-xs">
                   <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
-                  <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#334155] font-semibold">
+                  <span className="text-[10px] sm:text-[10.5px] font-mono uppercase tracking-widest text-[#334155] font-semibold">
                     THE AUTONEXA PIPELINE
                   </span>
                 </div>
               </ScrollReveal>
 
               <ScrollReveal direction="left" delay={0.06} distance={22}>
-                <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-normal text-[#0F172A] tracking-tight leading-[1.1] mb-2">
+                <h2 className="font-editorial text-2xl sm:text-4xl md:text-5xl font-normal text-[#0F172A] tracking-tight leading-[1.1] mb-1.5 sm:mb-2">
                   The AutoNexa <span className="text-[#1E3A8A] italic font-normal">Pipeline.</span>
                 </h2>
               </ScrollReveal>
 
               <ScrollReveal direction="right" delay={0.1} distance={22}>
-                <p className="text-xs sm:text-sm text-[#64748B] font-sans">
+                <p className="text-xs sm:text-sm text-[#64748B] font-sans px-2">
                   From data upload to predictions — a synchronized AutoML workflow.
                 </p>
               </ScrollReveal>
@@ -333,12 +333,12 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                 =================================================================== */}
             <div className="relative w-full max-w-[1360px] mx-auto">
               
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-4 items-center">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 sm:gap-3 lg:gap-4 items-center">
                 
                 {/* -------------------------------------------------------------
                     LEFT COLUMN: 3 Cards (Upload, Validation, Profiling)
                     ------------------------------------------------------------- */}
-                <div className="lg:col-span-3 xl:col-span-3 flex flex-col gap-3.5 sm:gap-4 z-20">
+                <div className="order-2 lg:order-none lg:col-span-3 xl:col-span-3 flex flex-col gap-2.5 sm:gap-3 lg:gap-4 z-20">
                   {leftCards.map((card) => {
                     const Icon = card.icon;
                     const isSelected = activeStage === card.id;
@@ -352,7 +352,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                         onMouseLeave={() => setHoveredStage(null)}
                         whileHover={{ scale: prefersReducedMotion ? 1 : 1.015 }}
                         transition={{ duration: 0.2 }}
-                        className={`relative p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center justify-between gap-3 group min-h-[76px] ${
+                        className={`relative p-3 sm:p-3.5 lg:p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center justify-between gap-2.5 sm:gap-3 group min-h-[66px] sm:min-h-[76px] w-full ${
                           isSelected
                             ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_4px_20px_rgba(29,78,216,0.18)] ring-1 ring-[#1D4ED8]/30"
                             : isHovered
@@ -360,9 +360,9 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                             : "bg-white border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1]"
                         }`}
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                           <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
+                            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
                               isSelected
                                 ? "bg-[#DBEAFE] border-[#1D4ED8]/60 text-[#1D4ED8]"
                                 : "bg-[#F1F5F9] border-[#E2E8F0] text-[#334155] group-hover:text-[#1D4ED8]"
@@ -370,31 +370,31 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                           >
                             {card.id === 1 ? (
                               <div className="flex flex-col items-center">
-                                <FileText className="w-4 h-4" />
+                                <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                 <span className="text-[7px] font-mono font-bold text-[#1D4ED8] -mt-0.5 tracking-tighter">
                                   CSV
                                 </span>
                               </div>
                             ) : (
-                              <Icon className="w-4 h-4" />
+                              <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             )}
                           </div>
 
-                          <div>
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <span className="text-[10px] font-mono text-[#1D4ED8] font-bold">0{card.id}</span>
-                              <h3 className="text-xs sm:text-sm font-semibold text-[#0F172A] tracking-tight group-hover:text-[#1D4ED8] transition-colors">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5">
+                              <span className="text-[10px] font-mono text-[#1D4ED8] font-bold shrink-0">0{card.id}</span>
+                              <h3 className="text-xs sm:text-sm font-semibold text-[#0F172A] tracking-tight group-hover:text-[#1D4ED8] transition-colors truncate">
                                 {card.title}
                               </h3>
                             </div>
-                            <p className="text-[11px] text-[#64748B] leading-snug line-clamp-1 font-normal">
+                            <p className="text-[11px] text-[#64748B] leading-snug font-normal line-clamp-2 break-words">
                               {card.subtitle}
                             </p>
                           </div>
                         </div>
 
                         {/* Right Connection Port Dot */}
-                        <div className="relative shrink-0 flex items-center justify-center">
+                        <div className="relative shrink-0 flex items-center justify-center ml-1 sm:ml-2">
                           <div
                             className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
                               isSelected
@@ -414,9 +414,13 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                 {/* -------------------------------------------------------------
                     CENTER COLUMN: Central Workflow Network & Engine Plinth with Mascot
                     ------------------------------------------------------------- */}
-                <div className="lg:col-span-6 xl:col-span-6 relative flex flex-col items-center justify-center my-3 lg:my-0 z-10 px-0 sm:px-2">
+                <div className="order-first lg:order-none lg:col-span-6 xl:col-span-6 relative flex flex-col items-center justify-center my-1.5 sm:my-2 lg:my-0 z-10 px-0 sm:px-2 w-full">
+                  <div className="flex lg:hidden items-center gap-1.5 mb-1.5 px-2.5 py-0.5 rounded-full bg-white/90 border border-[#CBD5E1] shadow-xs text-[10px] font-mono text-[#1D4ED8]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#1D4ED8] animate-pulse" />
+                    <span>AutoNexa Central AI Engine · Step 0{activeStage}/6 Active</span>
+                  </div>
                   
-                  <div className="relative w-full max-w-[600px] aspect-[437/225] mx-auto group select-none">
+                  <div className="relative w-full max-w-[280px] xs:max-w-[320px] sm:max-w-[380px] lg:max-w-[600px] aspect-[437/225] mx-auto group select-none">
                     <div
                       className="pointer-events-none absolute inset-0 -bottom-6 opacity-35 blur-2xl -z-10"
                       style={{
@@ -586,7 +590,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                 {/* -------------------------------------------------------------
                     RIGHT COLUMN: 3 Cards (Training, Evaluation, Prediction)
                     ------------------------------------------------------------- */}
-                <div className="lg:col-span-3 xl:col-span-3 flex flex-col gap-3.5 sm:gap-4 z-20">
+                <div className="order-3 lg:order-none lg:col-span-3 xl:col-span-3 flex flex-col gap-2.5 sm:gap-3 lg:gap-4 z-20">
                   {rightCards.map((card) => {
                     const Icon = card.icon;
                     const isSelected = activeStage === card.id;
@@ -600,7 +604,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                         onMouseLeave={() => setHoveredStage(null)}
                         whileHover={{ scale: prefersReducedMotion ? 1 : 1.015 }}
                         transition={{ duration: 0.2 }}
-                        className={`relative p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center justify-between gap-3 group min-h-[76px] ${
+                        className={`relative p-3 sm:p-3.5 lg:p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center justify-between gap-2.5 sm:gap-3 group min-h-[66px] sm:min-h-[76px] w-full ${
                           isSelected
                             ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_4px_20px_rgba(29,78,216,0.18)] ring-1 ring-[#1D4ED8]/30"
                             : isHovered
@@ -608,8 +612,8 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                             : "bg-white border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1]"
                         }`}
                       >
-                        {/* Left Connection Port Dot */}
-                        <div className="relative shrink-0 flex items-center justify-center">
+                        {/* On mobile: Content is order-1, Port Dot is order-2. On desktop lg+: Port Dot is order-1, Content is order-2 */}
+                        <div className="relative shrink-0 flex items-center justify-center ml-1 sm:ml-2 order-2 lg:order-1 lg:ml-0 lg:mr-2">
                           <div
                             className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
                               isSelected
@@ -622,25 +626,25 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                           )}
                         </div>
 
-                        <div className="flex items-center gap-3 flex-1">
+                        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 order-1 lg:order-2">
                           <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
+                            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
                               isSelected
                                 ? "bg-[#DBEAFE] border-[#1D4ED8]/60 text-[#1D4ED8]"
                                 : "bg-[#F1F5F9] border-[#E2E8F0] text-[#334155] group-hover:text-[#1D4ED8]"
                             }`}
                           >
-                            <Icon className="w-4 h-4" />
+                            <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </div>
 
-                          <div>
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <span className="text-[10px] font-mono text-[#1D4ED8] font-bold">0{card.id}</span>
-                              <h3 className="text-xs sm:text-sm font-semibold text-[#0F172A] tracking-tight group-hover:text-[#1D4ED8] transition-colors">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5">
+                              <span className="text-[10px] font-mono text-[#1D4ED8] font-bold shrink-0">0{card.id}</span>
+                              <h3 className="text-xs sm:text-sm font-semibold text-[#0F172A] tracking-tight group-hover:text-[#1D4ED8] transition-colors truncate">
                                 {card.title}
                               </h3>
                             </div>
-                            <p className="text-[11px] text-[#64748B] leading-snug line-clamp-1 font-normal">
+                            <p className="text-[11px] text-[#64748B] leading-snug font-normal line-clamp-2 break-words">
                               {card.subtitle}
                             </p>
                           </div>
@@ -656,11 +660,11 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
             {/* ===================================================================
                 SIMULATION & STAGE TELEMETRY BAR
                 =================================================================== */}
-            <div className="mt-6 mb-5 flex flex-wrap items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-white border border-[#CBD5E1] max-w-4xl mx-auto shadow-sm">
-              <div className="flex items-center gap-3">
+            <div className="mt-4 sm:mt-6 mb-3 sm:mb-5 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 p-2.5 sm:p-3.5 rounded-2xl bg-white border border-[#CBD5E1] max-w-4xl mx-auto shadow-sm">
+              <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
                 <button
                   onClick={() => setIsSimulating(!isSimulating)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                     isSimulating
                       ? "bg-[#1D4ED8] text-white shadow-[0_4px_12px_rgba(29,78,216,0.35)]"
                       : "bg-[#F1F5F9] text-[#0F172A] border border-[#CBD5E1] hover:bg-[#E2E8F0]"
@@ -687,7 +691,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
               <div className="flex items-center gap-2.5">
                 <button
                   onClick={onLaunchWorkspace}
-                  className="px-3.5 py-1.5 rounded-xl bg-[#EFF6FF] hover:bg-[#DBEAFE] border border-[#1D4ED8]/40 text-[#1D4ED8] text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl bg-[#EFF6FF] hover:bg-[#DBEAFE] border border-[#1D4ED8]/40 text-[#1D4ED8] text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <span>Launch Workspace</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -698,15 +702,15 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
             {/* ===================================================================
                 INTERACTIVE STAGE INSPECTION DRAWER: Dynamic View per Active Stage
                 =================================================================== */}
-            <div className="max-w-4xl mx-auto rounded-2xl bg-white border border-[#CBD5E1] p-5 sm:p-7 shadow-lg">
+            <div className="max-w-4xl mx-auto rounded-2xl bg-white border border-[#CBD5E1] p-4 sm:p-6 lg:p-7 shadow-lg">
               
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-5 border-b border-[#E2E8F0] gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 sm:mb-5 border-b border-[#E2E8F0] gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] border border-[#1D4ED8]/60 flex items-center justify-center text-[#1D4ED8] font-mono text-xs font-bold">
+                  <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] border border-[#1D4ED8]/60 flex items-center justify-center text-[#1D4ED8] font-mono text-xs font-bold shrink-0">
                     0{activeStage}
                   </div>
-                  <div>
-                    <h4 className="text-sm sm:text-base font-bold text-[#0F172A]">
+                  <div className="min-w-0">
+                    <h4 className="text-sm sm:text-base font-bold text-[#0F172A] truncate">
                       {PIPELINE_CARDS[activeStage - 1].title}
                     </h4>
                     <p className="text-xs text-[#64748B]">
