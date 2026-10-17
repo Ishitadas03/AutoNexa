@@ -150,61 +150,69 @@ export default function FeatureHighlights({ onLaunchWorkspace }: FeatureHighligh
                 <div
                   onMouseEnter={() => setHoveredIdx(idx)}
                   onMouseLeave={() => setHoveredIdx(null)}
-                  className={`h-full relative p-6 sm:p-7 rounded-2xl border transition-all duration-300 flex flex-col justify-between group ${
+                  className={`h-full relative p-6 sm:p-7 rounded-2xl border transition-all duration-300 flex flex-col justify-between group overflow-hidden ${
                     isHovered
-                      ? "bg-white border-[#1D4ED8] shadow-[0_8px_30px_rgba(29,78,216,0.15)] -translate-y-1"
-                      : "bg-white border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1]"
+                      ? "bg-[#0F172A] border-[#3B82F6] shadow-[0_12px_40px_rgba(29,78,216,0.3)] -translate-y-1"
+                      : "bg-[#0F172A] border-[#1E293B] shadow-[0_4px_20px_rgba(15,23,42,0.18)] hover:border-[#334155]"
                   }`}
                 >
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <div
-                      className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-colors ${
-                        isHovered
-                          ? "bg-[#DBEAFE] border-[#1D4ED8] text-[#1D4ED8] shadow-sm"
-                          : "bg-[#F1F5F9] border-[#E2E8F0] text-[#1E293B] group-hover:text-[#1D4ED8]"
-                      }`}
-                    >
-                      <Icon className="w-6 h-6 stroke-[2]" />
+                  {/* Subtle top ambient glow inside dark card */}
+                  <div
+                    className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-48 h-32 rounded-full blur-2xl opacity-20 transition-opacity duration-500 group-hover:opacity-40"
+                    style={{
+                      background: "radial-gradient(circle, #3B82F6 0%, transparent 70%)",
+                    }}
+                  />
+
+                  <div>
+                    <div className="flex items-center justify-between mb-5">
+                      <div
+                        className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-all duration-300 ${
+                          isHovered
+                            ? "bg-[#1D4ED8]/30 border-[#3B82F6] text-[#60A5FA] shadow-[0_0_16px_rgba(59,130,246,0.35)] scale-105"
+                            : "bg-[#1E293B] border-[#334155] text-[#93C5FD] group-hover:text-[#60A5FA]"
+                        }`}
+                      >
+                        <Icon className="w-6 h-6 stroke-[2]" />
+                      </div>
+
+                      <span className="text-[10.5px] font-mono px-3 py-1 rounded-full bg-[#1E293B] border border-[#334155] text-[#93C5FD] font-semibold transition-colors group-hover:border-[#3B82F6]/50 group-hover:text-[#BFDBFE]">
+                        {feature.badge}
+                      </span>
                     </div>
 
-                    <span className="text-[10.5px] font-mono px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[#1D4ED8] font-semibold">
-                      {feature.badge}
-                    </span>
+                    <h3 className="text-base sm:text-lg font-bold text-white tracking-tight group-hover:text-[#60A5FA] transition-colors mb-1">
+                      {feature.title}
+                    </h3>
+                    <div className="text-[11.5px] font-mono text-[#60A5FA] mb-3">
+                      {feature.subtitle}
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed mb-6 font-sans">
+                      {feature.description}
+                    </p>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-bold text-[#0F172A] tracking-tight group-hover:text-[#1D4ED8] transition-colors mb-1">
-                    {feature.title}
-                  </h3>
-                  <div className="text-[11.5px] font-mono text-[#1D4ED8] mb-3">
-                    {feature.subtitle}
-                  </div>
-
-                  <p className="text-xs sm:text-sm text-[#475569] leading-relaxed mb-6 font-sans">
-                    {feature.description}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-[#E2E8F0]">
-                  <div className="flex items-center justify-between text-xs font-mono mb-3">
-                    <span className="text-[#64748B]">Capability:</span>
-                    <span className="text-[#1D4ED8] font-semibold flex items-center gap-1">
-                      <Zap className="w-3 h-3 text-[#1D4ED8]" />
-                      <span>{feature.microStat}</span>
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {feature.tags.map((tag, tIdx) => (
-                      <span
-                        key={tIdx}
-                        className="text-[10.5px] font-mono px-2.5 py-0.5 rounded-md bg-[#F1F5F9] border border-[#E2E8F0] text-[#475569]"
-                      >
-                        {tag}
+                  <div className="pt-4 border-t border-[#1E293B]">
+                    <div className="flex items-center justify-between text-xs font-mono mb-3">
+                      <span className="text-[#64748B]">Capability:</span>
+                      <span className="text-[#60A5FA] font-semibold flex items-center gap-1">
+                        <Zap className="w-3 h-3 text-[#60A5FA]" />
+                        <span>{feature.microStat}</span>
                       </span>
-                    ))}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {feature.tags.map((tag, tIdx) => (
+                        <span
+                          key={tIdx}
+                          className="text-[10.5px] font-mono px-2.5 py-0.5 rounded-md bg-[#1E293B]/80 border border-[#334155]/70 text-[#94A3B8] transition-colors hover:text-white hover:border-[#475569]"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
                 </div>
               </StaggerItem>
             );
