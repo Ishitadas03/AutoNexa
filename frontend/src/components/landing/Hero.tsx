@@ -19,8 +19,12 @@ interface HeroProps {
 }
 
 export default function Hero({ onLaunchWorkspace }: HeroProps) {
+  const scrollToWorkflow = () => {
+    document.getElementById("workflow")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
-    <section className="relative overflow-hidden pt-12 pb-20 md:pt-20 md:pb-32 bg-grid-pattern">
+    <section className="relative overflow-hidden pt-12 pb-16 md:pt-20 md:pb-24 bg-grid-pattern">
       {/* 3D Canvas Background */}
       <HeroScene />
 
@@ -30,17 +34,15 @@ export default function Hero({ onLaunchWorkspace }: HeroProps) {
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         {/* Eyebrow Label */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 mb-8 backdrop-blur-md animate-fade-in">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 mb-6 backdrop-blur-md animate-fade-in-up">
           <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
           <span className="text-xs font-semibold text-amber-300 tracking-wider uppercase font-mono">
             AutoNexa AI Research Lab
           </span>
-          <span className="text-xs text-slate-500">|</span>
-          <span className="text-xs text-slate-400">Automated Tabular ML</span>
         </div>
 
         {/* Large Headline */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1] mb-6 font-sans">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1] mb-6 font-sans animate-fade-in-up-delay-1">
           From Raw Data to{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 drop-shadow-[0_0_35px_rgba(245,158,11,0.25)]">
             Reliable Models.
@@ -48,27 +50,27 @@ export default function Hero({ onLaunchWorkspace }: HeroProps) {
         </h1>
 
         {/* Supporting Description */}
-        <p className="max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-slate-300 font-normal leading-relaxed mb-10">
-          A research-grade AutoML platform for exploring tabular datasets, training machine learning models under
-          resource budgets, and executing leakage-free inference.
+        <p className="max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-slate-300 font-normal leading-relaxed mb-10 animate-fade-in-up-delay-2">
+          A research-grade AutoML platform for exploring datasets, training machine
+          learning models, evaluating experiments, and generating predictions.
         </p>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14 animate-fade-in-up-delay-3">
           <button
             onClick={onLaunchWorkspace}
-            className="w-full sm:w-auto px-8 py-4 rounded-xl btn-gold text-sm sm:text-base font-bold flex items-center justify-center gap-3 shadow-xl shadow-amber-500/20 cursor-pointer"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-xl btn-gold text-sm sm:text-base font-bold flex items-center justify-center gap-3 shadow-xl shadow-amber-500/20 cursor-pointer"
           >
             Launch Workspace
             <ArrowRight className="w-4 h-4 stroke-[2.5]" />
           </button>
-          <a
-            href="#workflow"
-            className="w-full sm:w-auto px-8 py-4 rounded-xl btn-gold-outline text-sm sm:text-base font-semibold flex items-center justify-center gap-2"
+          <button
+            onClick={scrollToWorkflow}
+            className="w-full sm:w-auto px-8 py-3.5 rounded-xl btn-gold-outline text-sm sm:text-base font-semibold flex items-center justify-center gap-2 cursor-pointer"
           >
             <Sparkles className="w-4 h-4 text-amber-400" />
             Explore Workflow
-          </a>
+          </button>
         </div>
 
         {/* Value badges strip */}
@@ -94,7 +96,7 @@ export default function Hero({ onLaunchWorkspace }: HeroProps) {
               <Layers className="w-4 h-4" />
               <span className="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">MLflow Lineage</span>
             </div>
-            <p className="text-xs text-slate-400">Parent & nested child runs</p>
+            <p className="text-xs text-slate-400">Parent &amp; nested child runs</p>
           </div>
 
           <div className="p-3 rounded-lg glass-panel text-left">
@@ -102,7 +104,7 @@ export default function Hero({ onLaunchWorkspace }: HeroProps) {
               <Database className="w-4 h-4" />
               <span className="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">Safe Inference</span>
             </div>
-            <p className="text-xs text-slate-400">JSON & CSV batch predictions</p>
+            <p className="text-xs text-slate-400">JSON &amp; CSV batch predictions</p>
           </div>
         </div>
       </div>

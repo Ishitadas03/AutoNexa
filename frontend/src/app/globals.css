@@ -8,6 +8,8 @@
   --accent-gold: #f59e0b;
   --accent-gold-hover: #d97706;
   --accent-glow: rgba(245, 158, 11, 0.25);
+  --panel-bg-alt: #0c1117;
+  --connector-color: rgba(245, 158, 11, 0.35);
 }
 
 @theme inline {
@@ -37,7 +39,7 @@
 /* Subtle background grid pattern */
 .bg-grid-pattern {
   background-size: 40px 40px;
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
 }
@@ -99,4 +101,171 @@
 
 .animate-flow {
   animation: flowPulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* SVG connector dot animation */
+@keyframes connector-dot-flow {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
+
+.connector-dot {
+  offset-rotate: 0deg;
+  animation: connector-dot-flow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Glow stroke animation on SVG path */
+@keyframes stroke-glow {
+  0%,
+  100% {
+    stroke-opacity: 0.15;
+    filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.1));
+  }
+  50% {
+    stroke-opacity: 0.5;
+    filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.3));
+  }
+}
+
+.connector-path-glow {
+  animation: stroke-glow 3s ease-in-out infinite;
+}
+
+/* Fade-in up animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up-delay-1 {
+  animation: fadeInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.15s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up-delay-2 {
+  animation: fadeInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up-delay-3 {
+  animation: fadeInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.45s forwards;
+  opacity: 0;
+}
+
+/* Stage card hover depth */
+.stage-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  transform-style: preserve-3d;
+}
+.stage-card:hover {
+  transform: translateY(-4px) perspective(800px) rotateX(1deg);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(245, 158, 11, 0.06);
+}
+
+/* Pipeline panel depth */
+.pipeline-panel {
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+  transform-style: preserve-3d;
+}
+.pipeline-panel:hover {
+  transform: translateY(-2px) perspective(1000px) rotateX(0.5deg);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(245, 158, 11, 0.05);
+}
+
+/* Timeline connector */
+.timeline-connector {
+  position: relative;
+}
+.timeline-connector::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -24px;
+  width: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.4), rgba(245, 158, 11, 0.1));
+}
+
+/* Mobile vertical connector */
+.vertical-connector::after {
+  content: "";
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 16px;
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.4), rgba(245, 158, 11, 0.1));
+}
+
+/* Detail panel expand */
+@keyframes expandDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    max-height: 600px;
+    transform: translateY(0);
+  }
+}
+
+.detail-panel-enter {
+  animation: expandDown 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  overflow: hidden;
+}
+
+/* Scrollbar for horizontal stage scroller */
+.stage-scroller::-webkit-scrollbar {
+  height: 3px;
+}
+.stage-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+.stage-scroller::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.3);
+  border-radius: 999px;
+}
+
+/* Reduced motion: disable ALL custom animations */
+@media (prefers-reduced-motion: reduce) {
+  .animate-flow,
+  .connector-dot,
+  .connector-path-glow,
+  .animate-fade-in-up,
+  .animate-fade-in-up-delay-1,
+  .animate-fade-in-up-delay-2,
+  .animate-fade-in-up-delay-3 {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .stage-card:hover,
+  .pipeline-panel:hover {
+    transform: none !important;
+  }
 }

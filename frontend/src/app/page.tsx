@@ -5,6 +5,7 @@ import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import WorkflowVisualizer from "@/components/landing/WorkflowVisualizer";
 import FeatureHighlights from "@/components/landing/FeatureHighlights";
+import PipelineTimeline from "@/components/landing/PipelineTimeline";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Footer from "@/components/landing/Footer";
 
@@ -33,7 +34,6 @@ export default function Home() {
     addDataset,
     experiments,
     activeExperiment,
-    setActiveExperimentId,
     addExperiment,
     activeAnalysis,
     setActiveAnalysis,
@@ -112,12 +112,16 @@ export default function Home() {
       } catch (err) {
         console.warn("Auto-analysis skipped:", err);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Upload error:", err);
+      const errorMsg =
+        (err as { detail?: string; message?: string })?.detail ||
+        (err as { message?: string })?.message ||
+        "Failed to upload dataset.";
       showToast({
         type: "error",
         title: "Upload Failed",
-        message: err.detail || err.message || "Failed to upload dataset.",
+        message: errorMsg,
       });
     } finally {
       setIsUploading(false);
@@ -161,12 +165,16 @@ export default function Home() {
       } catch (err) {
         console.warn("Auto-analysis failed:", err);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("FastAPI sample upload failed:", err);
+      const errorMsg =
+        (err as { detail?: string; message?: string })?.detail ||
+        (err as { message?: string })?.message ||
+        "Failed to load sample dataset.";
       showToast({
         type: "error",
         title: "Sample Load Failed",
-        message: err.detail || err.message || "Failed to load sample dataset.",
+        message: errorMsg,
       });
     } finally {
       setIsUploading(false);
@@ -184,12 +192,16 @@ export default function Home() {
         title: "Intelligence Diagnostics Updated",
         message: `Task: ${analysis.task_recommendation?.task_type || "Detected"} (${analysis.quality_warnings.length} quality diagnostics).`,
       });
-    } catch (err: any) {
+    } catch (err) {
       console.error("Analysis error:", err);
+      const errorMsg =
+        (err as { detail?: string; message?: string })?.detail ||
+        (err as { message?: string })?.message ||
+        "Failed to analyze dataset.";
       showToast({
         type: "error",
         title: "Analysis Failed",
-        message: err.detail || err.message || "Failed to analyze dataset.",
+        message: errorMsg,
       });
     } finally {
       setIsAnalyzing(false);
@@ -217,11 +229,12 @@ export default function Home() {
         message: `Winner: ${response.best_model} (Ranked ${response.models_evaluated.length} estimators).`,
       });
       setActiveTab("leaderboard");
-    } catch (err: any) {
+    } catch (err) {
       clearInterval(timer);
       console.error("AutoML training error:", err);
 
-      if (apiConnected === false || err.message?.includes("Failed to fetch")) {
+      const errObj = err as { detail?: string; message?: string };
+      if (apiConnected === false || errObj.message?.includes("Failed to fetch")) {
         // Fallback simulation for live demonstration if backend offline
         const mockWinner = request.models?.[0] || "random_forest";
         const colNames = activeDataset.column_names || [];
@@ -271,7 +284,7 @@ export default function Home() {
         showToast({
           type: "error",
           title: "Training Failed",
-          message: err.detail || err.message || "Failed to train AutoML models.",
+          message: errObj.detail || errObj.message || "Failed to train AutoML models.",
         });
       }
     } finally {
@@ -315,6 +328,7 @@ export default function Home() {
           <Hero onLaunchWorkspace={() => setActiveView("workspace")} />
           <WorkflowVisualizer onLaunchWorkspace={() => setActiveView("workspace")} />
           <FeatureHighlights />
+          <PipelineTimeline onLaunchWorkspace={() => setActiveView("workspace")} />
           <HowItWorks onLaunchWorkspace={() => setActiveView("workspace")} />
           <Footer onLaunchWorkspace={() => setActiveView("workspace")} apiConnected={apiConnected} />
         </div>
