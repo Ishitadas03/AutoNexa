@@ -1,17 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --background: #070D0C;
-  --background-secondary: #0D1815;
-  --card-surface: #12201C;
-  --card-elevated: #162A23;
-  --text-primary: #F1EFE1;
-  --text-secondary: #AEBEB5;
-  --emerald-muted: #2A916E;
-  --emerald-accent: #68E7B5;
-  --border-subtle: #2A4E42;
-  --border-subtle-dark: #19332A;
-  --warning-amber: #EDC54C;
+  --background: #F2F6F9;
+  --background-secondary: #FFFFFF;
+  --card-surface: #FFFFFF;
+  --card-elevated: #FFFFFF;
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  --accent-primary: #1D4ED8;
+  --accent-primary-hover: #1E40AF;
+  --emerald-muted: #059669;
+  --emerald-accent: #10B981;
+  --border-subtle: #E2E8F0;
+  --border-subtle-dark: #CBD5E1;
+  --warning-amber: #D97706;
 }
 
 @theme inline {
@@ -21,6 +23,7 @@
   --color-card-elevated: var(--card-elevated);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
+  --color-accent-primary: var(--accent-primary);
   --color-emerald-muted: var(--emerald-muted);
   --color-emerald-accent: var(--emerald-accent);
   --color-border-subtle: var(--border-subtle);
@@ -28,20 +31,20 @@
   --font-editorial: var(--font-serif-editorial), Georgia, "Times New Roman", serif;
 }
 
-/* Custom dark scrollbar */
+/* Custom light scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #070D0C;
+  background: #F2F6F9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2A4E42;
+  background: #CBD5E1;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #68E7B5;
+  background: #94A3B8;
 }
 
 /* Editorial display font utility */
@@ -51,65 +54,68 @@
   letter-spacing: -0.02em;
 }
 
-/* Very subtle static technical grid */
+/* Very subtle light technical grid */
 .bg-tech-grid {
   background-size: 32px 32px;
   background-image:
-    linear-gradient(to right, rgba(104, 231, 181, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(104, 231, 181, 0.02) 1px, transparent 1px);
+    linear-gradient(to right, rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
 }
 
 /* Subtle dot grid pattern */
 .bg-dot-grid {
   background-size: 24px 24px;
-  background-image: radial-gradient(rgba(104, 231, 181, 0.08) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(15, 23, 42, 0.06) 1px, transparent 1px);
 }
 
-/* AutoNexa Reference Cards */
+/* AutoNexa Light Theme Cards */
 .autonexa-card {
-  background: #12201C;
-  border: 1px solid #2A4E42;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   border-radius: 16px;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04);
 }
 
 .autonexa-card:hover {
-  border-color: #3D705F;
+  border-color: #CBD5E1;
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
 }
 
 .autonexa-card-elevated {
-  background: #162A23;
-  border: 1px solid #336152;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   border-radius: 16px;
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.06);
 }
 
-/* Primary mint CTA button from reference concept */
+/* Primary cobalt CTA button from reference */
 .btn-autonexa-primary {
-  background: #68E7B5;
-  color: #071510;
+  background: #1D4ED8;
+  color: #FFFFFF;
   font-weight: 600;
   border-radius: 9999px;
-  box-shadow: 0 0 20px -3px rgba(104, 231, 181, 0.35);
+  box-shadow: 0 4px 14px 0 rgba(29, 78, 216, 0.35);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .btn-autonexa-primary:hover {
-  background: #56dca9;
-  box-shadow: 0 0 28px -2px rgba(104, 231, 181, 0.55);
+  background: #1E40AF;
+  box-shadow: 0 6px 20px 0 rgba(29, 78, 216, 0.45);
   transform: translateY(-1px);
 }
 
-/* Secondary dark button from reference concept */
+/* Secondary white/light button from reference */
 .btn-autonexa-secondary {
-  background: #0D1815;
-  color: #F1EFE1;
-  border: 1px solid #2A4E42;
+  background: #FFFFFF;
+  color: #0F172A;
+  border: 1px solid #CBD5E1;
   border-radius: 9999px;
+  box-shadow: 0 2px 8px 0 rgba(15, 23, 42, 0.03);
   transition: all 0.2s ease;
 }
 .btn-autonexa-secondary:hover {
-  background: #12201C;
-  border-color: #68E7B5;
-  color: #ffffff;
+  background: #F8FAFC;
+  border-color: #94A3B8;
+  color: #0F172A;
 }
 
 /* Reduced motion preference respect */

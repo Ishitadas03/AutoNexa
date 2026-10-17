@@ -185,7 +185,6 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
 
   const activeStage = SEVEN_STAGES[selectedStepIndex];
 
-  // Auto-advance loop when playing
   useEffect(() => {
     if (!isPlaying) {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -208,42 +207,42 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
   };
 
   return (
-    <section id="how-it-works" className="relative py-16 sm:py-24 bg-[#001312] border-b border-[#0E3D35]/70 overflow-hidden">
+    <section id="how-it-works" className="relative py-16 sm:py-24 bg-[#F2F6F9] border-b border-[#E2E8F0] overflow-hidden">
       {/* Ambient background light */}
       <div
         className="pointer-events-none absolute inset-0 opacity-40"
         style={{
           background:
-            "radial-gradient(ellipse 75% 55% at 50% 45%, rgba(0, 95, 80, 0.35), transparent 75%)",
+            "radial-gradient(ellipse 75% 55% at 50% 45%, rgba(29, 78, 216, 0.08), transparent 75%)",
         }}
       />
 
       <div className="relative max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-10">
         
         {/* ===================================================================
-            SECTION HEADER: Matching Reference Editorial Design
+            SECTION HEADER
             =================================================================== */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-6 border-b border-[#0E3D35]/60">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-6 border-b border-[#CBD5E1]">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#031C18]/90 border border-[#0E4A40] mb-3.5 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-[#4EECBF] shadow-[0_0_8px_#4EECBF]" />
-              <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#4EECBF] font-semibold">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#CBD5E1] mb-3.5 shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
+              <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#334155] font-semibold">
                 HOW AUTONEXA WORKS
               </span>
             </div>
-            <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-normal text-[#F1EFE1] tracking-tight leading-[1.1]">
-              A simple workflow from data to <span className="text-[#4EECBF] italic font-normal">predictions.</span>
+            <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-normal text-[#0F172A] tracking-tight leading-[1.1]">
+              A simple workflow from data to <span className="text-[#1E3A8A] italic font-normal">predictions.</span>
             </h2>
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 max-w-lg">
-            <p className="text-xs sm:text-sm text-[#86A699] font-sans leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#475569] font-sans leading-relaxed">
               Follow every stage of the AutoML pipeline, designed for tabular data, strict cross-validation, and real-world deployment.
             </p>
             <div className="flex items-center gap-2.5 shrink-0">
               <button
                 onClick={() => setRobotModalOpen(true)}
-                className="px-3.5 py-2 rounded-xl bg-[#02211C] border border-[#4EECBF]/60 text-[#4EECBF] text-xs font-semibold flex items-center gap-1.5 shadow-[0_0_12px_rgba(78,236,191,0.2)] hover:bg-[#032A24] transition-all cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-white border border-[#CBD5E1] hover:border-[#1D4ED8] text-[#1D4ED8] text-xs font-semibold flex items-center gap-1.5 shadow-xs hover:bg-[#EFF6FF] transition-all cursor-pointer"
                 title="Open interactive Robot Animation Guide"
               >
                 <Sparkles className="w-3.5 h-3.5" />
@@ -254,41 +253,40 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
         </div>
 
         {/* ===================================================================
-            MOVABLE WORKFLOW STEPPER RAIL (Interactive, Responsive & Animated)
+            MOVABLE WORKFLOW STEPPER RAIL
             =================================================================== */}
         <div className="relative mb-10">
           
-          {/* Top Control Bar: Play/Pause, Step Navigation & Auto-Advance Progress */}
           <div className="flex items-center justify-between mb-4 px-2">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsPlaying(!isPlaying)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   isPlaying
-                    ? "bg-[#4EECBF] text-[#001312] shadow-[0_0_12px_rgba(78,236,191,0.4)]"
-                    : "bg-[#03211C] text-[#86A699] border border-[#0E3D35] hover:text-[#F1EFE1]"
+                    ? "bg-[#1D4ED8] text-white shadow-[0_4px_12px_rgba(29,78,216,0.35)]"
+                    : "bg-white text-[#475569] border border-[#CBD5E1] hover:text-[#0F172A]"
                 }`}
               >
                 {isPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current" />}
                 <span>{isPlaying ? "Simulating Live" : "Resume Flow"}</span>
               </button>
 
-              <span className="text-xs font-mono text-[#86A699] hidden sm:inline">
-                Active: <span className="text-[#4EECBF] font-semibold">Stage {activeStage.step} • {activeStage.title}</span>
+              <span className="text-xs font-mono text-[#475569] hidden sm:inline">
+                Active: <span className="text-[#1D4ED8] font-semibold">Stage {activeStage.step} • {activeStage.title}</span>
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={handlePrev}
-                className="w-8 h-8 rounded-lg bg-[#021A17] border border-[#0E3D35] text-[#86A699] hover:text-[#4EECBF] hover:border-[#4EECBF]/60 flex items-center justify-center transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-lg bg-white border border-[#CBD5E1] text-[#475569] hover:text-[#1D4ED8] hover:border-[#1D4ED8] flex items-center justify-center transition-colors cursor-pointer shadow-xs"
                 title="Previous Stage"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={handleNext}
-                className="w-8 h-8 rounded-lg bg-[#021A17] border border-[#0E3D35] text-[#86A699] hover:text-[#4EECBF] hover:border-[#4EECBF]/60 flex items-center justify-center transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-lg bg-white border border-[#CBD5E1] text-[#475569] hover:text-[#1D4ED8] hover:border-[#1D4ED8] flex items-center justify-center transition-colors cursor-pointer shadow-xs"
                 title="Next Stage"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -296,13 +294,11 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
             </div>
           </div>
 
-          {/* Connected 7-Stage Horizontal Track (Scrollable on small mobile, Panoramic on tablet/desktop) */}
           <div className="relative overflow-x-auto pb-4 pt-2 scrollbar-none">
             
-            {/* Glowing animated connection wire behind stages */}
-            <div className="hidden lg:block absolute top-[38px] left-[6%] right-[6%] h-[2.5px] bg-[#0E3D35] z-0">
+            <div className="hidden lg:block absolute top-[38px] left-[6%] right-[6%] h-[2.5px] bg-[#E2E8F0] z-0">
               <div
-                className="h-full bg-[#4EECBF] transition-all duration-700 ease-out shadow-[0_0_12px_#4EECBF]"
+                className="h-full bg-[#1D4ED8] transition-all duration-700 ease-out shadow-[0_0_8px_rgba(29,78,216,0.5)]"
                 style={{
                   width: `${(selectedStepIndex / (SEVEN_STAGES.length - 1)) * 100}%`,
                 }}
@@ -324,18 +320,17 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
                     }}
                     className={`relative p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between group ${
                       isSelected
-                        ? "bg-[#02241E] border-[#4EECBF] shadow-[0_0_24px_rgba(78,236,191,0.3)] -translate-y-1"
+                        ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_4px_16px_rgba(29,78,216,0.2)] -translate-y-1"
                         : isCompleted
-                        ? "bg-[#011815] border-[#0E4A40] hover:border-[#4EECBF]/60"
-                        : "bg-[#001411] border-[#0E3D35]/70 hover:border-[#1E6052]"
+                        ? "bg-white border-[#CBD5E1] hover:border-[#1D4ED8]"
+                        : "bg-white border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1]"
                     }`}
                   >
                     <div>
-                      {/* Top Step Number + Icon */}
                       <div className="flex items-center justify-between mb-3">
                         <span
                           className={`text-xs font-mono font-bold transition-colors ${
-                            isSelected ? "text-[#4EECBF]" : "text-[#86A699] group-hover:text-[#4EECBF]"
+                            isSelected ? "text-[#1D4ED8]" : "text-[#64748B] group-hover:text-[#1D4ED8]"
                           }`}
                         >
                           {stage.step}
@@ -343,38 +338,36 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
                         <div
                           className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
                             isSelected
-                              ? "bg-[#4EECBF] text-[#001312] shadow-[0_0_10px_#4EECBF]"
+                              ? "bg-[#1D4ED8] text-white shadow-sm"
                               : isCompleted
-                              ? "bg-[#022A22] text-[#4EECBF]"
-                              : "bg-[#021815] text-[#86A699] group-hover:text-[#4EECBF]"
+                              ? "bg-[#DBEAFE] text-[#1D4ED8]"
+                              : "bg-[#F1F5F9] text-[#475569] group-hover:text-[#1D4ED8]"
                           }`}
                         >
                           <Icon className="w-3.5 h-3.5" />
                         </div>
                       </div>
 
-                      {/* Title & Subtitle */}
                       <h3
                         className={`text-xs sm:text-sm font-semibold tracking-tight transition-colors line-clamp-1 mb-1 ${
-                          isSelected ? "text-[#F1EFE1]" : "text-[#E0DDD5] group-hover:text-[#4EECBF]"
+                          isSelected ? "text-[#0F172A]" : "text-[#1E293B] group-hover:text-[#1D4ED8]"
                         }`}
                       >
                         {stage.title}
                       </h3>
-                      <p className="text-[11px] text-[#86A699] leading-snug line-clamp-2">
+                      <p className="text-[11px] text-[#64748B] leading-snug line-clamp-2">
                         {stage.subtitle}
                       </p>
                     </div>
 
-                    {/* Active Bottom Pulse Bar */}
-                    <div className="mt-3 pt-2 border-t border-[#0E3D35]/50 flex items-center justify-between">
-                      <span className="text-[9.5px] font-mono text-[#86A699] uppercase tracking-wider">
+                    <div className="mt-3 pt-2 border-t border-[#E2E8F0] flex items-center justify-between">
+                      <span className="text-[9.5px] font-mono text-[#64748B] uppercase tracking-wider">
                         {isSelected ? "Active" : isCompleted ? "Complete" : "Ready"}
                       </span>
                       {isSelected ? (
-                        <span className="w-2 h-2 rounded-full bg-[#4EECBF] shadow-[0_0_8px_#4EECBF] animate-ping" />
+                        <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8] animate-ping" />
                       ) : isCompleted ? (
-                        <CheckCircle2 className="w-3 h-3 text-[#4EECBF]" />
+                        <CheckCircle2 className="w-3 h-3 text-[#1D4ED8]" />
                       ) : null}
                     </div>
                   </div>
@@ -386,25 +379,14 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
         </div>
 
         {/* ===================================================================
-            MOVABLE STAGE DRILL-DOWN DECK: The Interactive Lab Console
+            MOVABLE STAGE DRILL-DOWN DECK
             =================================================================== */}
-        <div className="relative rounded-3xl bg-[#001815] border border-[#0E4A40] p-6 sm:p-8 lg:p-10 shadow-2xl overflow-hidden">
+        <div className="relative rounded-3xl bg-white border border-[#CBD5E1] p-6 sm:p-8 lg:p-10 shadow-xl overflow-hidden">
           
-          {/* Subtle background glow centered on the mascot */}
-          <div
-            className="pointer-events-none absolute -top-12 -left-12 w-96 h-96 opacity-40 blur-3xl"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(78, 236, 191, 0.25), transparent 70%)",
-            }}
-          />
-
-          {/* Console Header Bar */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-6 mb-8 border-b border-[#0E3D35] gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-6 mb-8 border-b border-[#E2E8F0] gap-4">
             
-            {/* Mascot Avatar + Stage Identity */}
             <div className="flex items-center gap-4">
-              <div className="relative w-16 h-16 rounded-2xl bg-[#02211C] border border-[#4EECBF]/60 flex items-center justify-center p-1 shrink-0 shadow-[0_0_20px_rgba(78,236,191,0.2)]">
+              <div className="relative w-16 h-16 rounded-2xl bg-[#EFF6FF] border border-[#1D4ED8]/60 flex items-center justify-center p-1 shrink-0 shadow-sm">
                 <RobotMascot
                   size="xs"
                   stage={activeStage.num}
@@ -415,28 +397,27 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
 
               <div>
                 <div className="flex items-center gap-2.5 mb-1">
-                  <span className="px-2.5 py-0.5 rounded-full bg-[#022B23] border border-[#4EECBF]/60 text-[#4EECBF] font-mono text-[11px] font-bold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#DBEAFE] border border-[#1D4ED8]/40 text-[#1D4ED8] font-mono text-[11px] font-bold">
                     Stage {activeStage.step}
                   </span>
-                  <span className="text-[11px] font-mono text-[#86A699]">
-                    Status: <span className="text-[#4EECBF] font-semibold">{activeStage.mascotState.toUpperCase()}</span>
+                  <span className="text-[11px] font-mono text-[#64748B]">
+                    Status: <span className="text-[#1D4ED8] font-semibold">{activeStage.mascotState.toUpperCase()}</span>
                   </span>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-[#F1EFE1] tracking-tight">
-                  {activeStage.title} — <span className="text-[#4EECBF] font-normal">{activeStage.subtitle}</span>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
+                  {activeStage.title} — <span className="text-[#1D4ED8] font-normal">{activeStage.subtitle}</span>
                 </h3>
               </div>
             </div>
 
-            {/* API Endpoint & Technical Specs Badges */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1.5 rounded-xl bg-[#001311] border border-[#0E3D35] text-xs font-mono text-[#86A699] flex items-center gap-1.5">
-                <Terminal className="w-3.5 h-3.5 text-[#4EECBF]" />
+              <span className="px-3 py-1.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-xs font-mono text-[#475569] flex items-center gap-1.5">
+                <Terminal className="w-3.5 h-3.5 text-[#1D4ED8]" />
                 <span>{activeStage.endpoint}</span>
               </span>
               <button
                 onClick={onLaunchWorkspace}
-                className="px-4 py-2 rounded-xl bg-[#4EECBF] hover:bg-[#3dd8ab] text-[#001312] text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-[0_0_16px_rgba(78,236,191,0.35)]"
+                className="px-4 py-2 rounded-xl bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-[0_4px_12px_rgba(29,78,216,0.3)]"
               >
                 <span>Test in Workspace</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -444,104 +425,102 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
             </div>
           </div>
 
-          {/* 3-Column Pipeline Architecture: Input -> Processing Engine -> Validated Output */}
+          {/* 3-Column Pipeline Architecture */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
             
             {/* 1. INPUT STREAM CARD */}
-            <div className="p-5 rounded-2xl bg-[#001411] border border-[#0E3D35] flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-[#4EECBF] font-mono text-xs font-bold uppercase tracking-wider">
-                    <span className="w-2 h-2 rounded-full bg-[#4EECBF] shadow-[0_0_6px_#4EECBF]" />
+                  <div className="flex items-center gap-2 text-[#1D4ED8] font-mono text-xs font-bold uppercase tracking-wider">
+                    <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
                     <span>01 // Input Stream</span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#02241E] text-[#86A699]">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#E2E8F0] text-[#475569]">
                     Streaming
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-[#F1EFE1] leading-relaxed mb-4">
+                <p className="text-xs sm:text-sm text-[#0F172A] leading-relaxed mb-4">
                   {activeStage.inputSummary}
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-[#0E3D35]/50 flex items-center justify-between text-[11px] font-mono text-[#86A699]">
+              <div className="pt-3 border-t border-[#CBD5E1]/60 flex items-center justify-between text-[11px] font-mono text-[#64748B]">
                 <span>Format</span>
-                <span className="text-[#4EECBF]">{activeStage.metrics[0].value}</span>
+                <span className="text-[#1D4ED8] font-semibold">{activeStage.metrics[0].value}</span>
               </div>
             </div>
 
             {/* 2. PROCESSING ENGINE CARD */}
-            <div className="p-5 rounded-2xl bg-[#001411] border border-[#4EECBF]/50 shadow-[0_0_20px_rgba(78,236,191,0.12)] flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#1D4ED8]/60 shadow-[0_4px_16px_rgba(29,78,216,0.1)] flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-sky-400 font-mono text-xs font-bold uppercase tracking-wider">
-                    <span className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_6px_#38bdf8] animate-pulse" />
+                  <div className="flex items-center gap-2 text-[#1E40AF] font-mono text-xs font-bold uppercase tracking-wider">
+                    <span className="w-2 h-2 rounded-full bg-[#1E40AF] animate-pulse" />
                     <span>02 // Execution Engine</span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#03232A] text-sky-300">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#DBEAFE] text-[#1E40AF]">
                     Automated
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-[#F1EFE1] leading-relaxed mb-4">
+                <p className="text-xs sm:text-sm text-[#0F172A] leading-relaxed mb-4">
                   {activeStage.processingSummary}
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-[#0E3D35]/50 flex items-center justify-between text-[11px] font-mono text-[#86A699]">
+              <div className="pt-3 border-t border-[#CBD5E1]/60 flex items-center justify-between text-[11px] font-mono text-[#64748B]">
                 <span>Throughput</span>
-                <span className="text-sky-300 font-bold">{activeStage.metrics[1].value}</span>
+                <span className="text-[#1E40AF] font-bold">{activeStage.metrics[1].value}</span>
               </div>
             </div>
 
             {/* 3. VALIDATED ARTIFACT CARD */}
-            <div className="p-5 rounded-2xl bg-[#001411] border border-[#0E3D35] flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-[#4EECBF] font-mono text-xs font-bold uppercase tracking-wider">
-                    <span className="w-2 h-2 rounded-full bg-[#4EECBF] shadow-[0_0_6px_#4EECBF]" />
+                  <div className="flex items-center gap-2 text-[#15803D] font-mono text-xs font-bold uppercase tracking-wider">
+                    <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_6px_#10B981]" />
                     <span>03 // Validated Output</span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#02241E] text-[#86A699]">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#DCFCE7] text-[#15803D]">
                     Artifact
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-[#F1EFE1] leading-relaxed mb-4">
+                <p className="text-xs sm:text-sm text-[#0F172A] leading-relaxed mb-4">
                   {activeStage.outputSummary}
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-[#0E3D35]/50 flex items-center justify-between text-[11px] font-mono text-[#86A699]">
+              <div className="pt-3 border-t border-[#CBD5E1]/60 flex items-center justify-between text-[11px] font-mono text-[#64748B]">
                 <span>Verification</span>
-                <span className="text-[#4EECBF] font-bold">{activeStage.metrics[2].value}</span>
+                <span className="text-[#15803D] font-bold">{activeStage.metrics[2].value}</span>
               </div>
             </div>
 
           </div>
 
-          {/* Interactive Technical Spec Chips */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[#0E3D35]/60 text-xs font-mono">
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[#E2E8F0] text-xs font-mono">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[#86A699] mr-1">Guarantees:</span>
+              <span className="text-[#64748B] mr-1">Guarantees:</span>
               {activeStage.technicalSpecs.map((spec, i) => (
                 <span
                   key={i}
-                  className="px-3 py-1 rounded-lg bg-[#021F1A] border border-[#0E4A40] text-[#4EECBF] text-[11px] flex items-center gap-1.5"
+                  className="px-3 py-1 rounded-lg bg-[#EFF6FF] border border-[#BFDBFE] text-[#1D4ED8] text-[11px] flex items-center gap-1.5"
                 >
-                  <ShieldCheck className="w-3 h-3 text-[#4EECBF]" />
+                  <ShieldCheck className="w-3 h-3 text-[#1D4ED8]" />
                   <span>{spec}</span>
                 </span>
               ))}
             </div>
 
-            <div className="flex items-center gap-4 text-[#86A699]">
-              <span>Auto-advancing: <span className="text-[#4EECBF]">{isPlaying ? "ON" : "PAUSED"}</span></span>
+            <div className="flex items-center gap-4 text-[#64748B]">
+              <span>Auto-advancing: <span className="text-[#1D4ED8] font-bold">{isPlaying ? "ON" : "PAUSED"}</span></span>
               <span>Stage {selectedStepIndex + 1} of 7</span>
             </div>
           </div>
 
         </div>
 
-        {/* Robot Animation Guide Interactive Verification Modal */}
         <RobotAnimationGuideModal
           isOpen={robotModalOpen}
           onClose={() => setRobotModalOpen(false)}

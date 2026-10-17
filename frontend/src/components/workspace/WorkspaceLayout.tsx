@@ -42,13 +42,13 @@ export default function WorkspaceLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#070D0C] text-[#F1EFE1] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#F2F6F9] text-[#0F172A] flex flex-col font-sans">
       {/* Top Banner Bar */}
-      <header className="border-b border-[#2A4E42] bg-[#0D1815]/95 backdrop-blur-md px-4 sm:px-6 py-3 flex items-center justify-between z-40 sticky top-0">
+      <header className="border-b border-[#E2E8F0] bg-white/95 backdrop-blur-md px-4 sm:px-6 py-3 flex items-center justify-between z-40 sticky top-0 shadow-xs">
         <div className="flex items-center gap-3">
           <button
             onClick={onExitWorkspace}
-            className="p-1.5 rounded-lg bg-[#070D0C] border border-[#2A4E42] text-[#AEBEB5] hover:text-[#F1EFE1] hover:border-[#68E7B5] transition-colors flex items-center gap-1.5 text-xs font-mono cursor-pointer"
+            className="p-1.5 rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] text-[#475569] hover:text-[#0F172A] hover:border-[#1D4ED8] transition-colors flex items-center gap-1.5 text-xs font-mono cursor-pointer"
             title="Return to Landing Page"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -56,25 +56,25 @@ export default function WorkspaceLayout({
           </button>
 
           <div className="flex items-center gap-2">
-            <span className="text-base font-bold text-[#68E7B5] font-sans tracking-wide">AUTONEXA</span>
-            <span className="text-xs text-[#AEBEB5] hidden sm:inline font-mono">/ Studio Workspace</span>
+            <span className="text-base font-bold text-[#1D4ED8] font-sans tracking-wide">AUTONEXA</span>
+            <span className="text-xs text-[#64748B] hidden sm:inline font-mono">/ Studio Workspace</span>
           </div>
         </div>
 
         {/* Right side status indicators */}
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#070D0C] text-[#68E7B5] border border-[#2A4E42] text-xs font-medium font-mono">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] text-xs font-medium font-mono">
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>FastAPI Operational</span>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs text-[#AEBEB5] bg-[#070D0C] px-3 py-1 rounded-full border border-[#2A4E42]">
+          <div className="flex items-center gap-1.5 text-xs text-[#475569] bg-white px-3 py-1 rounded-full border border-[#CBD5E1] shadow-xs">
             <span
               className={`w-2 h-2 rounded-full ${
-                apiConnected === true ? "bg-[#68E7B5] animate-pulse shadow-[0_0_8px_#68E7B5]" : apiConnected === false ? "bg-[#EDC54C]" : "bg-[#AEBEB5]"
+                apiConnected === true ? "bg-[#10B981] animate-pulse shadow-[0_0_6px_#10B981]" : apiConnected === false ? "bg-[#F59E0B]" : "bg-[#94A3B8]"
               }`}
             />
-            <span className="text-[11px] font-mono">
+            <span className="text-[11px] font-mono font-medium">
               {apiConnected === true ? "API Online" : apiConnected === false ? "Local Demo" : "Connecting..."}
             </span>
           </div>
@@ -82,7 +82,7 @@ export default function WorkspaceLayout({
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-1.5 rounded-lg bg-[#070D0C] border border-[#2A4E42] text-[#AEBEB5]"
+            className="lg:hidden p-1.5 rounded-lg bg-white border border-[#CBD5E1] text-[#475569]"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -92,22 +92,22 @@ export default function WorkspaceLayout({
       {/* Main Workspace Frame */}
       <div className="flex-1 flex max-w-[1600px] w-full mx-auto p-3 sm:p-5 lg:p-6 gap-5 lg:gap-6">
         {/* Left Desktop Sidebar */}
-        <aside className="hidden lg:flex flex-col justify-between w-64 rounded-2xl bg-[#0D1815] p-5 shrink-0 h-[calc(100vh-6.5rem)] sticky top-20 border border-[#2A4E42]">
+        <aside className="hidden lg:flex flex-col justify-between w-64 rounded-2xl bg-white p-5 shrink-0 h-[calc(100vh-6.5rem)] sticky top-20 border border-[#E2E8F0] shadow-sm">
           <div>
             {/* Logo in Sidebar */}
-            <div className="mb-6 pb-4 border-b border-[#2A4E42]/60">
+            <div className="mb-6 pb-4 border-b border-[#E2E8F0]">
               <div className="flex items-center gap-2">
-                <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
-                  <path d="M16 4 L6 24 L11 24 L16 13 L21 24 L26 24 Z" fill="#68E7B5" />
-                  <path d="M12 18 L20 18 L18 21 L14 21 Z" fill="#2A916E" />
+                <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+                  <path d="M7 31 L18 5 L29 31" stroke="#1D4ED8" strokeWidth="3.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <rect x="11" y="20" width="14" height="3.6" rx="1.8" fill="#0F172A" />
                 </svg>
-                <span className="text-base font-bold text-[#F1EFE1] tracking-tight">AutoNexa</span>
+                <span className="text-base font-bold text-[#0F172A] tracking-tight">AutoNexa</span>
               </div>
-              <p className="text-[10px] text-[#AEBEB5] tracking-wide font-mono mt-1">Research AutoML Suite</p>
+              <p className="text-[10px] text-[#64748B] tracking-wide font-mono mt-1">Research AutoML Suite</p>
             </div>
 
             {/* Navigation Header */}
-            <div className="text-[10px] uppercase font-bold tracking-wider text-[#AEBEB5] font-mono mb-3">
+            <div className="text-[10px] uppercase font-bold tracking-wider text-[#64748B] font-mono mb-3">
               Workspace Views
             </div>
 
@@ -122,11 +122,11 @@ export default function WorkspaceLayout({
                     onClick={() => onTabChange(item.id)}
                     className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                       isActive
-                        ? "bg-[#162A23] border border-[#2A4E42] text-[#68E7B5] shadow-sm font-semibold"
-                        : "text-[#AEBEB5] hover:text-[#F1EFE1] hover:bg-[#12201C]"
+                        ? "bg-[#EFF6FF] border border-[#BFDBFE] text-[#1D4ED8] shadow-xs font-bold"
+                        : "text-[#475569] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${isActive ? "text-[#68E7B5]" : "text-[#AEBEB5]"}`} />
+                    <Icon className={`w-4 h-4 ${isActive ? "text-[#1D4ED8]" : "text-[#64748B]"}`} />
                     <span>{item.label}</span>
                   </button>
                 );
@@ -135,32 +135,32 @@ export default function WorkspaceLayout({
           </div>
 
           {/* Sidebar Footer with Connection Status */}
-          <div className="pt-4 border-t border-[#2A4E42]/60">
-            <div className="flex items-center gap-2 text-xs text-[#AEBEB5]">
+          <div className="pt-4 border-t border-[#E2E8F0]">
+            <div className="flex items-center gap-2 text-xs text-[#475569]">
               <span
                 className={`w-2 h-2 rounded-full ${
-                  apiConnected === true ? "bg-[#68E7B5] animate-pulse shadow-[0_0_6px_#68E7B5]" : "bg-[#EDC54C]"
+                  apiConnected === true ? "bg-[#10B981] animate-pulse shadow-[0_0_6px_#10B981]" : "bg-[#F59E0B]"
                 }`}
               />
               <span className="text-[11px] font-mono">FastAPI Engine (Port 8000)</span>
             </div>
-            <p className="text-[10px] text-[#AEBEB5]/70 mt-1 font-mono">v1.0.0 // scikit-learn // MLflow</p>
+            <p className="text-[10px] text-[#94A3B8] mt-1 font-mono">v1.0.0 // scikit-learn // MLflow</p>
           </div>
         </aside>
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex">
-            <div className="w-72 bg-[#0D1815] p-5 flex flex-col justify-between h-full border-r border-[#2A4E42]">
+          <div className="lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex">
+            <div className="w-72 bg-white p-5 flex flex-col justify-between h-full border-r border-[#CBD5E1] shadow-2xl">
               <div>
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#2A4E42]">
-                  <span className="text-lg font-bold text-[#68E7B5]">AutoNexa</span>
-                  <button onClick={() => setMobileMenuOpen(false)} className="text-[#AEBEB5] hover:text-[#F1EFE1]">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#E2E8F0]">
+                  <span className="text-lg font-bold text-[#1D4ED8]">AutoNexa</span>
+                  <button onClick={() => setMobileMenuOpen(false)} className="text-[#64748B] hover:text-[#0F172A]">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="text-[10px] uppercase font-bold tracking-wider text-[#AEBEB5] font-mono mb-3">
+                <div className="text-[10px] uppercase font-bold tracking-wider text-[#64748B] font-mono mb-3">
                   Workspace Views
                 </div>
 
@@ -177,11 +177,11 @@ export default function WorkspaceLayout({
                         }}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
                           isActive
-                            ? "bg-[#162A23] border border-[#2A4E42] text-[#68E7B5] font-semibold"
-                            : "text-[#AEBEB5] hover:text-[#F1EFE1]"
+                            ? "bg-[#EFF6FF] border border-[#BFDBFE] text-[#1D4ED8] font-bold"
+                            : "text-[#475569] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
                         }`}
                       >
-                        <Icon className={`w-4 h-4 ${isActive ? "text-[#68E7B5]" : "text-[#AEBEB5]"}`} />
+                        <Icon className={`w-4 h-4 ${isActive ? "text-[#1D4ED8]" : "text-[#64748B]"}`} />
                         <span>{item.label}</span>
                       </button>
                     );
@@ -189,16 +189,16 @@ export default function WorkspaceLayout({
                 </nav>
               </div>
 
-              <div className="pt-4 border-t border-[#2A4E42]">
+              <div className="pt-4 border-t border-[#E2E8F0]">
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);
                     onExitWorkspace();
                   }}
-                  className="w-full py-2 rounded-lg bg-[#070D0C] border border-[#2A4E42] text-xs text-[#AEBEB5] hover:text-[#F1EFE1] flex items-center justify-center gap-2"
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-[#F1F5F9] border border-[#CBD5E1] text-xs font-mono text-[#0F172A]"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Return to Landing</span>
+                  <span>Return to Landing Page</span>
                 </button>
               </div>
             </div>
@@ -206,10 +206,8 @@ export default function WorkspaceLayout({
           </div>
         )}
 
-        {/* Main Content Stage */}
-        <main className="flex-1 min-w-0 overflow-y-auto">
-          {children}
-        </main>
+        {/* Tab View Container */}
+        <main className="flex-1 overflow-x-hidden min-w-0">{children}</main>
       </div>
     </div>
   );

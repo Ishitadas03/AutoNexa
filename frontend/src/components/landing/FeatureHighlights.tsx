@@ -87,42 +87,42 @@ export default function FeatureHighlights({ onLaunchWorkspace }: FeatureHighligh
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   return (
-    <section id="features" className="relative py-16 sm:py-24 bg-[#001312] border-b border-[#0E3D35]/70 overflow-hidden">
+    <section id="features" className="relative py-16 sm:py-24 bg-[#F2F6F9] border-b border-[#E2E8F0] overflow-hidden">
       {/* Subtle ambient light */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-30"
+        className="pointer-events-none absolute inset-0 opacity-40"
         style={{
           background:
-            "radial-gradient(ellipse 70% 50% at 50% 30%, rgba(0, 95, 80, 0.25), transparent 75%)",
+            "radial-gradient(ellipse 70% 50% at 50% 30%, rgba(29, 78, 216, 0.06), transparent 75%)",
         }}
       />
 
       <div className="relative max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-10">
         
         {/* ===================================================================
-            SECTION HEADER: Matching Reference Editorial Design
+            SECTION HEADER
             =================================================================== */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-6 border-b border-[#0E3D35]/60">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-6 border-b border-[#CBD5E1]">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#031C18]/90 border border-[#0E4A40] mb-3.5 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-[#4EECBF] shadow-[0_0_8px_#4EECBF]" />
-              <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#4EECBF] font-semibold">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#CBD5E1] mb-3.5 shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
+              <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#334155] font-semibold">
                 FEATURES & CAPABILITIES
               </span>
             </div>
-            <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-normal text-[#F1EFE1] tracking-tight leading-[1.1]">
-              Everything you need for your <span className="text-[#4EECBF] italic font-normal">AutoML workflow.</span>
+            <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-normal text-[#0F172A] tracking-tight leading-[1.1]">
+              Everything you need for your <span className="text-[#1E3A8A] italic font-normal">AutoML workflow.</span>
             </h2>
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 max-w-lg">
-            <p className="text-xs sm:text-sm text-[#86A699] font-sans leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#475569] font-sans leading-relaxed">
               A comprehensive toolkit for tabular datasets — from exploratory profiling to multi-model benchmarking and deployment.
             </p>
             {onLaunchWorkspace && (
               <button
                 onClick={onLaunchWorkspace}
-                className="px-4 py-2 rounded-xl bg-[#02211C] border border-[#4EECBF]/60 text-[#4EECBF] text-xs font-semibold flex items-center gap-1.5 shadow-[0_0_12px_rgba(78,236,191,0.2)] hover:bg-[#032A24] transition-all cursor-pointer shrink-0"
+                className="px-4 py-2 rounded-xl bg-white border border-[#CBD5E1] hover:border-[#1D4ED8] text-[#1D4ED8] text-xs font-semibold flex items-center gap-1.5 shadow-xs hover:bg-[#EFF6FF] transition-all cursor-pointer shrink-0"
               >
                 <span>Launch Workspace</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -132,7 +132,7 @@ export default function FeatureHighlights({ onLaunchWorkspace }: FeatureHighligh
         </div>
 
         {/* ===================================================================
-            6 RICH FEATURE CARDS GRID (Responsive 3-Column on Desktop)
+            6 RICH FEATURE CARDS GRID
             =================================================================== */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
           {FEATURES.map((feature, idx) => {
@@ -146,48 +146,44 @@ export default function FeatureHighlights({ onLaunchWorkspace }: FeatureHighligh
                 onMouseLeave={() => setHoveredIdx(null)}
                 className={`relative p-6 sm:p-7 rounded-2xl border transition-all duration-300 flex flex-col justify-between group ${
                   isHovered
-                    ? "bg-[#02211C] border-[#4EECBF] shadow-[0_0_28px_rgba(78,236,191,0.25)] -translate-y-1"
-                    : "bg-[#001815] border-[#0E3E34]/80 hover:border-[#1E6052]"
+                    ? "bg-white border-[#1D4ED8] shadow-[0_8px_30px_rgba(29,78,216,0.15)] -translate-y-1"
+                    : "bg-white border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1]"
                 }`}
               >
                 <div>
-                  {/* Card Top: Icon & Badge */}
                   <div className="flex items-center justify-between mb-5">
                     <div
                       className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-colors ${
                         isHovered
-                          ? "bg-[#042C24] border-[#4EECBF] text-[#4EECBF] shadow-[0_0_12px_#4EECBF]"
-                          : "bg-[#011411] border-[#0E3D35] text-[#86A699] group-hover:text-[#4EECBF]"
+                          ? "bg-[#DBEAFE] border-[#1D4ED8] text-[#1D4ED8] shadow-sm"
+                          : "bg-[#F1F5F9] border-[#E2E8F0] text-[#1E293B] group-hover:text-[#1D4ED8]"
                       }`}
                     >
                       <Icon className="w-6 h-6 stroke-[2]" />
                     </div>
 
-                    <span className="text-[10.5px] font-mono px-3 py-1 rounded-full bg-[#02241E] border border-[#0E4A40] text-[#4EECBF] font-semibold">
+                    <span className="text-[10.5px] font-mono px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[#1D4ED8] font-semibold">
                       {feature.badge}
                     </span>
                   </div>
 
-                  {/* Title & Subtitle */}
-                  <h3 className="text-base sm:text-lg font-bold text-[#F1EFE1] tracking-tight group-hover:text-[#4EECBF] transition-colors mb-1">
+                  <h3 className="text-base sm:text-lg font-bold text-[#0F172A] tracking-tight group-hover:text-[#1D4ED8] transition-colors mb-1">
                     {feature.title}
                   </h3>
-                  <div className="text-[11.5px] font-mono text-[#4EECBF] mb-3">
+                  <div className="text-[11.5px] font-mono text-[#1D4ED8] mb-3">
                     {feature.subtitle}
                   </div>
 
-                  {/* Description */}
-                  <p className="text-xs sm:text-sm text-[#86A699] leading-relaxed mb-6 font-sans">
+                  <p className="text-xs sm:text-sm text-[#475569] leading-relaxed mb-6 font-sans">
                     {feature.description}
                   </p>
                 </div>
 
-                {/* Card Bottom: Micro Stat + Tags */}
-                <div className="pt-4 border-t border-[#0E3D35]/60">
+                <div className="pt-4 border-t border-[#E2E8F0]">
                   <div className="flex items-center justify-between text-xs font-mono mb-3">
-                    <span className="text-[#86A699]">Capability:</span>
-                    <span className="text-[#4EECBF] font-semibold flex items-center gap-1">
-                      <Zap className="w-3 h-3 text-[#4EECBF]" />
+                    <span className="text-[#64748B]">Capability:</span>
+                    <span className="text-[#1D4ED8] font-semibold flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-[#1D4ED8]" />
                       <span>{feature.microStat}</span>
                     </span>
                   </div>
@@ -196,7 +192,7 @@ export default function FeatureHighlights({ onLaunchWorkspace }: FeatureHighligh
                     {feature.tags.map((tag, tIdx) => (
                       <span
                         key={tIdx}
-                        className="text-[10.5px] font-mono px-2.5 py-0.5 rounded-md bg-[#001311] border border-[#0E3D35] text-[#86A699]"
+                        className="text-[10.5px] font-mono px-2.5 py-0.5 rounded-md bg-[#F1F5F9] border border-[#E2E8F0] text-[#475569]"
                       >
                         {tag}
                       </span>

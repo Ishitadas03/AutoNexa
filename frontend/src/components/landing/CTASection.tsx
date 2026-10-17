@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { ArrowRight, Play, Upload, ShieldCheck, Zap, Cpu } from "lucide-react";
 
 interface CTASectionProps {
@@ -12,40 +13,40 @@ export default function CTASection({ onLaunchWorkspace }: CTASectionProps) {
   };
 
   return (
-    <section className="relative py-20 sm:py-28 bg-[#001312] border-b border-[#0E3D35]/70 overflow-hidden">
+    <section className="relative py-20 sm:py-28 bg-[#F2F6F9] border-b border-[#E2E8F0] overflow-hidden">
       {/* Ambient glowing radial light */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-45"
+        className="pointer-events-none absolute inset-0 opacity-40"
         style={{
           background:
-            "radial-gradient(ellipse 65% 55% at 50% 50%, rgba(0, 95, 80, 0.4), transparent 75%)",
+            "radial-gradient(ellipse 65% 55% at 50% 50%, rgba(29, 78, 216, 0.12), transparent 75%)",
         }}
       />
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative rounded-3xl bg-[#001815] border border-[#0E4A40] p-8 sm:p-14 md:p-16 text-center shadow-[0_20px_50px_rgba(0,0,0,0.85)] overflow-hidden">
+        <div className="relative rounded-3xl bg-white border border-[#CBD5E1] p-8 sm:p-14 md:p-16 text-center shadow-xl overflow-hidden">
           
-          {/* Subtle neon corner accents */}
-          <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-[#4EECBF]/60 rounded-tl-3xl pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-[#4EECBF]/60 rounded-br-3xl pointer-events-none" />
+          {/* Subtle cobalt corner accents */}
+          <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-[#1D4ED8]/60 rounded-tl-3xl pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-[#1D4ED8]/60 rounded-br-3xl pointer-events-none" />
 
           <div className="relative z-10 max-w-2xl mx-auto space-y-6">
             
             {/* Eyebrow badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#031C18]/90 border border-[#0E4A40] shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-[#4EECBF] shadow-[0_0_8px_#4EECBF] animate-pulse" />
-              <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#4EECBF] font-semibold">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8] animate-pulse" />
+              <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#1D4ED8] font-semibold">
                 AUTONEXA AI LAB // READY TO TRAIN
               </span>
             </div>
 
             {/* Headline */}
-            <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-normal text-[#F1EFE1] tracking-tight leading-[1.1]">
-              Ready to Build Your <span className="text-[#4EECBF] italic font-normal">AutoML Pipeline?</span>
+            <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-normal text-[#0F172A] tracking-tight leading-[1.1]">
+              Ready to Build Your <span className="text-[#1E3A8A] italic font-normal">AutoML Pipeline?</span>
             </h2>
 
             {/* Description */}
-            <p className="text-xs sm:text-base text-[#86A699] max-w-lg mx-auto leading-relaxed font-sans">
+            <p className="text-xs sm:text-base text-[#475569] max-w-lg mx-auto leading-relaxed font-sans">
               Upload custom CSV files or load benchmark datasets to explore, train, evaluate, and deploy machine learning models in minutes.
             </p>
 
@@ -53,7 +54,7 @@ export default function CTASection({ onLaunchWorkspace }: CTASectionProps) {
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={onLaunchWorkspace}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#4EECBF] hover:bg-[#3dd8ab] text-[#001312] font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-[0_0_24px_rgba(78,236,191,0.45)] hover:shadow-[0_0_32px_rgba(78,236,191,0.65)] transition-all cursor-pointer group"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#1D4ED8] hover:bg-[#1E40AF] text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-[0_4px_14px_rgba(29,78,216,0.35)] hover:shadow-[0_6px_20px_rgba(29,78,216,0.45)] transition-all cursor-pointer group"
               >
                 <Upload className="w-4 h-4 stroke-[2.4] group-hover:-translate-y-0.5 transition-transform" />
                 <span>Start with a CSV</span>
@@ -62,25 +63,25 @@ export default function CTASection({ onLaunchWorkspace }: CTASectionProps) {
 
               <button
                 onClick={scrollToWorkflow}
-                className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-[#03211C] border border-[#0E4A40] text-[#F1EFE1] hover:border-[#4EECBF]/60 hover:bg-[#07362C] font-medium text-xs sm:text-sm flex items-center justify-center gap-2.5 transition-all cursor-pointer group"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white border border-[#CBD5E1] text-[#0F172A] hover:border-[#1D4ED8] hover:bg-[#F8FAFC] font-medium text-xs sm:text-sm flex items-center justify-center gap-2.5 transition-all cursor-pointer group shadow-xs"
               >
-                <Play className="w-3.5 h-3.5 fill-[#4EECBF] text-[#4EECBF] group-hover:scale-110 transition-transform" />
+                <Play className="w-3.5 h-3.5 fill-[#1D4ED8] text-[#1D4ED8] group-hover:scale-110 transition-transform" />
                 <span>Explore the Workflow</span>
               </button>
             </div>
 
             {/* Telemetry Status Bar */}
-            <div className="pt-6 border-t border-[#0E3D35]/60 flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-mono text-[#86A699]">
+            <div className="pt-6 border-t border-[#E2E8F0] flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-mono text-[#64748B]">
               <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#4EECBF]" />
+                <ShieldCheck className="w-3.5 h-3.5 text-[#1D4ED8]" />
                 <span>Leakage-Free 5-Fold CV</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-[#4EECBF]" />
+                <Zap className="w-3.5 h-3.5 text-[#1D4ED8]" />
                 <span>&lt; 5ms Serving Latency</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <Cpu className="w-3.5 h-3.5 text-[#4EECBF]" />
+                <Cpu className="w-3.5 h-3.5 text-[#1D4ED8]" />
                 <span>Multi-Model Architecture</span>
               </span>
             </div>
