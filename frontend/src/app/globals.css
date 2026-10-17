@@ -119,12 +119,36 @@
   color: #0F172A;
 }
 
+/* Smooth Scrolling & Font Rendering Optimization */
+html {
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hardware Compositor Acceleration Utility */
+.gpu-layer {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
 /* Reduced motion preference respect */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  svg animate,
+  svg animateMotion,
+  svg animateTransform {
+    dur: 0.001s !important;
+    repeatCount: 1 !important;
   }
 }

@@ -190,11 +190,28 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
       if (timerRef.current) clearInterval(timerRef.current);
       return;
     }
-    timerRef.current = setInterval(() => {
-      setSelectedStepIndex((prev) => (prev >= SEVEN_STAGES.length - 1 ? 0 : prev + 1));
-    }, 3800);
+
+    const startTimer = () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => {
+        setSelectedStepIndex((prev) => (prev >= SEVEN_STAGES.length - 1 ? 0 : prev + 1));
+      }, 3800);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (timerRef.current) clearInterval(timerRef.current);
+      } else if (isPlaying) {
+        startTimer();
+      }
+    };
+
+    startTimer();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [isPlaying]);
 

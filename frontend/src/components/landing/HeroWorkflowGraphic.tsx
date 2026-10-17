@@ -144,7 +144,7 @@ export default function HeroWorkflowGraphic({ onSelectStage }: HeroWorkflowGraph
             strokeOpacity={activeHotspot?.id === "csv" ? "0.95" : "0.4"}
             fill="none"
           />
-          <circle r="4" fill="#1D4ED8" filter="url(#bluePulse)">
+          <circle r="4" fill="#1D4ED8" filter="url(#bluePulse)" style={{ willChange: "transform" }}>
             <animateMotion
               dur="2.8s"
               repeatCount="indefinite"
@@ -160,7 +160,7 @@ export default function HeroWorkflowGraphic({ onSelectStage }: HeroWorkflowGraph
             strokeOpacity={activeHotspot?.id === "profiling" ? "0.95" : "0.4"}
             fill="none"
           />
-          <circle r="4" fill="#1D4ED8" filter="url(#bluePulse)">
+          <circle r="4" fill="#1D4ED8" filter="url(#bluePulse)" style={{ willChange: "transform" }}>
             <animateMotion
               dur="2.4s"
               repeatCount="indefinite"
@@ -177,7 +177,7 @@ export default function HeroWorkflowGraphic({ onSelectStage }: HeroWorkflowGraph
             strokeOpacity={activeHotspot?.id === "training" ? "0.95" : "0.4"}
             fill="none"
           />
-          <circle r="4" fill="#1D4ED8" filter="url(#bluePulse)">
+          <circle r="4" fill="#1D4ED8" filter="url(#bluePulse)" style={{ willChange: "transform" }}>
             <animateMotion
               dur="2.6s"
               repeatCount="indefinite"
@@ -193,7 +193,7 @@ export default function HeroWorkflowGraphic({ onSelectStage }: HeroWorkflowGraph
             strokeOpacity={activeHotspot?.id === "evaluation" ? "0.95" : "0.4"}
             fill="none"
           />
-          <circle r="4" fill="#1D4ED8" filter="url(#bluePulse)">
+          <circle r="4" fill="#1D4ED8" filter="url(#bluePulse)" style={{ willChange: "transform" }}>
             <animateMotion
               dur="2.3s"
               repeatCount="indefinite"
@@ -210,7 +210,7 @@ export default function HeroWorkflowGraphic({ onSelectStage }: HeroWorkflowGraph
             strokeOpacity={activeHotspot?.id === "prediction" ? "0.95" : "0.4"}
             fill="none"
           />
-          <circle r="4" fill="#1D4ED8" filter="url(#bluePulse)">
+          <circle r="4" fill="#1D4ED8" filter="url(#bluePulse)" style={{ willChange: "transform" }}>
             <animateMotion
               dur="2.7s"
               repeatCount="indefinite"

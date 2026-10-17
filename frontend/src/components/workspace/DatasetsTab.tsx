@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import {
   Upload,
   Database,
@@ -93,15 +93,15 @@ export default function DatasetsTab({
     ? (activeDataset.duplicate_rows ?? (activeDataset as any).duplicate_rows_count ?? 0)
     : 0;
 
-  // Filter preview rows if search query is provided
-  const previewRows = activeDataset?.preview_rows || [];
-  const filteredRows = searchQuery
-    ? previewRows.filter((r) =>
-        Object.values(r).some((val) =>
-          String(val).toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      )
-    : previewRows;
+  // Filter preview rows if search query is provided - memoized to prevent re-filtering on renders
+  const previewRows = useMemo(() => activeDataset?.preview_rows || [], [activeDataset]);
+  const filteredRows = useMemo(() => {
+    if (!searchQuery) return previewRows;
+    const q = searchQuery.toLowerCase();
+    return previewRows.filter((r) =>
+      Object.values(r).some((val) => String(val).toLowerCase().includes(q))
+    );
+  }, [previewRows, searchQuery]);
 
   return (
     <div className="space-y-6">

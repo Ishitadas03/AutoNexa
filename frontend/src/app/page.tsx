@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import InteractivePipeline from "@/components/landing/InteractivePipeline";
@@ -77,7 +77,8 @@ export default function Home() {
   }, [setApiConnected]);
 
   // Upload handler for user file
-  const handleUploadFile = async (file: File) => {
+  // Upload handler for user file - memoized with useCallback
+  const handleUploadFile = useCallback(async (file: File) => {
     setIsUploading(true);
     try {
       const profile = await api.uploadDataset(file);
@@ -131,10 +132,10 @@ export default function Home() {
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [addDataset, showToast, setActiveAnalysis]);
 
-  // Upload handler for 1-click sample dataset
-  const handleUploadSample = async (sampleId: string) => {
+  // Upload handler for 1-click sample dataset - memoized with useCallback
+  const handleUploadSample = useCallback(async (sampleId: string) => {
     const sample = SAMPLE_DATASETS.find((s) => s.id === sampleId);
     if (!sample) return;
 
@@ -184,10 +185,10 @@ export default function Home() {
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [addDataset, showToast, setActiveAnalysis]);
 
-  // Manual Dataset Intelligence trigger
-  const handleRunAnalysis = async (datasetId: string, targetColumn?: string) => {
+  // Manual Dataset Intelligence trigger - memoized with useCallback
+  const handleRunAnalysis = useCallback(async (datasetId: string, targetColumn?: string) => {
     setIsAnalyzing(true);
     try {
       const analysis = await api.analyzeDataset(datasetId, { target_column: targetColumn });
@@ -211,10 +212,10 @@ export default function Home() {
     } finally {
       setIsAnalyzing(false);
     }
-  };
+  }, [setActiveAnalysis, showToast]);
 
-  // Training handler
-  const handleRunTraining = async (request: TrainingRequest) => {
+  // Training handler - memoized with useCallback
+  const handleRunTraining = useCallback(async (request: TrainingRequest) => {
     if (!activeDataset) return;
 
     setIsTraining(true);
@@ -296,7 +297,7 @@ export default function Home() {
       clearInterval(timer);
       setIsTraining(false);
     }
-  };
+  }, [activeDataset, addExperiment, showToast, setActiveTab, apiConnected]);
 
   return (
     <div className="min-h-screen bg-[#070D0C] text-[#F1EFE1] flex flex-col font-sans">

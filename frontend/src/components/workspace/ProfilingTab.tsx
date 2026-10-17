@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   BarChart2,
   Database,
@@ -47,6 +47,72 @@ export default function ProfilingTab({
   const [selectedColumnFilter, setSelectedColumnFilter] = useState<string>("all");
   const [selectedCorrelationMetric, setSelectedCorrelationMetric] = useState<string>("pearson");
 
+  // Derive column data if analysis not yet run - memoized to prevent recomputations
+  const columnSummaries = useMemo(() => {
+    if (!activeDataset) return [];
+    return activeAnalysis?.column_summaries || Object.keys(activeDataset.data_types || {}).map((col) => {
+      const missing = (activeDataset.missing_values || {})[col] || 0;
+      const total = activeDataset.rows || 1;
+      const isNum = activeDataset.data_types?.[col]?.includes("int") || activeDataset.data_types?.[col]?.includes("float");
+      return {
+        name: col,
+        inferred_type: activeDataset.data_types?.[col] || "string",
+        role: isNum ? ("numeric" as const) : ("categorical" as const),
+        missing_count: missing,
+        missing_percentage: Math.round((missing / total) * 100 * 10) / 10,
+        unique_count: isNum ? Math.min(activeDataset.rows, 45) : 3,
+        is_constant: false,
+        is_near_constant: false,
+        is_high_cardinality: false,
+      };
+    });
+  }, [activeDataset, activeAnalysis]);
+
+  const numericCols = useMemo(() => {
+    return activeAnalysis?.numeric_columns || columnSummaries.filter((c) => c.role === "numeric").map((c) => c.name);
+  }, [activeAnalysis, columnSummaries]);
+
+  const categoricalCols = useMemo(() => {
+    return activeAnalysis?.categorical_columns || columnSummaries.filter((c) => c.role === "categorical").map((c) => c.name);
+  }, [activeAnalysis, columnSummaries]);
+
+  // Missing values chart data - memoized
+  const missingChartData = useMemo(() => {
+    return columnSummaries
+      .map((c) => ({
+        name: c.name,
+        missingPct: c.missing_percentage,
+        count: c.missing_count,
+      }))
+      .slice(0, 10);
+  }, [columnSummaries]);
+
+  // Feature role distribution pie data - memoized
+  const roleDistributionData = useMemo(() => {
+    return [
+      { name: "Numerical", value: numericCols.length, color: "#1D4ED8" },
+      { name: "Categorical", value: categoricalCols.length, color: "#3B82F6" },
+      { name: "Identifier / Other", value: Math.max(0, columnSummaries.length - numericCols.length - categoricalCols.length), color: "#93C5FD" },
+    ];
+  }, [numericCols.length, categoricalCols.length, columnSummaries.length]);
+
+  // Simulated synthetic pairwise correlations for numerical columns - memoized
+  const correlationFeatures = useMemo(() => numericCols.slice(0, 5), [numericCols]);
+  const correlationMatrix = useMemo(() => {
+    return correlationFeatures.map((rowFeature, rIdx) => {
+      return {
+        feature: rowFeature,
+        values: correlationFeatures.map((colFeature, cIdx) => {
+          if (rIdx === cIdx) return 1.0;
+          const hash = (rowFeature.length * 7 + colFeature.length * 13) % 100;
+          const sign = (rIdx + cIdx) % 2 === 0 ? 1 : -1;
+          const val = sign * (0.15 + (hash / 100) * 0.7);
+          return Math.round(val * 100) / 100;
+        }),
+      };
+    });
+  }, [correlationFeatures]);
+
   if (!activeDataset) {
     return (
       <div className="p-12 text-center rounded-2xl bg-white border border-[#E2E8F0] shadow-xs">
@@ -58,59 +124,6 @@ export default function ProfilingTab({
       </div>
     );
   }
-
-  // Derive column data if analysis not yet run
-  const columnSummaries = activeAnalysis?.column_summaries || Object.keys(activeDataset.data_types || {}).map((col) => {
-    const missing = (activeDataset.missing_values || {})[col] || 0;
-    const total = activeDataset.rows || 1;
-    const isNum = activeDataset.data_types?.[col]?.includes("int") || activeDataset.data_types?.[col]?.includes("float");
-    return {
-      name: col,
-      inferred_type: activeDataset.data_types?.[col] || "string",
-      role: isNum ? ("numeric" as const) : ("categorical" as const),
-      missing_count: missing,
-      missing_percentage: Math.round((missing / total) * 100 * 10) / 10,
-      unique_count: isNum ? Math.min(activeDataset.rows, 45) : 3,
-      is_constant: false,
-      is_near_constant: false,
-      is_high_cardinality: false,
-    };
-  });
-
-  const numericCols = activeAnalysis?.numeric_columns || columnSummaries.filter((c) => c.role === "numeric").map((c) => c.name);
-  const categoricalCols = activeAnalysis?.categorical_columns || columnSummaries.filter((c) => c.role === "categorical").map((c) => c.name);
-
-  // Missing values chart data
-  const missingChartData = columnSummaries
-    .map((c) => ({
-      name: c.name,
-      missingPct: c.missing_percentage,
-      count: c.missing_count,
-    }))
-    .slice(0, 10);
-
-  // Feature role distribution pie data
-  const roleDistributionData = [
-    { name: "Numerical", value: numericCols.length, color: "#1D4ED8" },
-    { name: "Categorical", value: categoricalCols.length, color: "#3B82F6" },
-    { name: "Identifier / Other", value: Math.max(0, columnSummaries.length - numericCols.length - categoricalCols.length), color: "#93C5FD" },
-  ];
-
-  // Simulated synthetic pairwise correlations for numerical columns
-  const correlationFeatures = numericCols.slice(0, 5);
-  const correlationMatrix = correlationFeatures.map((rowFeature, rIdx) => {
-    return {
-      feature: rowFeature,
-      values: correlationFeatures.map((colFeature, cIdx) => {
-        if (rIdx === cIdx) return 1.0;
-        // Deterministic pseudo correlation based on names
-        const hash = (rowFeature.length * 7 + colFeature.length * 13) % 100;
-        const sign = (rIdx + cIdx) % 2 === 0 ? 1 : -1;
-        const val = sign * (0.15 + (hash / 100) * 0.7);
-        return Math.round(val * 100) / 100;
-      }),
-    };
-  });
 
   const qualityWarnings = activeAnalysis?.quality_warnings || [
     {

@@ -426,14 +426,14 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                   )}
 
                   {/* Animated Energy Flow Particles */}
-                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)">
+                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
                     <animateMotion
                       dur="2.4s"
                       repeatCount="indefinite"
                       path="M 0 34 L 24 34 C 50 34, 55 107, 103 107"
                     />
                   </circle>
-                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)">
+                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
                     <animateMotion
                       dur="2.1s"
                       repeatCount="indefinite"
@@ -441,7 +441,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                       path="M 0 106 L 103 107"
                     />
                   </circle>
-                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)">
+                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
                     <animateMotion
                       dur="2.5s"
                       repeatCount="indefinite"
@@ -459,14 +459,14 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                   )}
 
                   {/* Animated Outflow Energy Particles */}
-                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)">
+                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
                     <animateMotion
                       dur="2.4s"
                       repeatCount="indefinite"
                       path="M 323 107 C 372 107, 377 36, 418 36 L 437 36"
                     />
                   </circle>
-                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)">
+                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
                     <animateMotion
                       dur="2.1s"
                       repeatCount="indefinite"
@@ -474,7 +474,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                       path="M 323 107 L 437 108"
                     />
                   </circle>
-                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)">
+                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
                     <animateMotion
                       dur="2.6s"
                       repeatCount="indefinite"

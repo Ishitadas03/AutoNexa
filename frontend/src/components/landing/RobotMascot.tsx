@@ -37,7 +37,10 @@ export default function RobotMascot({
   const [internalState, setInternalState] = useState<RobotState>("idle");
   const [isBlinking, setIsBlinking] = useState(false);
   const [clickReaction, setClickReaction] = useState<RobotState | null>(null);
+  const isMountedRef = useRef(true);
   const blinkTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const blinkInnerTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Workflow stage auto-sync
   const stageNum = typeof stage === "string" ? parseInt(stage, 10) : stage;
@@ -104,24 +107,32 @@ export default function RobotMascot({
       ? false
       : isHovered || effectiveState !== "idle";
 
-  // Natural eye blink interval in idle / hover
+  // Natural eye blink interval in idle / hover with safe cleanup
   useEffect(() => {
+    isMountedRef.current = true;
     const scheduleNextBlink = () => {
       const delay = Math.random() * 3000 + 2500; // blink every 2.5s - 5.5s
       blinkTimerRef.current = setTimeout(() => {
+        if (!isMountedRef.current) return;
         setIsBlinking(true);
-        setTimeout(() => setIsBlinking(false), 160);
-        scheduleNextBlink();
+        blinkInnerTimerRef.current = setTimeout(() => {
+          if (!isMountedRef.current) return;
+          setIsBlinking(false);
+          scheduleNextBlink();
+        }, 160);
       }, delay);
     };
 
     scheduleNextBlink();
     return () => {
+      isMountedRef.current = false;
       if (blinkTimerRef.current) clearTimeout(blinkTimerRef.current);
+      if (blinkInnerTimerRef.current) clearTimeout(blinkInnerTimerRef.current);
+      if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
     };
   }, []);
 
-  // Click interaction reaction
+  // Click interaction reaction with safe cleanup
   const handleClick = () => {
     if (onClick) {
       onClick();
@@ -131,8 +142,11 @@ export default function RobotMascot({
     // Cycle through cheerful reaction
     const next: RobotState = effectiveState === "hover" ? "success" : "hover";
     setClickReaction(next);
-    setTimeout(() => {
-      setClickReaction(null);
+    if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+    clickTimerRef.current = setTimeout(() => {
+      if (isMountedRef.current) {
+        setClickReaction(null);
+      }
     }, 1800);
   };
 

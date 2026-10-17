@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Trophy,
   Activity,
@@ -62,31 +62,38 @@ export default function LeaderboardTab({
     );
   }
 
-  // Prepare chart comparison data
-  const chartData = activeExperiment.models_evaluated
-    .filter((m) => m.status === "successful")
-    .map((m) => {
-      const score =
-        m.cv_mean !== null && m.cv_mean !== undefined
-          ? m.cv_mean
-          : m.metrics[activeExperiment.primary_metric] || 0;
-      return {
-        name: m.model_name.replace(" Classifier", "").replace(" Regressor", ""),
-        score: Number(score.toFixed(4)),
-        duration: m.duration_seconds,
-      };
-    })
-    .sort((a, b) => b.score - a.score);
+  // Prepare chart comparison data - memoized so slider adjustments don't redraw chart
+  const chartData = useMemo(() => {
+    return activeExperiment.models_evaluated
+      .filter((m) => m.status === "successful")
+      .map((m) => {
+        const score =
+          m.cv_mean !== null && m.cv_mean !== undefined
+            ? m.cv_mean
+            : m.metrics[activeExperiment.primary_metric] || 0;
+        return {
+          name: m.model_name.replace(" Classifier", "").replace(" Regressor", ""),
+          score: Number(score.toFixed(4)),
+          duration: m.duration_seconds,
+        };
+      })
+      .sort((a, b) => b.score - a.score);
+  }, [activeExperiment]);
 
-  const bestModelResult = activeExperiment.models_evaluated.find(
-    (m) => m.model_id === activeExperiment.best_model
-  );
+  const bestModelResult = useMemo(() => {
+    return activeExperiment.models_evaluated.find(
+      (m) => m.model_id === activeExperiment.best_model
+    );
+  }, [activeExperiment]);
 
-  const calculatedBestScore =
-    activeExperiment.best_score ??
-    (bestModelResult
-      ? bestModelResult.cv_mean ?? bestModelResult.metrics[activeExperiment.primary_metric]
-      : 0.941);
+  const calculatedBestScore = useMemo(() => {
+    return (
+      activeExperiment.best_score ??
+      (bestModelResult
+        ? bestModelResult.cv_mean ?? bestModelResult.metrics[activeExperiment.primary_metric]
+        : 0.941)
+    );
+  }, [activeExperiment, bestModelResult]);
 
   // Simulated Confusion Matrix for classification
   const totalSamples = 1400;
