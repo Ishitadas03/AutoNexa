@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import {
   FileText,
@@ -108,6 +108,118 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const plinthRef = useRef<HTMLDivElement>(null);
+  const dotRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const [connectors, setConnectors] = useState<{
+    left: { id: number; path: string; dotX: number; dotY: number; pX: number; pY: number }[];
+    right: { id: number; path: string; dotX: number; dotY: number; pX: number; pY: number }[];
+  } | null>(null);
+
+  const measureConnectors = useCallback(() => {
+    if (typeof window === "undefined" || window.innerWidth < 1024) {
+      setConnectors(null);
+      return;
+    }
+    const canvas = canvasRef.current;
+    const plinth = plinthRef.current;
+    if (!canvas || !plinth) return;
+
+    const canvasRect = canvas.getBoundingClientRect();
+    const plinthRect = plinth.getBoundingClientRect();
+    if (canvasRect.width === 0 || plinthRect.width === 0) return;
+
+    const pLeft = plinthRect.left - canvasRect.left;
+    const pRight = plinthRect.right - canvasRect.left;
+    const pTop = plinthRect.top - canvasRect.top;
+    const pH = plinthRect.height;
+
+    // Plinth anchor points (slight 2px overlap into plinth to ensure seamless joining)
+    const leftAnchors: Record<number, { x: number; y: number }> = {
+      1: { x: pLeft + 2, y: pTop + pH * (34 / 225) },
+      2: { x: pLeft + 2, y: pTop + pH * (106 / 225) },
+      3: { x: pLeft + 2, y: pTop + pH * (176 / 225) },
+    };
+
+    const rightAnchors: Record<number, { x: number; y: number }> = {
+      4: { x: pRight - 2, y: pTop + pH * (36.5 / 225) },
+      5: { x: pRight - 2, y: pTop + pH * (108.5 / 225) },
+      6: { x: pRight - 2, y: pTop + pH * (176.5 / 225) },
+    };
+
+    const leftList: { id: number; path: string; dotX: number; dotY: number; pX: number; pY: number }[] = [];
+    [1, 2, 3].forEach((id) => {
+      const dotEl = dotRefs.current[id];
+      const target = leftAnchors[id];
+      if (dotEl && target) {
+        const dotRect = dotEl.getBoundingClientRect();
+        const dotX = dotRect.left + dotRect.width / 2 - canvasRect.left;
+        const dotY = dotRect.top + dotRect.height / 2 - canvasRect.top;
+
+        // Line attaches right at the inner edge of the 14px dot socket (2px overlap for seamless continuity)
+        const startDotX = dotX + 5;
+        const dx = target.x - startDotX;
+        // Cubic Bezier with pure horizontal tangents at both ends
+        const path = `M ${startDotX} ${dotY} C ${startDotX + dx * 0.5} ${dotY}, ${startDotX + dx * 0.5} ${target.y}, ${target.x} ${target.y}`;
+        leftList.push({ id, path, dotX, dotY, pX: target.x, pY: target.y });
+      }
+    });
+
+    const rightList: { id: number; path: string; dotX: number; dotY: number; pX: number; pY: number }[] = [];
+    [4, 5, 6].forEach((id) => {
+      const dotEl = dotRefs.current[id];
+      const target = rightAnchors[id];
+      if (dotEl && target) {
+        const dotRect = dotEl.getBoundingClientRect();
+        const dotX = dotRect.left + dotRect.width / 2 - canvasRect.left;
+        const dotY = dotRect.top + dotRect.height / 2 - canvasRect.top;
+
+        // Line terminates right at the inner edge of the 14px dot socket (2px overlap for seamless continuity)
+        const endDotX = dotX - 5;
+        const dx = endDotX - target.x;
+        // Cubic Bezier with pure horizontal tangents from plinth to card dot
+        const path = `M ${target.x} ${target.y} C ${target.x + dx * 0.5} ${target.y}, ${target.x + dx * 0.5} ${dotY}, ${endDotX} ${dotY}`;
+        rightList.push({ id, path, dotX, dotY, pX: target.x, pY: target.y });
+      }
+    });
+
+    setConnectors({ left: leftList, right: rightList });
+  }, []);
+
+  useEffect(() => {
+    measureConnectors();
+    const t1 = setTimeout(measureConnectors, 50);
+    const t2 = setTimeout(measureConnectors, 200);
+    const t3 = setTimeout(measureConnectors, 600);
+
+    window.addEventListener("resize", measureConnectors);
+
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined" && canvasRef.current) {
+      ro = new ResizeObserver(() => {
+        measureConnectors();
+      });
+      ro.observe(canvasRef.current);
+      if (plinthRef.current) {
+        ro.observe(plinthRef.current);
+      }
+      dotRefs.current.forEach((dot) => {
+        if (dot) ro?.observe(dot);
+      });
+    }
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      window.removeEventListener("resize", measureConnectors);
+      if (ro) ro.disconnect();
+    };
+  }, [measureConnectors, activeStage]);
+
+  const currentActive = hoveredStage ?? activeStage;
+
   const prefersReducedMotion = useReducedMotion();
 
   // Scrollytelling scroll tracking on desktop viewports
@@ -331,7 +443,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
             {/* ===================================================================
                 MAIN CONNECTED PIPELINE CANVAS: 3 LEFT CARDS + ENGINE + 3 RIGHT CARDS
                 =================================================================== */}
-            <div className="relative w-full max-w-[1360px] mx-auto">
+            <div ref={canvasRef} className="relative w-full max-w-[1360px] mx-auto">
               
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 sm:gap-3 lg:gap-4 items-center">
                 
@@ -394,7 +506,12 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                         </div>
 
                         {/* Right Connection Port Dot */}
-                        <div className="relative shrink-0 flex items-center justify-center ml-1 sm:ml-2">
+                        <div
+                          ref={(el) => {
+                            dotRefs.current[card.id] = el;
+                          }}
+                          className="relative shrink-0 flex items-center justify-center ml-1 sm:ml-2"
+                        >
                           <div
                             className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
                               isSelected
@@ -420,7 +537,10 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                     <span>AutoNexa Central AI Engine · Step 0{activeStage}/6 Active</span>
                   </div>
                   
-                  <div className="relative w-full max-w-[280px] xs:max-w-[320px] sm:max-w-[380px] lg:max-w-[600px] aspect-[437/225] mx-auto group select-none">
+                  <div
+                    ref={plinthRef}
+                    className="relative w-full max-w-[280px] xs:max-w-[320px] sm:max-w-[380px] lg:max-w-[600px] aspect-[437/225] mx-auto group select-none"
+                  >
                     <div
                       className="pointer-events-none absolute inset-0 -bottom-6 opacity-35 blur-2xl -z-10"
                       style={{
@@ -459,9 +579,9 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                       </defs>
 
                       {/* Active highlight paths with dynamic energy flow */}
-                      {activeStage === 1 && (
+                      {currentActive === 1 && (
                         <path
-                          d="M 0 34 L 24 34 C 50 34, 55 107, 103 107"
+                          d="M 0 34 L 40 34 C 65 34, 75 107, 103 107"
                           stroke="#1D4ED8"
                           strokeWidth="3.4"
                           strokeOpacity="0.95"
@@ -469,7 +589,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                           className="conduit-flow-dash"
                         />
                       )}
-                      {activeStage === 2 && (
+                      {currentActive === 2 && (
                         <path
                           d="M 0 106 L 103 107"
                           stroke="#1D4ED8"
@@ -479,9 +599,9 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                           className="conduit-flow-dash"
                         />
                       )}
-                      {activeStage === 3 && (
+                      {currentActive === 3 && (
                         <path
-                          d="M 0 176 L 24 176 C 50 176, 55 107, 103 107"
+                          d="M 0 176 L 40 176 C 65 176, 75 107, 103 107"
                           stroke="#1D4ED8"
                           strokeWidth="3.4"
                           strokeOpacity="0.95"
@@ -489,9 +609,9 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                           className="conduit-flow-dash"
                         />
                       )}
-                      {activeStage === 4 && (
+                      {currentActive === 4 && (
                         <path
-                          d="M 323 107 C 372 107, 377 36, 418 36 L 437 36"
+                          d="M 323 107 C 355 107, 365 36.5, 395 36.5 L 437 36.5"
                           stroke="#1D4ED8"
                           strokeWidth="3.4"
                           strokeOpacity="0.95"
@@ -499,7 +619,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                           className="conduit-flow-dash"
                         />
                       )}
-                      {activeStage === 5 && (
+                      {currentActive === 5 && (
                         <path
                           d="M 323 107 L 437 108"
                           stroke="#1D4ED8"
@@ -509,9 +629,9 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                           className="conduit-flow-dash"
                         />
                       )}
-                      {activeStage === 6 && (
+                      {currentActive === 6 && (
                         <path
-                          d="M 323 107 C 372 107, 377 176, 418 176 L 437 176"
+                          d="M 323 107 C 355 107, 365 176.5, 395 176.5 L 437 176.5"
                           stroke="#1D4ED8"
                           strokeWidth="3.4"
                           strokeOpacity="0.95"
@@ -525,7 +645,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                         <animateMotion
                           dur="2.4s"
                           repeatCount="indefinite"
-                          path="M 0 34 L 24 34 C 50 34, 55 107, 103 107"
+                          path="M 0 34 L 40 34 C 65 34, 75 107, 103 107"
                         />
                       </circle>
                       <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
@@ -541,15 +661,15 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                           dur="2.5s"
                           repeatCount="indefinite"
                           begin="1.2s"
-                          path="M 0 176 L 24 176 C 50 176, 55 107, 103 107"
+                          path="M 0 176 L 40 176 C 65 176, 75 107, 103 107"
                         />
                       </circle>
 
                       {/* Junction Nodes Pulse Rings */}
-                      {(activeStage === 1 || activeStage === 2 || activeStage === 3) && (
+                      {(currentActive === 1 || currentActive === 2 || currentActive === 3) && (
                         <circle cx="103" cy="107" r="7" stroke="#1D4ED8" strokeWidth="1.6" className="animate-ping opacity-85" />
                       )}
-                      {(activeStage === 4 || activeStage === 5 || activeStage === 6) && (
+                      {(currentActive === 4 || currentActive === 5 || currentActive === 6) && (
                         <circle cx="323" cy="107" r="7" stroke="#1D4ED8" strokeWidth="1.6" className="animate-ping opacity-85" />
                       )}
 
@@ -558,7 +678,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                         <animateMotion
                           dur="2.4s"
                           repeatCount="indefinite"
-                          path="M 323 107 C 372 107, 377 36, 418 36 L 437 36"
+                          path="M 323 107 C 355 107, 365 36.5, 395 36.5 L 437 36.5"
                         />
                       </circle>
                       <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
@@ -574,7 +694,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                           dur="2.6s"
                           repeatCount="indefinite"
                           begin="1.1s"
-                          path="M 323 107 C 372 107, 377 176, 418 176 L 437 176"
+                          path="M 323 107 C 355 107, 365 176.5, 395 176.5 L 437 176.5"
                         />
                       </circle>
                     </svg>
@@ -613,7 +733,12 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                         }`}
                       >
                         {/* On mobile: Content is order-1, Port Dot is order-2. On desktop lg+: Port Dot is order-1, Content is order-2 */}
-                        <div className="relative shrink-0 flex items-center justify-center ml-1 sm:ml-2 order-2 lg:order-1 lg:ml-0 lg:mr-2">
+                        <div
+                          ref={(el) => {
+                            dotRefs.current[card.id] = el;
+                          }}
+                          className="relative shrink-0 flex items-center justify-center ml-1 sm:ml-2 order-2 lg:order-1 lg:ml-0 lg:mr-2"
+                        >
                           <div
                             className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
                               isSelected
@@ -655,6 +780,95 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                 </div>
 
               </div>
+
+              {/* ===================================================================
+                  DESKTOP SEAMLESS CONDUIT BRIDGE SVG: Connects cards directly to plinth
+                  =================================================================== */}
+              {connectors && (
+                <svg
+                  className="hidden lg:block absolute inset-0 w-full h-full pointer-events-none z-30 overflow-visible"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <defs>
+                    <filter id="bridgeGlow" x="-30%" y="-30%" width="160%" height="160%">
+                      <feGaussianBlur stdDeviation="2.5" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+
+                  {/* 1. Base Static Conduit Lines (all 6 connections, matches plinth dark navy) */}
+                  {connectors.left.map((item) => (
+                    <path
+                      key={`base-left-${item.id}`}
+                      d={item.path}
+                      stroke="#1E3A8A"
+                      strokeWidth="2.5"
+                      strokeOpacity="0.75"
+                      strokeLinecap="round"
+                    />
+                  ))}
+                  {connectors.right.map((item) => (
+                    <path
+                      key={`base-right-${item.id}`}
+                      d={item.path}
+                      stroke="#1E3A8A"
+                      strokeWidth="2.5"
+                      strokeOpacity="0.75"
+                      strokeLinecap="round"
+                    />
+                  ))}
+
+                  {/* 2. Active Stage Glowing Animated Conduit Flow */}
+                  {connectors.left
+                    .filter((item) => item.id === currentActive)
+                    .map((item) => (
+                      <React.Fragment key={`active-left-${item.id}`}>
+                        <path
+                          d={item.path}
+                          stroke="#1D4ED8"
+                          strokeWidth="3.4"
+                          strokeOpacity="0.95"
+                          filter="url(#bridgeGlow)"
+                          className="conduit-flow-dash"
+                        />
+                        <circle r="3.5" fill="#1D4ED8" filter="url(#bridgeGlow)">
+                          <animateMotion
+                            dur="1.2s"
+                            repeatCount="indefinite"
+                            path={item.path}
+                          />
+                        </circle>
+                      </React.Fragment>
+                    ))}
+
+                  {connectors.right
+                    .filter((item) => item.id === currentActive)
+                    .map((item) => (
+                      <React.Fragment key={`active-right-${item.id}`}>
+                        <path
+                          d={item.path}
+                          stroke="#1D4ED8"
+                          strokeWidth="3.4"
+                          strokeOpacity="0.95"
+                          filter="url(#bridgeGlow)"
+                          className="conduit-flow-dash"
+                        />
+                        <circle r="3.5" fill="#1D4ED8" filter="url(#bridgeGlow)">
+                          <animateMotion
+                            dur="1.2s"
+                            repeatCount="indefinite"
+                            path={item.path}
+                          />
+                        </circle>
+                      </React.Fragment>
+                    ))}
+
+                </svg>
+              )}
             </div>
 
             {/* ===================================================================
