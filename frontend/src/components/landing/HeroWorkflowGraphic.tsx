@@ -94,50 +94,6 @@ export default function HeroWorkflowGraphic({ onSelectStage }: HeroWorkflowGraph
 
   return (
     <div className="relative w-full max-w-[960px] mx-auto select-none">
-      {/* Floating Robot and Reactive Shadow Animations */}
-      <style>{`
-        @keyframes robotHoverFloat {
-          0%, 100% {
-            transform: translateY(0px) rotate(0deg);
-          }
-          50% {
-            transform: translateY(-16px) rotate(1.2deg);
-          }
-        }
-        @keyframes robotPadShadow {
-          0%, 100% {
-            transform: scale(1) rotate(-14deg) skewX(-24deg);
-            opacity: 0.42;
-          }
-          50% {
-            transform: scale(0.76) rotate(-14deg) skewX(-24deg);
-            opacity: 0.18;
-          }
-        }
-        @keyframes levitationGlow {
-          0%, 100% {
-            opacity: 0.45;
-            transform: scale(0.92);
-          }
-          50% {
-            opacity: 0.85;
-            transform: scale(1.18);
-          }
-        }
-        .animate-robot-floating {
-          animation: robotHoverFloat 3.8s ease-in-out infinite;
-          will-change: transform;
-        }
-        .animate-robot-shadow {
-          animation: robotPadShadow 3.8s ease-in-out infinite;
-          will-change: transform, opacity;
-        }
-        .animate-levitation-glow {
-          animation: levitationGlow 3.8s ease-in-out infinite;
-          will-change: transform, opacity;
-        }
-      `}</style>
-
       {/* Background ambient radial glow */}
       <div
         className="pointer-events-none absolute -inset-4 opacity-40 blur-2xl -z-10"
@@ -150,9 +106,9 @@ export default function HeroWorkflowGraphic({ onSelectStage }: HeroWorkflowGraph
       {/* Main Aspect Container (Clean 1160 / 560 = 2.0714 without any burned-in badges) */}
       <div className="relative w-full aspect-[1160/560] rounded-2xl overflow-hidden group">
         
-        {/* Crisp Retina 3D Isometric Artwork with Clean Plinth */}
+        {/* Crisp Retina 3D Isometric Artwork with Stationary Robot on Central Plinth */}
         <Image
-          src="/images/landing-ref/hero-network-base-light.png"
+          src="/images/landing-ref/hero-network-light@2x.png"
           alt="AutoNexa Connected 3D Pipeline Network"
           fill
           sizes="(max-width: 1024px) 100vw, 960px"
@@ -160,52 +116,6 @@ export default function HeroWorkflowGraphic({ onSelectStage }: HeroWorkflowGraph
           className="object-contain pointer-events-none select-none transition-transform duration-700 ease-out group-hover:scale-[1.01]"
           style={{ imageRendering: "-webkit-optimize-contrast" }}
         />
-
-        {/* Dynamic Holographic Levitation Beam & Ring on Plinth Pad */}
-        <div
-          className="pointer-events-none absolute -z-0 rounded-full animate-levitation-glow blur-[4px]"
-          style={{
-            left: "34.2%",
-            top: "58.4%",
-            width: "10.4%",
-            height: "4.5%",
-            background: "radial-gradient(ellipse at center, rgba(29, 78, 216, 0.4) 0%, rgba(99, 102, 241, 0.18) 60%, transparent 100%)",
-            transform: "rotate(-14deg) skewX(-24deg)",
-          }}
-        />
-
-        {/* Dynamic Reactive Floating Shadow on Plinth Pad */}
-        <div
-          className="pointer-events-none absolute -z-0 rounded-full bg-slate-900 animate-robot-shadow blur-[5px]"
-          style={{
-            left: "34.0%",
-            top: "58.6%",
-            width: "10.8%",
-            height: "4.4%",
-            transformOrigin: "center center",
-          }}
-        />
-
-        {/* The Floating Robot Mascot */}
-        <div
-          className="absolute pointer-events-none select-none animate-robot-floating z-10"
-          style={{
-            left: "29.74%",
-            top: "13.6%",
-            width: "17.33%",
-            height: "52.86%",
-          }}
-        >
-          <Image
-            src="/images/landing-ref/autonexa-robot-mascot-perfect.png"
-            alt="AutoNexa Floating Robot Mascot"
-            fill
-            sizes="220px"
-            priority
-            className="object-contain drop-shadow-[0_12px_28px_rgba(29,78,216,0.18)]"
-            style={{ imageRendering: "-webkit-optimize-contrast" }}
-          />
-        </div>
 
         {/* ===================================================================
             SVG MOVABLE ANIMATED ENERGY FLOW OVERLAY
