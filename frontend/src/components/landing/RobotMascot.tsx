@@ -100,6 +100,8 @@ export default function RobotMascot({
   const shouldShowMessage =
     controlledShowMessage !== undefined
       ? controlledShowMessage
+      : size === "xs"
+      ? false
       : isHovered || effectiveState !== "idle";
 
   // Natural eye blink interval in idle / hover
@@ -355,22 +357,22 @@ export default function RobotMascot({
       {/* Dynamic Speech / Reaction Bubble */}
       {shouldShowMessage && (
         <div className="absolute -top-10 sm:-top-12 z-30 pointer-events-none bubble-anim">
-          <div className="px-3 py-1.5 rounded-full bg-[#0D1815]/95 border border-[#2A4E42] shadow-[0_6px_20px_rgba(0,0,0,0.6)] backdrop-blur-md flex items-center gap-1.5 text-xs font-mono text-[#F1EFE1] whitespace-nowrap">
+          <div className="px-3 py-1.5 rounded-full bg-[#0F172A]/95 border border-[#334155] shadow-[0_6px_20px_rgba(15,23,42,0.35)] backdrop-blur-md flex items-center gap-1.5 text-xs font-mono text-white whitespace-nowrap">
             {effectiveState === "working" && (
-              <span className="w-2 h-2 rounded-full bg-[#68E7B5] animate-ping" />
+              <span className="w-2 h-2 rounded-full bg-[#38BDF8] animate-ping" />
             )}
             {effectiveState === "success" && (
-              <span className="w-3.5 h-3.5 rounded-full bg-[#162A23] border border-[#68E7B5] text-[#68E7B5] flex items-center justify-center text-[9px] font-bold">
+              <span className="w-3.5 h-3.5 rounded-full bg-[#1E293B] border border-[#34D399] text-[#34D399] flex items-center justify-center text-[9px] font-bold">
                 ✓
               </span>
             )}
             {effectiveState === "thinking" && (
-              <span className="text-[#68E7B5] font-bold">···</span>
+              <span className="text-[#38BDF8] font-bold">···</span>
             )}
             <span>{effectiveMessage}</span>
           </div>
           {/* Cute pointer triangle */}
-          <div className="w-2 h-2 bg-[#0D1815] border-r border-b border-[#2A4E42] rotate-45 mx-auto -mt-1" />
+          <div className="w-2 h-2 bg-[#0F172A] border-r border-b border-[#334155] rotate-45 mx-auto -mt-1" />
         </div>
       )}
 

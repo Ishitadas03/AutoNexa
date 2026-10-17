@@ -12,10 +12,14 @@ import Footer from "@/components/landing/Footer";
 import WorkspaceLayout from "@/components/workspace/WorkspaceLayout";
 import OverviewTab from "@/components/workspace/OverviewTab";
 import DatasetsTab from "@/components/workspace/DatasetsTab";
+import ProfilingTab from "@/components/workspace/ProfilingTab";
 import TrainingTab from "@/components/workspace/TrainingTab";
 import LeaderboardTab from "@/components/workspace/LeaderboardTab";
-import DetailsTab from "@/components/workspace/DetailsTab";
+import ExperimentsTab from "@/components/workspace/ExperimentsTab";
 import PredictionTab from "@/components/workspace/PredictionTab";
+import ModelRegistryTab from "@/components/workspace/ModelRegistryTab";
+import DocumentationTab from "@/components/workspace/DocumentationTab";
+import SettingsTab from "@/components/workspace/SettingsTab";
 
 import { useAutoNexaStore } from "@/lib/store";
 import { api } from "@/lib/api";
@@ -34,6 +38,7 @@ export default function Home() {
     addDataset,
     experiments,
     activeExperiment,
+    setActiveExperimentId,
     addExperiment,
     activeAnalysis,
     setActiveAnalysis,
@@ -359,7 +364,18 @@ export default function Home() {
               onUploadSample={handleUploadSample}
               onRunAnalysis={handleRunAnalysis}
               onProceedToTraining={() => setActiveTab("training")}
+              onNavigateTab={(tab) => setActiveTab(tab)}
               isLoading={isUploading}
+              isAnalyzing={isAnalyzing}
+            />
+          )}
+
+          {activeTab === "analysis" && (
+            <ProfilingTab
+              activeDataset={activeDataset}
+              activeAnalysis={activeAnalysis}
+              onRunAnalysis={handleRunAnalysis}
+              onProceedToTraining={() => setActiveTab("training")}
               isAnalyzing={isAnalyzing}
             />
           )}
@@ -380,15 +396,33 @@ export default function Home() {
             />
           )}
 
-          {activeTab === "details" && (
-            <DetailsTab
+          {(activeTab === "experiments" || activeTab === "details") && (
+            <ExperimentsTab
+              experiments={experiments}
               activeExperiment={activeExperiment}
+              onSelectExperiment={(id) => setActiveExperimentId(id)}
               onNavigateTab={(tab) => setActiveTab(tab)}
             />
           )}
 
           {activeTab === "prediction" && (
             <PredictionTab activeExperiment={activeExperiment} />
+          )}
+
+          {activeTab === "models" && (
+            <ModelRegistryTab
+              experiments={experiments}
+              activeExperiment={activeExperiment}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+            />
+          )}
+
+          {activeTab === "docs" && (
+            <DocumentationTab />
+          )}
+
+          {activeTab === "settings" && (
+            <SettingsTab apiConnected={apiConnected} />
           )}
         </WorkspaceLayout>
       )}

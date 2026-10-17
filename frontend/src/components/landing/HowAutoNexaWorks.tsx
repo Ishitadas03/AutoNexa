@@ -207,7 +207,7 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
   };
 
   return (
-    <section id="how-it-works" className="relative py-16 sm:py-24 bg-[#F2F6F9] border-b border-[#E2E8F0] overflow-hidden">
+    <section id="how-it-works" className="relative py-12 sm:py-16 bg-white border-b border-[#E2E8F0] overflow-hidden">
       {/* Ambient background light */}
       <div
         className="pointer-events-none absolute inset-0 opacity-40"
@@ -320,10 +320,10 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
                     }}
                     className={`relative p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between group ${
                       isSelected
-                        ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_4px_16px_rgba(29,78,216,0.2)] -translate-y-1"
+                        ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_4px_16px_rgba(29,78,216,0.18)] -translate-y-0.5"
                         : isCompleted
-                        ? "bg-white border-[#CBD5E1] hover:border-[#1D4ED8]"
-                        : "bg-white border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1]"
+                        ? "bg-white border-[#CBD5E1] shadow-xs hover:border-[#1D4ED8]"
+                        : "bg-[#F8FAFC] border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1] hover:bg-white"
                     }`}
                   >
                     <div>
@@ -381,7 +381,7 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
         {/* ===================================================================
             MOVABLE STAGE DRILL-DOWN DECK
             =================================================================== */}
-        <div className="relative rounded-3xl bg-white border border-[#CBD5E1] p-6 sm:p-8 lg:p-10 shadow-xl overflow-hidden">
+        <div className="relative rounded-3xl bg-[#FAFCFF] sm:bg-white border border-[#CBD5E1] p-6 sm:p-8 lg:p-10 shadow-xl overflow-hidden">
           
           <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-6 mb-8 border-b border-[#E2E8F0] gap-4">
             
@@ -392,6 +392,7 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
                   stage={activeStage.num}
                   state={activeStage.mascotState}
                   isInteractive={true}
+                  showMessage={false}
                 />
               </div>
 
@@ -411,7 +412,7 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-xs font-mono text-[#475569] flex items-center gap-1.5">
+              <span className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1] text-xs font-mono text-[#475569] flex items-center gap-1.5 shadow-xs">
                 <Terminal className="w-3.5 h-3.5 text-[#1D4ED8]" />
                 <span>{activeStage.endpoint}</span>
               </span>
@@ -429,7 +430,7 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
             
             {/* 1. INPUT STREAM CARD */}
-            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2 text-[#1D4ED8] font-mono text-xs font-bold uppercase tracking-wider">
@@ -452,7 +453,7 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
             </div>
 
             {/* 2. PROCESSING ENGINE CARD */}
-            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#1D4ED8]/60 shadow-[0_4px_16px_rgba(29,78,216,0.1)] flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-[#EFF6FF] border border-[#1D4ED8]/70 shadow-[0_4px_16px_rgba(29,78,216,0.1)] flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2 text-[#1E40AF] font-mono text-xs font-bold uppercase tracking-wider">
@@ -475,7 +476,7 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
             </div>
 
             {/* 3. VALIDATED ARTIFACT CARD */}
-            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2 text-[#15803D] font-mono text-xs font-bold uppercase tracking-wider">
@@ -519,6 +520,25 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
             </div>
           </div>
 
+        </div>
+
+        {/* Subtle Inter-Section Continuity Indicator */}
+        <div className="mt-8 pt-5 border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-[#64748B]">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#1D4ED8]" />
+            <span>Robust Evaluation • Comprehensive Multi-Estimator Benchmark</span>
+          </div>
+          <div className="flex items-center gap-3 text-[11.5px]">
+            <span className="hidden md:inline">Audited tabular intelligence across every feature</span>
+            <span className="hidden md:inline text-[#CBD5E1]">•</span>
+            <a
+              href="#features"
+              className="text-[#1D4ED8] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+            >
+              <span>View Core Capabilities</span>
+              <span>↓</span>
+            </a>
+          </div>
         </div>
 
         <RobotAnimationGuideModal

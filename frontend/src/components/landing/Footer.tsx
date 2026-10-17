@@ -17,7 +17,7 @@ export default function Footer({ onLaunchWorkspace, apiConnected }: FooterProps)
   };
 
   return (
-    <footer className="border-t border-[#CBD5E1] bg-[#F2F6F9] text-[#64748B] py-12 px-4 sm:px-6 lg:px-12 text-xs font-sans">
+    <footer className="border-t border-[#CBD5E1] bg-[#F2F6F9] text-[#64748B] py-10 px-4 sm:px-6 lg:px-12 text-xs font-sans">
       <div className="max-w-[1520px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         
         {/* Brand Logo & Tagline */}

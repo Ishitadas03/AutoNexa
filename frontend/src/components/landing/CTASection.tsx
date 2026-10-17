@@ -13,7 +13,7 @@ export default function CTASection({ onLaunchWorkspace }: CTASectionProps) {
   };
 
   return (
-    <section className="relative py-20 sm:py-28 bg-[#F2F6F9] border-b border-[#E2E8F0] overflow-hidden">
+    <section className="relative py-14 sm:py-18 bg-gradient-to-b from-[#F2F6F9] via-[#EBF3FB] to-[#F2F6F9] border-b border-[#E2E8F0] overflow-hidden">
       {/* Ambient glowing radial light */}
       <div
         className="pointer-events-none absolute inset-0 opacity-40"
@@ -24,11 +24,16 @@ export default function CTASection({ onLaunchWorkspace }: CTASectionProps) {
       />
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative rounded-3xl bg-white border border-[#CBD5E1] p-8 sm:p-14 md:p-16 text-center shadow-xl overflow-hidden">
-          
-          {/* Subtle cobalt corner accents */}
-          <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-[#1D4ED8]/60 rounded-tl-3xl pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-[#1D4ED8]/60 rounded-br-3xl pointer-events-none" />
+        <div className="relative rounded-3xl bg-white border border-[#CBD5E1] p-8 sm:p-14 md:p-16 text-center shadow-[0_16px_50px_rgba(29,78,216,0.1)] overflow-hidden">
+          {/* Glowing cobalt top accent line */}
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#1D4ED8] to-transparent" />
+          <div
+            className="pointer-events-none absolute inset-0 opacity-40"
+            style={{
+              background:
+                "radial-gradient(circle at 50% 0%, rgba(29, 78, 216, 0.12), transparent 70%)",
+            }}
+          />
 
           <div className="relative z-10 max-w-2xl mx-auto space-y-6">
             

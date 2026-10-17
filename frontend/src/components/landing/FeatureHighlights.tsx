@@ -87,7 +87,7 @@ export default function FeatureHighlights({ onLaunchWorkspace }: FeatureHighligh
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   return (
-    <section id="features" className="relative py-16 sm:py-24 bg-[#F2F6F9] border-b border-[#E2E8F0] overflow-hidden">
+    <section id="features" className="relative py-12 sm:py-16 bg-[#F2F6F9] border-b border-[#E2E8F0] overflow-hidden">
       {/* Subtle ambient light */}
       <div
         className="pointer-events-none absolute inset-0 opacity-40"
@@ -203,6 +203,22 @@ export default function FeatureHighlights({ onLaunchWorkspace }: FeatureHighligh
               </div>
             );
           })}
+        </div>
+
+        {/* Subtle Inter-Section Continuity Indicator */}
+        <div className="mt-10 pt-6 border-t border-[#CBD5E1]/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-[#64748B]">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
+            <span>Built For Tabular Reliability • Scikit-Learn Ecosystem</span>
+          </div>
+          <div className="flex items-center gap-3 text-[11.5px]">
+            <span className="hidden md:inline">Instant inference & one-click pipeline serialization</span>
+            <span className="hidden md:inline text-[#CBD5E1]">•</span>
+            <span className="text-[#1D4ED8] font-semibold flex items-center gap-1">
+              <span>Ready for production</span>
+              <span>↓</span>
+            </span>
+          </div>
         </div>
 
       </div>

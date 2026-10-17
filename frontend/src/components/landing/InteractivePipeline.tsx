@@ -205,7 +205,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
   const rightCards = PIPELINE_CARDS.filter((c) => c.side === "right");
 
   return (
-    <section id="pipeline" className="relative py-14 sm:py-20 bg-[#F2F6F9] border-b border-[#E2E8F0] overflow-hidden">
+    <section id="pipeline" className="relative pt-12 pb-12 sm:pt-14 sm:pb-14 bg-[#F2F6F9] border-b border-[#E2E8F0] overflow-hidden">
       <input
         ref={fileInputRef}
         type="file"
@@ -560,7 +560,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
         {/* ===================================================================
             SIMULATION CONTROL BAR
             =================================================================== */}
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-[#CBD5E1] max-w-4xl mx-auto shadow-md">
+        <div className="mt-8 sm:mt-10 mb-6 flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-[#CBD5E1] max-w-4xl mx-auto shadow-md">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSimulating(!isSimulating)}
@@ -965,6 +965,25 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
               </div>
             </div>
           )}
+
+          {/* Subtle Inter-Section Continuity Indicator */}
+          <div className="mt-8 pt-5 border-t border-[#CBD5E1]/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-[#64748B]">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
+              <span>Full Pipeline Lifecycle • Verified Tabular Architecture</span>
+            </div>
+            <div className="flex items-center gap-3 text-[11.5px]">
+              <span className="hidden md:inline">Deterministic validation & zero target leakage</span>
+              <span className="hidden md:inline text-[#CBD5E1]">•</span>
+              <a
+                href="#how-it-works"
+                className="text-[#1D4ED8] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+              >
+                <span>Explore 7-Stage Breakdown</span>
+                <span>↓</span>
+              </a>
+            </div>
+          </div>
 
         </div>
 
