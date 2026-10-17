@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+:root {
+  --background: #080d11;
+  --foreground: #f1f5f9;
+  --panel-bg: #121922;
+  --panel-border: #1e293b;
+  --accent-gold: #f59e0b;
+  --accent-gold-hover: #d97706;
+  --accent-glow: rgba(245, 158, 11, 0.25);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-panel: var(--panel-bg);
+  --color-panel-border: var(--panel-border);
+  --color-gold: var(--accent-gold);
+}
+
+/* Custom dark scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0b1117;
+}
+::-webkit-scrollbar-thumb {
+  background: #233142;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334457;
+}
+
+/* Subtle background grid pattern */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* Dark glass card styling */
+.glass-panel {
+  background: rgba(18, 26, 35, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-glow {
+  background: rgba(18, 26, 35, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.08);
+}
+
+/* Gold glow button and highlights */
+.btn-gold {
+  background: #f59e0b;
+  color: #0b0f14;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.btn-gold:hover {
+  background: #fbbf24;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+}
+
+.btn-gold-outline {
+  border: 1px solid #f59e0b;
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.05);
+  transition: all 0.2s ease;
+}
+.btn-gold-outline:hover {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: #fbbf24;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+}
+
+/* Pulse animation for connectors */
+@keyframes flowPulse {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0.2;
+  }
+}
+
+.animate-flow {
+  animation: flowPulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

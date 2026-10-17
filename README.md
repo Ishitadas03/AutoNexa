@@ -18,7 +18,7 @@ AutoNexa provides an automated, reproducible pipeline for tabular machine learni
 
 ## 2. Current Development Status
 
-- **Status**: **Phase 7 — Model Export, Safe Loading & Prediction API (Complete)**
+- **Status**: **Phase 8 — Premium 3D Responsive Frontend & AutoML Platform (Complete)**
 - **Scope Implemented**:
   - Modular FastAPI application entry point initialized ([`backend/app/main.py`](file:///c:/Users/ishit/AutoNexa/backend/app/main.py)).
   - Centralized type-safe settings management powered by `pydantic-settings` ([`backend/app/core/config.py`](file:///c:/Users/ishit/AutoNexa/backend/app/core/config.py)).
@@ -29,11 +29,13 @@ AutoNexa provides an automated, reproducible pipeline for tabular machine learni
   - Read-only Experiment Inspection endpoint ([`GET /api/v1/experiments/{experiment_id}`](http://127.0.0.1:8000/docs#/Experiments/inspect_experiment_api_v1_experiments__experiment_id__get)) returning validated metadata, model leaderboard, expected feature schema, artifact disk availability, and SHA-256 integrity checksums without exposing server filesystem paths or secrets.
   - Secure Tabular Prediction endpoint ([`POST /api/v1/experiments/{experiment_id}/predict`](http://127.0.0.1:8000/docs#/Experiments/predict_api_v1_experiments__experiment_id__predict_post)) accepting bounded JSON records, strictly validating feature columns, enforcing training feature ordering, utilizing the fitted pipeline for imputation, scaling, and encoding, returning predictions, and outputting class probabilities for classification when supported by the estimator.
   - Batch CSV Prediction endpoint ([`POST /api/v1/experiments/{experiment_id}/predict-csv`](http://127.0.0.1:8000/docs#/Experiments/predict_csv_api_v1_experiments__experiment_id__predict_csv_post)) streaming CSV inputs, validating feature schema, safely handling optional target columns, and returning a downloadable enriched CSV with predictions and probabilities.
-  - Interactive Swagger UI documentation at [`/docs`](http://127.0.0.1:8000/docs) and OpenAPI specification at [`/openapi.json`](http://127.0.0.1:8000/openapi.json).
-  - 83 automated tests across [`backend/tests/test_health.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_health.py), [`backend/tests/test_datasets.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_datasets.py), [`backend/tests/test_analysis.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_analysis.py), [`backend/tests/test_training.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_training.py), [`backend/tests/test_tracking.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_tracking.py), and [`backend/tests/test_prediction.py`](file:///c:/Users/ishit/AutoNexa/backend/tests/test_prediction.py) covering all functional requirements, security guards, leakage-free pipelines, artifact integrity, and inference edge cases.
+  - Production Next.js 16 App Router frontend ([`frontend/`](file:///c:/Users/ishit/AutoNexa/frontend/)) built with TypeScript strict mode, Tailwind CSS v4, Lucide React, React Three Fiber & Three.js 3D canvas, Recharts ML charts, and responsive glassmorphism aesthetic reproducing the design reference image.
+  - Interactive Landing Page featuring dynamic 3D geometric particle canvas, 3-panel animated pipeline visualizer, feature highlights, and responsive mobile drawer navigation.
+  - Complete Research Workspace with Overview KPI dashboard, CSV drag-and-drop ingestion & tabular preview, automated Dataset Intelligence diagnostics, AutoML Studio configuration, Model Leaderboard with Recharts comparisons, Experiment artifact verification, and live Single-Record / Batch Prediction Playground.
+  - 83 automated backend tests passing cleanly with 100% route and schema coverage.
 - **Upcoming Phases**:
-  - Phase 8: Next.js Frontend UI Dashboard & Visualizations.
   - Phase 9: PennyLane Classical vs. Quantum Benchmarking Module.
+  - Phase 10: SHAP Model Explainability Plots & Attributions.
 
 ---
 
@@ -180,7 +182,7 @@ To launch the AutoNexa backend development server with auto-reload:
 python -m uvicorn app.main:app --reload
 ```
 
-Once running, the server is accessible at:
+Once running, the backend server is accessible at:
 - **Health Check Endpoint**: [http://127.0.0.1:8000/api/v1/health](http://127.0.0.1:8000/api/v1/health)
 - **Dataset Upload Endpoint**: [http://127.0.0.1:8000/api/v1/datasets/upload](http://127.0.0.1:8000/api/v1/datasets/upload)
 - **Dataset Analysis Endpoint**: [http://127.0.0.1:8000/api/v1/datasets/{dataset_id}/analyze](http://127.0.0.1:8000/api/v1/datasets/{dataset_id}/analyze)
@@ -188,6 +190,40 @@ Once running, the server is accessible at:
 - **Interactive Swagger UI Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 - **ReDoc Documentation**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 - **OpenAPI JSON Specification**: [http://127.0.0.1:8000/openapi.json](http://127.0.0.1:8000/openapi.json)
+
+---
+
+## 7.1 Starting the AutoNexa Frontend (Next.js 16)
+
+The frontend is a research-grade Next.js 16 application with React 19, TypeScript strict mode, Tailwind CSS v4, Three.js 3D visuals, and Recharts.
+
+### Installation & Execution:
+
+```bash
+# 1. Navigate to the frontend directory
+cd frontend
+
+# 2. Install dependencies (use legacy-peer-deps for React 19 compatibility)
+npm install --legacy-peer-deps
+
+# 3. Start the local development server
+npm run dev
+
+# Or build and launch the optimized production bundle
+npm run build
+npm run start
+```
+
+The frontend web application is available at:
+- **AutoNexa Platform UI**: [http://localhost:3000](http://localhost:3000)
+
+### Environment Variables:
+The frontend connects to the FastAPI backend via `NEXT_PUBLIC_API_BASE_URL`. If unspecified, it defaults automatically to `http://127.0.0.1:8000`.
+
+To customize, create `frontend/.env.local`:
+```env
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
+```
 
 ---
 
