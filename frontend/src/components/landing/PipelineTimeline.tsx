@@ -197,10 +197,10 @@ export default function PipelineTimeline({
           Full Pipeline Architecture
         </span>
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight mt-2 mb-4">
-          Seven-Stage AutoML Workflow
+          From Raw Data to Reliable Models
         </h2>
         <p className="text-sm sm:text-base text-slate-400">
-          Each stage transforms raw data through a disciplined pipeline — from
+          The Seven-Stage AutoML Architecture: Each stage transforms raw data through a disciplined pipeline — from
           CSV ingestion to production-ready inference. Explore inputs, outputs,
           and supported capabilities at each step.
         </p>

@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
-import WorkflowVisualizer from "@/components/landing/WorkflowVisualizer";
 import FeatureHighlights from "@/components/landing/FeatureHighlights";
 import PipelineTimeline from "@/components/landing/PipelineTimeline";
 import HowItWorks from "@/components/landing/HowItWorks";
@@ -325,8 +324,7 @@ export default function Home() {
         /* LANDING PAGE VIEW */
         <div className="flex-1 flex flex-col">
           <Navbar onLaunchWorkspace={() => setActiveView("workspace")} apiConnected={apiConnected} />
-          <Hero onLaunchWorkspace={() => setActiveView("workspace")} />
-          <WorkflowVisualizer onLaunchWorkspace={() => setActiveView("workspace")} />
+          <Hero onLaunchWorkspace={() => setActiveView("workspace")} apiConnected={apiConnected} />
           <FeatureHighlights />
           <PipelineTimeline onLaunchWorkspace={() => setActiveView("workspace")} />
           <HowItWorks onLaunchWorkspace={() => setActiveView("workspace")} />
