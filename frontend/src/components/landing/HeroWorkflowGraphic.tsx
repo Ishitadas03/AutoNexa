@@ -134,6 +134,13 @@ export default function HeroWorkflowGraphic({ onSelectStage }: HeroWorkflowGraph
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
+            <filter id="greenPulse" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="3.0" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
           </defs>
 
           {/* Conduit Path 1: Top-Left CSV Pedestal -> Central Mascot Plinth */}
@@ -151,6 +158,44 @@ export default function HeroWorkflowGraphic({ onSelectStage }: HeroWorkflowGraph
               path="M 140 180 L 260 240 L 370 310 L 460 310"
             />
           </circle>
+
+          {/* Animated CSV Document Packet moving along Conduit 1 to AI Engine */}
+          <g style={{ willChange: "transform" }}>
+            <animateMotion
+              dur="4.6s"
+              repeatCount="indefinite"
+              path="M 140 180 L 260 240 L 370 310 L 460 310"
+            />
+            <g transform="translate(-11, -13)">
+              <rect
+                width="22"
+                height="26"
+                rx="4"
+                fill="#FFFFFF"
+                stroke="#1D4ED8"
+                strokeWidth="1.6"
+                filter="url(#bluePulse)"
+              />
+              <path
+                d="M 4 7 L 18 7 M 4 11 L 18 11 M 4 15 L 13 15"
+                stroke="#94A3B8"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+              />
+              <rect x="3" y="17" width="16" height="6" rx="2" fill="#1D4ED8" />
+              <text
+                x="11"
+                y="21.5"
+                fill="#FFFFFF"
+                fontSize="4.8"
+                fontFamily="ui-monospace, monospace"
+                fontWeight="bold"
+                textAnchor="middle"
+              >
+                CSV
+              </text>
+            </g>
+          </g>
 
           {/* Conduit Path 2: Bottom-Left DB Cylinders -> Central Mascot Plinth */}
           <path
@@ -218,6 +263,73 @@ export default function HeroWorkflowGraphic({ onSelectStage }: HeroWorkflowGraph
               path="M 610 350 L 750 420 L 960 420"
             />
           </circle>
+
+          {/* Traveling Prediction Model Result Packet reaching the laptop */}
+          <g style={{ willChange: "transform" }}>
+            <animateMotion
+              dur="3.8s"
+              repeatCount="indefinite"
+              begin="1.2s"
+              path="M 610 350 L 750 420 L 960 420"
+            />
+            <g transform="translate(-10, -10)">
+              <circle cx="10" cy="10" r="9" fill="#10B981" fillOpacity="0.2" />
+              <circle cx="10" cy="10" r="4.5" fill="#10B981" filter="url(#greenPulse)" />
+            </g>
+          </g>
+
+          {/* Model Result Telemetry Badge at Prediction Station (960, 420) */}
+          <g transform="translate(930, 382)" style={{ willChange: "transform" }}>
+            <circle cx="30" cy="11" r="16" fill="none" stroke="#10B981" strokeWidth="1.2" opacity="0.6">
+              <animate attributeName="r" values="8;24" dur="2.4s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.8;0" dur="2.4s" repeatCount="indefinite" />
+            </circle>
+            <rect
+              width="62"
+              height="20"
+              rx="10"
+              fill="#FFFFFF"
+              stroke="#10B981"
+              strokeWidth="1.5"
+              filter="url(#greenPulse)"
+            />
+            <circle cx="9" cy="10" r="3.5" fill="#10B981" />
+            <text
+              x="36"
+              y="13.5"
+              fill="#065F46"
+              fontSize="6"
+              fontFamily="ui-monospace, monospace"
+              fontWeight="bold"
+              textAnchor="middle"
+            >
+              F1: 0.941 ✓
+            </text>
+          </g>
+
+          {/* Central AI Engine Plinth Energy Aura (around Mascot) */}
+          <g transform="translate(535, 325)" style={{ willChange: "transform" }}>
+            <ellipse rx="36" ry="12" fill="none" stroke="#1D4ED8" strokeWidth="1.5" strokeDasharray="6 4" opacity="0.6">
+              <animateTransform
+                attributeName="transform"
+                type="rotate"
+                from="0"
+                to="360"
+                dur="14s"
+                repeatCount="indefinite"
+              />
+            </ellipse>
+            <ellipse rx="48" ry="16" fill="none" stroke="#60A5FA" strokeWidth="1" strokeDasharray="3 3" opacity="0.4">
+              <animateTransform
+                attributeName="transform"
+                type="rotate"
+                from="360"
+                to="0"
+                dur="18s"
+                repeatCount="indefinite"
+              />
+            </ellipse>
+          </g>
 
           {/* Glowing Junction Dots */}
           <circle cx="140" cy="180" r="3.5" fill="#1D4ED8" />

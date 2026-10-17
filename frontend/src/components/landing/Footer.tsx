@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import ScrollReveal from "./ScrollReveal";
 
 interface FooterProps {
   onLaunchWorkspace: () => void;
@@ -21,6 +22,7 @@ export default function Footer({ onLaunchWorkspace, apiConnected }: FooterProps)
       <div className="max-w-[1520px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         
         {/* Brand Logo & Tagline */}
+        <ScrollReveal direction="left" distance={16} duration={0.5}>
         <div className="flex items-center gap-3 cursor-pointer select-none group" onClick={() => scrollTo("top")}>
           <div className="w-8 h-8 relative flex items-center justify-center">
             <svg width="28" height="28" viewBox="0 0 36 36" fill="none" className="transition-transform group-hover:scale-105">
@@ -48,8 +50,10 @@ export default function Footer({ onLaunchWorkspace, apiConnected }: FooterProps)
             <span className="text-[#64748B] ml-2 font-mono text-[11px]">AI Research Lab</span>
           </div>
         </div>
+        </ScrollReveal>
 
         {/* Quick Links */}
+        <ScrollReveal direction="up" distance={16} delay={0.08} duration={0.5}>
         <div className="flex flex-wrap items-center justify-center gap-7 text-[#475569] font-medium text-xs sm:text-sm">
           <button onClick={() => scrollTo("top")} className="hover:text-[#1D4ED8] transition-colors cursor-pointer">
             Home
@@ -67,8 +71,10 @@ export default function Footer({ onLaunchWorkspace, apiConnected }: FooterProps)
             Workspace
           </button>
         </div>
+        </ScrollReveal>
 
         {/* Status & License */}
+        <ScrollReveal direction="right" distance={16} delay={0.12} duration={0.5}>
         <div className="flex items-center gap-3 text-[11px] text-[#64748B] font-mono">
           <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#CBD5E1] shadow-xs">
             <span
@@ -91,6 +97,7 @@ export default function Footer({ onLaunchWorkspace, apiConnected }: FooterProps)
           <span>•</span>
           <span>© 2026 AutoNexa</span>
         </div>
+        </ScrollReveal>
 
       </div>
     </footer>

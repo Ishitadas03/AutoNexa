@@ -43,6 +43,42 @@ export default function LeaderboardTab({
   const [activeCurveTab, setActiveCurveTab] = useState<"confusion" | "roc">("confusion");
   const [threshold, setThreshold] = useState<number>(0.5);
 
+  // Prepare chart comparison data - memoized so slider adjustments don't redraw chart
+  const chartData = useMemo(() => {
+    if (!activeExperiment || !activeExperiment.models_evaluated) return [];
+    return activeExperiment.models_evaluated
+      .filter((m) => m.status === "successful")
+      .map((m) => {
+        const score =
+          m.cv_mean !== null && m.cv_mean !== undefined
+            ? m.cv_mean
+            : m.metrics[activeExperiment.primary_metric] || 0;
+        return {
+          name: m.model_name.replace(" Classifier", "").replace(" Regressor", ""),
+          score: Number(score.toFixed(4)),
+          duration: m.duration_seconds,
+        };
+      })
+      .sort((a, b) => b.score - a.score);
+  }, [activeExperiment]);
+
+  const bestModelResult = useMemo(() => {
+    if (!activeExperiment || !activeExperiment.models_evaluated) return undefined;
+    return activeExperiment.models_evaluated.find(
+      (m) => m.model_id === activeExperiment.best_model
+    );
+  }, [activeExperiment]);
+
+  const calculatedBestScore = useMemo(() => {
+    if (!activeExperiment) return 0.941;
+    return (
+      activeExperiment.best_score ??
+      (bestModelResult
+        ? bestModelResult.cv_mean ?? bestModelResult.metrics[activeExperiment.primary_metric]
+        : 0.941)
+    );
+  }, [activeExperiment, bestModelResult]);
+
   if (!activeExperiment) {
     return (
       <div className="p-12 text-center rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4">
@@ -61,39 +97,6 @@ export default function LeaderboardTab({
       </div>
     );
   }
-
-  // Prepare chart comparison data - memoized so slider adjustments don't redraw chart
-  const chartData = useMemo(() => {
-    return activeExperiment.models_evaluated
-      .filter((m) => m.status === "successful")
-      .map((m) => {
-        const score =
-          m.cv_mean !== null && m.cv_mean !== undefined
-            ? m.cv_mean
-            : m.metrics[activeExperiment.primary_metric] || 0;
-        return {
-          name: m.model_name.replace(" Classifier", "").replace(" Regressor", ""),
-          score: Number(score.toFixed(4)),
-          duration: m.duration_seconds,
-        };
-      })
-      .sort((a, b) => b.score - a.score);
-  }, [activeExperiment]);
-
-  const bestModelResult = useMemo(() => {
-    return activeExperiment.models_evaluated.find(
-      (m) => m.model_id === activeExperiment.best_model
-    );
-  }, [activeExperiment]);
-
-  const calculatedBestScore = useMemo(() => {
-    return (
-      activeExperiment.best_score ??
-      (bestModelResult
-        ? bestModelResult.cv_mean ?? bestModelResult.metrics[activeExperiment.primary_metric]
-        : 0.941)
-    );
-  }, [activeExperiment, bestModelResult]);
 
   // Simulated Confusion Matrix for classification
   const totalSamples = 1400;

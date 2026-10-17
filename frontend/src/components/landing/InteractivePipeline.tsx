@@ -13,9 +13,13 @@ import {
   ArrowRight,
   Play,
   Trophy,
+  ShieldCheck,
+  Zap,
 } from "lucide-react";
+import { motion, useScroll, useMotionValueEvent, useReducedMotion } from "motion/react";
 import { api } from "@/lib/api";
 import { DatasetProfileResponse } from "@/types/api";
+import ScrollReveal from "./ScrollReveal";
 
 interface InteractivePipelineProps {
   onLaunchWorkspace: () => void;
@@ -33,48 +37,48 @@ interface PipelineCardMeta {
 const PIPELINE_CARDS: PipelineCardMeta[] = [
   {
     id: 1,
-    title: "CSV Dataset Upload",
-    subtitle: "Upload your tabular data in CSV format.",
+    title: "CSV Upload",
+    subtitle: "Upload your tabular dataset in CSV format.",
     icon: FileText,
     side: "left",
     wireIndex: 0,
   },
   {
     id: 2,
-    title: "Dataset Profiling",
-    subtitle: "Analyze data quality, types and key statistics.",
-    icon: Database,
+    title: "Data Validation",
+    subtitle: "Schema verification, missing value checks & null auditing.",
+    icon: CheckCircle2,
     side: "left",
     wireIndex: 1,
   },
   {
     id: 3,
-    title: "Data Features",
-    subtitle: "Understand features, missing values and distributions.",
+    title: "Data Profiling",
+    subtitle: "Statistical distributions, correlation matrices & feature analysis.",
     icon: BarChart3,
     side: "left",
     wireIndex: 2,
   },
   {
     id: 4,
-    title: "Model Evaluation",
-    subtitle: "Compare metrics and select the best model.",
-    icon: BarChart3,
+    title: "Model Training",
+    subtitle: "Multi-estimator automated training with hyperparameter search.",
+    icon: FlaskConical,
     side: "right",
     wireIndex: 0,
   },
   {
     id: 5,
-    title: "Experiment Tracking",
-    subtitle: "View past experiments, configurations and results.",
-    icon: FlaskConical,
+    title: "Model Evaluation",
+    subtitle: "Cross-validation benchmarks, leaderboard metrics & ROC-AUC.",
+    icon: Trophy,
     side: "right",
     wireIndex: 1,
   },
   {
     id: 6,
-    title: "Prediction Playground",
-    subtitle: "Make predictions on new data and export results.",
+    title: "Prediction",
+    subtitle: "Real-time interactive inference playground & API deployment.",
     icon: Sparkles,
     side: "right",
     wireIndex: 2,
@@ -103,6 +107,33 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = useReducedMotion();
+
+  // Scrollytelling scroll tracking on desktop viewports
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"],
+  });
+
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    if (prefersReducedMotion) return;
+    if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+      if (latest < 0.16) {
+        setActiveStage(1);
+      } else if (latest < 0.33) {
+        setActiveStage(2);
+      } else if (latest < 0.50) {
+        setActiveStage(3);
+      } else if (latest < 0.67) {
+        setActiveStage(4);
+      } else if (latest < 0.84) {
+        setActiveStage(5);
+      } else {
+        setActiveStage(6);
+      }
+    }
+  });
 
   // Auto-play simulation loop
   useEffect(() => {
@@ -205,7 +236,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
   const rightCards = PIPELINE_CARDS.filter((c) => c.side === "right");
 
   return (
-    <section id="pipeline" className="relative pt-12 pb-12 sm:pt-14 sm:pb-14 bg-[#F2F6F9] border-b border-[#E2E8F0] overflow-hidden">
+    <section id="pipeline" className="relative bg-[#F2F6F9] border-b border-[#E2E8F0]">
       <input
         ref={fileInputRef}
         type="file"
@@ -217,776 +248,886 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
         }}
       />
 
-      {/* Ambient background glow */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-40"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(29, 78, 216, 0.08), transparent 75%)",
-        }}
-      />
+      {/* SVG Style definitions for energy flow */}
+      <style>{`
+        @keyframes conduitDashFlow {
+          to {
+            stroke-dashoffset: -24;
+          }
+        }
+        .conduit-flow-dash {
+          stroke-dasharray: 6 4;
+          animation: conduitDashFlow 0.85s linear infinite;
+        }
+      `}</style>
 
-      <div className="relative max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-10">
-        
-        {/* ===================================================================
-            SECTION HEADER: Exact Copy & Typography Matching Light Reference
-            =================================================================== */}
-        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#CBD5E1] mb-4 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
-            <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#334155] font-semibold">
-              THE AUTONEXA PIPELINE
-            </span>
-          </div>
-
-          <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-normal text-[#0F172A] tracking-tight leading-[1.1] mb-3">
-            The AutoNexa <span className="text-[#1E3A8A] italic font-normal">Pipeline.</span>
-          </h2>
-
-          <p className="text-sm sm:text-base text-[#64748B] font-sans">
-            From data upload to predictions — a connected AutoML workflow.
-          </p>
-        </div>
-
-        {/* ===================================================================
-            MAIN CONNECTED PIPELINE CANVAS: 3 LEFT CARDS + ENGINE + 3 RIGHT CARDS
-            =================================================================== */}
-        <div className="relative w-full max-w-[1360px] mx-auto">
+      {/* Outer scrollytelling container: pinned on desktop lg+ (260vh), natural flow on mobile/tablet */}
+      <div ref={containerRef} className="relative lg:min-h-[260vh]">
+        <div className="lg:sticky lg:top-[var(--navbar-height)] lg:min-h-[calc(100vh-var(--navbar-height))] flex flex-col justify-center py-10 sm:py-14 overflow-hidden">
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-4 items-center">
+          {/* Ambient background glow */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-40 -z-10"
+            style={{
+              background:
+                "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(29, 78, 216, 0.08), transparent 75%)",
+            }}
+          />
+
+          <div className="relative max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-10 w-full">
             
-            {/* -------------------------------------------------------------
-                LEFT COLUMN: 3 Cards (Upload, Profiling, Features)
-                ------------------------------------------------------------- */}
-            <div className="lg:col-span-3 xl:col-span-3 flex flex-col gap-4 sm:gap-5 z-20">
-              {leftCards.map((card) => {
-                const Icon = card.icon;
-                const isSelected = activeStage === card.id;
-                const isHovered = hoveredStage === card.id;
+            {/* ===================================================================
+                SECTION HEADER: Alternating Entrance Reveals
+                =================================================================== */}
+            <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
+              <ScrollReveal direction="down" distance={16}>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#CBD5E1] mb-3 shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
+                  <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#334155] font-semibold">
+                    THE AUTONEXA PIPELINE
+                  </span>
+                </div>
+              </ScrollReveal>
 
-                return (
-                  <div
-                    key={card.id}
-                    onClick={() => setActiveStage(card.id)}
-                    onMouseEnter={() => setHoveredStage(card.id)}
-                    onMouseLeave={() => setHoveredStage(null)}
-                    className={`relative p-4 sm:p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center justify-between gap-3 group min-h-[82px] ${
-                      isSelected
-                        ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_4px_20px_rgba(29,78,216,0.18)] scale-[1.01]"
-                        : isHovered
-                        ? "bg-white border-[#94A3B8] shadow-md"
-                        : "bg-white border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1]"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 sm:gap-3.5">
-                      <div
-                        className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
-                          isSelected
-                            ? "bg-[#DBEAFE] border-[#1D4ED8]/60 text-[#1D4ED8]"
-                            : "bg-[#F1F5F9] border-[#E2E8F0] text-[#334155] group-hover:text-[#1D4ED8]"
-                        }`}
-                      >
-                        {card.id === 1 ? (
-                          <div className="flex flex-col items-center">
-                            <FileText className="w-5 h-5" />
-                            <span className="text-[7.5px] font-mono font-bold text-[#1D4ED8] -mt-1 tracking-tighter">
-                              CSV
-                            </span>
-                          </div>
-                        ) : (
-                          <Icon className="w-5 h-5" />
-                        )}
-                      </div>
+              <ScrollReveal direction="left" delay={0.06} distance={22}>
+                <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-normal text-[#0F172A] tracking-tight leading-[1.1] mb-2">
+                  The AutoNexa <span className="text-[#1E3A8A] italic font-normal">Pipeline.</span>
+                </h2>
+              </ScrollReveal>
 
-                      <div>
-                        <h3 className="text-sm font-semibold text-[#0F172A] tracking-tight group-hover:text-[#1D4ED8] transition-colors mb-0.5">
-                          {card.title}
-                        </h3>
-                        <p className="text-xs text-[#64748B] leading-snug line-clamp-2 font-normal">
-                          {card.subtitle}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Right Connection Port Dot (Dark/Royal Blue) */}
-                    <div className="relative shrink-0 flex items-center justify-center">
-                      <div
-                        className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
-                          isSelected
-                            ? "bg-[#1D4ED8] shadow-[0_0_10px_#1D4ED8] scale-125"
-                            : "bg-[#1D4ED8]/80 shadow-[0_0_6px_rgba(29,78,216,0.5)]"
-                        }`}
-                      />
-                      {isSelected && (
-                        <div className="absolute w-6 h-6 rounded-full border border-[#1D4ED8] animate-ping pointer-events-none" />
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* -------------------------------------------------------------
-                CENTER COLUMN: Central Workflow Network & Engine Plinth with Mascot
-                ------------------------------------------------------------- */}
-            <div className="lg:col-span-6 xl:col-span-6 relative flex flex-col items-center justify-center my-4 lg:my-0 z-10 px-0 sm:px-2">
-              
-              <div className="relative w-full max-w-[620px] aspect-[437/225] mx-auto group select-none">
-                <div
-                  className="pointer-events-none absolute inset-0 -bottom-6 opacity-35 blur-2xl -z-10"
-                  style={{
-                    background:
-                      "radial-gradient(ellipse 65% 55% at 50% 50%, rgba(29, 78, 216, 0.16), transparent 75%)",
-                  }}
-                />
-
-                <Image
-                  src="/images/landing-ref/pipeline-engine-workflow-v3.png"
-                  alt="AutoNexa AI Engine Central Plinth"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 620px"
-                  priority
-                  className="object-contain pointer-events-none select-none transition-transform duration-700 group-hover:scale-[1.01]"
-                  style={{
-                    imageRendering: "-webkit-optimize-contrast",
-                  }}
-                />
-
-                {/* SVG Live Energy Conduits & Pulse Stream (Exact 437x225 ViewBox Overlay) */}
-                <svg
-                  viewBox="0 0 437 225"
-                  className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <defs>
-                    <filter id="energyGlow" x="-30%" y="-30%" width="160%" height="160%">
-                      <feGaussianBlur stdDeviation="2.5" result="blur" />
-                      <feMerge>
-                        <feMergeNode in="blur" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
-                    </filter>
-                  </defs>
-
-                  {/* Active highlight paths */}
-                  {activeStage === 1 && (
-                    <path
-                      d="M 0 34 L 24 34 C 50 34, 55 107, 103 107"
-                      stroke="#1D4ED8"
-                      strokeWidth="3.2"
-                      strokeOpacity="0.95"
-                      filter="url(#energyGlow)"
-                    />
-                  )}
-                  {activeStage === 2 && (
-                    <path
-                      d="M 0 106 L 103 107"
-                      stroke="#1D4ED8"
-                      strokeWidth="3.2"
-                      strokeOpacity="0.95"
-                      filter="url(#energyGlow)"
-                    />
-                  )}
-                  {activeStage === 3 && (
-                    <path
-                      d="M 0 176 L 24 176 C 50 176, 55 107, 103 107"
-                      stroke="#1D4ED8"
-                      strokeWidth="3.2"
-                      strokeOpacity="0.95"
-                      filter="url(#energyGlow)"
-                    />
-                  )}
-                  {activeStage === 4 && (
-                    <path
-                      d="M 323 107 C 372 107, 377 36, 418 36 L 437 36"
-                      stroke="#1D4ED8"
-                      strokeWidth="3.2"
-                      strokeOpacity="0.95"
-                      filter="url(#energyGlow)"
-                    />
-                  )}
-                  {activeStage === 5 && (
-                    <path
-                      d="M 323 107 L 437 108"
-                      stroke="#1D4ED8"
-                      strokeWidth="3.2"
-                      strokeOpacity="0.95"
-                      filter="url(#energyGlow)"
-                    />
-                  )}
-                  {activeStage === 6 && (
-                    <path
-                      d="M 323 107 C 372 107, 377 176, 418 176 L 437 176"
-                      stroke="#1D4ED8"
-                      strokeWidth="3.2"
-                      strokeOpacity="0.95"
-                      filter="url(#energyGlow)"
-                    />
-                  )}
-
-                  {/* Animated Energy Flow Particles */}
-                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
-                    <animateMotion
-                      dur="2.4s"
-                      repeatCount="indefinite"
-                      path="M 0 34 L 24 34 C 50 34, 55 107, 103 107"
-                    />
-                  </circle>
-                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
-                    <animateMotion
-                      dur="2.1s"
-                      repeatCount="indefinite"
-                      begin="0.7s"
-                      path="M 0 106 L 103 107"
-                    />
-                  </circle>
-                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
-                    <animateMotion
-                      dur="2.5s"
-                      repeatCount="indefinite"
-                      begin="1.2s"
-                      path="M 0 176 L 24 176 C 50 176, 55 107, 103 107"
-                    />
-                  </circle>
-
-                  {/* Junction Nodes Pulse Rings */}
-                  {(activeStage === 1 || activeStage === 2 || activeStage === 3) && (
-                    <circle cx="103" cy="107" r="7" stroke="#1D4ED8" strokeWidth="1.6" className="animate-ping opacity-85" />
-                  )}
-                  {(activeStage === 4 || activeStage === 5 || activeStage === 6) && (
-                    <circle cx="323" cy="107" r="7" stroke="#1D4ED8" strokeWidth="1.6" className="animate-ping opacity-85" />
-                  )}
-
-                  {/* Animated Outflow Energy Particles */}
-                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
-                    <animateMotion
-                      dur="2.4s"
-                      repeatCount="indefinite"
-                      path="M 323 107 C 372 107, 377 36, 418 36 L 437 36"
-                    />
-                  </circle>
-                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
-                    <animateMotion
-                      dur="2.1s"
-                      repeatCount="indefinite"
-                      begin="0.6s"
-                      path="M 323 107 L 437 108"
-                    />
-                  </circle>
-                  <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
-                    <animateMotion
-                      dur="2.6s"
-                      repeatCount="indefinite"
-                      begin="1.1s"
-                      path="M 323 107 C 372 107, 377 176, 418 176 L 437 176"
-                    />
-                  </circle>
-                </svg>
-
-                <div
-                  onClick={() => setIsSimulating(!isSimulating)}
-                  title="Click to toggle pipeline simulation"
-                  className="absolute inset-0 cursor-pointer"
-                />
-              </div>
-            </div>
-
-            {/* -------------------------------------------------------------
-                RIGHT COLUMN: 3 Cards (Evaluation, Tracking, Predictions)
-                ------------------------------------------------------------- */}
-            <div className="lg:col-span-3 xl:col-span-3 flex flex-col gap-4 sm:gap-5 z-20">
-              {rightCards.map((card) => {
-                const Icon = card.icon;
-                const isSelected = activeStage === card.id;
-                const isHovered = hoveredStage === card.id;
-
-                return (
-                  <div
-                    key={card.id}
-                    onClick={() => setActiveStage(card.id)}
-                    onMouseEnter={() => setHoveredStage(card.id)}
-                    onMouseLeave={() => setHoveredStage(null)}
-                    className={`relative p-4 sm:p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center justify-between gap-3 group min-h-[82px] ${
-                      isSelected
-                        ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_4px_20px_rgba(29,78,216,0.18)] scale-[1.01]"
-                        : isHovered
-                        ? "bg-white border-[#94A3B8] shadow-md"
-                        : "bg-white border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1]"
-                    }`}
-                  >
-                    {/* Left Connection Port Dot */}
-                    <div className="relative shrink-0 flex items-center justify-center">
-                      <div
-                        className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
-                          isSelected
-                            ? "bg-[#1D4ED8] shadow-[0_0_10px_#1D4ED8] scale-125"
-                            : "bg-[#1D4ED8]/80 shadow-[0_0_6px_rgba(29,78,216,0.5)]"
-                        }`}
-                      />
-                      {isSelected && (
-                        <div className="absolute w-6 h-6 rounded-full border border-[#1D4ED8] animate-ping pointer-events-none" />
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-3 sm:gap-3.5 flex-1">
-                      <div
-                        className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
-                          isSelected
-                            ? "bg-[#DBEAFE] border-[#1D4ED8]/60 text-[#1D4ED8]"
-                            : "bg-[#F1F5F9] border-[#E2E8F0] text-[#334155] group-hover:text-[#1D4ED8]"
-                        }`}
-                      >
-                        <Icon className="w-5 h-5" />
-                      </div>
-
-                      <div>
-                        <h3 className="text-sm font-semibold text-[#0F172A] tracking-tight group-hover:text-[#1D4ED8] transition-colors mb-0.5">
-                          {card.title}
-                        </h3>
-                        <p className="text-xs text-[#64748B] leading-snug line-clamp-2 font-normal">
-                          {card.subtitle}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-          </div>
-        </div>
-
-        {/* ===================================================================
-            SIMULATION CONTROL BAR
-            =================================================================== */}
-        <div className="mt-8 sm:mt-10 mb-6 flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-[#CBD5E1] max-w-4xl mx-auto shadow-md">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsSimulating(!isSimulating)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
-                isSimulating
-                  ? "bg-[#1D4ED8] text-white shadow-[0_4px_12px_rgba(29,78,216,0.35)]"
-                  : "bg-[#F1F5F9] text-[#0F172A] border border-[#CBD5E1] hover:bg-[#E2E8F0]"
-              }`}
-            >
-              {isSimulating ? (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-                  <span>Pause Simulation</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-3.5 h-3.5 fill-[#1D4ED8] text-[#1D4ED8]" />
-                  <span>Simulate Pipeline Flow</span>
-                </>
-              )}
-            </button>
-
-            <span className="text-xs font-mono text-[#64748B]">
-              Active: Stage 0{activeStage} — {PIPELINE_CARDS[activeStage - 1].title}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={onLaunchWorkspace}
-              className="px-4 py-2 rounded-xl bg-[#EFF6FF] hover:bg-[#DBEAFE] border border-[#1D4ED8]/40 text-[#1D4ED8] text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
-            >
-              <span>Open in Workspace</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        {/* ===================================================================
-            INTERACTIVE STAGE INSPECTION DRAWER
-            =================================================================== */}
-        <div className="mt-8 max-w-4xl mx-auto rounded-2xl bg-white border border-[#CBD5E1] p-6 sm:p-8 shadow-xl">
-          
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-6 border-b border-[#E2E8F0] gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] border border-[#1D4ED8]/60 flex items-center justify-center text-[#1D4ED8] font-mono text-xs font-bold">
-                0{activeStage}
-              </div>
-              <div>
-                <h4 className="text-sm sm:text-base font-bold text-[#0F172A]">
-                  {PIPELINE_CARDS[activeStage - 1].title}
-                </h4>
-                <p className="text-xs text-[#64748B]">
-                  {PIPELINE_CARDS[activeStage - 1].subtitle}
+              <ScrollReveal direction="right" delay={0.1} distance={22}>
+                <p className="text-xs sm:text-sm text-[#64748B] font-sans">
+                  From data upload to predictions — a synchronized AutoML workflow.
                 </p>
-              </div>
-            </div>
+              </ScrollReveal>
 
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-[#64748B] font-mono">Dataset:</span>
-              <button
-                onClick={() => {
-                  setActivePreset("churn");
-                  setCustomProfile(null);
-                }}
-                className={`px-3 py-1 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
-                  activePreset === "churn" && !customProfile
-                    ? "bg-[#1D4ED8] text-white font-semibold"
-                    : "bg-[#F1F5F9] text-[#64748B] hover:text-[#0F172A]"
-                }`}
-              >
-                Telco Churn
-              </button>
-              <button
-                onClick={() => {
-                  setActivePreset("housing");
-                  setCustomProfile(null);
-                }}
-                className={`px-3 py-1 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
-                  activePreset === "housing" && !customProfile
-                    ? "bg-[#1D4ED8] text-white font-semibold"
-                    : "bg-[#F1F5F9] text-[#64748B] hover:text-[#0F172A]"
-                }`}
-              >
-                CA Housing
-              </button>
-            </div>
-          </div>
-
-          {/* ---------------- STAGE 1: CSV DATASET UPLOAD ---------------- */}
-          {activeStage === 1 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-              <div>
-                <h5 className="text-base font-bold text-[#0F172A] mb-2 font-sans">
-                  Tabular CSV Ingestion
-                </h5>
-                <p className="text-xs sm:text-sm text-[#475569] mb-5 leading-relaxed">
-                  Upload custom tabular CSV files or test with AutoNexa benchmark datasets. We validate CSV delimiters, check column schemas, compute SHA-256 integrity hashes, and reject malformed records.
-                </p>
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="px-5 py-2.5 rounded-xl bg-[#1D4ED8] hover:bg-[#1E40AF] text-white font-semibold text-xs flex items-center gap-2 shadow-[0_4px_12px_rgba(29,78,216,0.3)] transition-all cursor-pointer"
-                  >
-                    <UploadCloud className="w-4 h-4" />
-                    <span>{isUploading ? "Uploading..." : "Upload Local CSV"}</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveStage(2)}
-                    className="px-4 py-2.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] hover:border-[#94A3B8] text-[#0F172A] text-xs flex items-center gap-1.5 transition-all cursor-pointer"
-                  >
-                    <span>Proceed to Profiling</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#1D4ED8]" />
-                  </button>
+              {/* Scrollytelling Progress Bar (Desktop lg+) */}
+              <div className="hidden lg:flex items-center justify-between gap-3 px-4 py-1.5 mt-4 bg-white/90 backdrop-blur-sm rounded-full border border-[#CBD5E1] shadow-xs text-xs font-mono max-w-lg mx-auto">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#1D4ED8] animate-pulse" />
+                  <span className="text-[#0F172A] font-semibold text-[11px]">Pipeline Scrollytelling</span>
                 </div>
-                {uploadMessage && (
-                  <p className="mt-3 text-xs font-mono text-[#15803D] flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>{uploadMessage}</span>
-                  </p>
-                )}
-              </div>
-
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="rounded-2xl border-2 border-dashed border-[#CBD5E1] hover:border-[#1D4ED8] bg-[#F8FAFC] p-8 text-center cursor-pointer transition-colors group"
-              >
-                <UploadCloud className="w-10 h-10 text-[#1D4ED8] mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                <p className="text-sm font-semibold text-[#0F172A] mb-1">Drop tabular CSV file here</p>
-                <p className="text-xs text-[#64748B]">Supports up to 50 MB. UTF-8 tabular format.</p>
-              </div>
-            </div>
-          )}
-
-          {/* ---------------- STAGE 2: DATASET PROFILING ---------------- */}
-          {activeStage === 2 && (
-            <div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 font-mono text-xs">
-                <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase">Total Rows</span>
-                  <span className="text-xl font-bold text-[#0F172A]">{current.rows.toLocaleString()}</span>
+                <div className="flex items-center gap-1">
+                  {PIPELINE_CARDS.map((card) => (
+                    <button
+                      key={card.id}
+                      onClick={() => setActiveStage(card.id)}
+                      className={`px-2 py-0.5 rounded-full text-[10.5px] font-semibold transition-all cursor-pointer ${
+                        activeStage === card.id
+                          ? "bg-[#1D4ED8] text-white shadow-xs"
+                          : "bg-[#F1F5F9] text-[#64748B] hover:text-[#0F172A]"
+                      }`}
+                    >
+                      0{card.id}
+                    </button>
+                  ))}
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase">Columns</span>
-                  <span className="text-xl font-bold text-[#0F172A]">{current.cols}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase">Dataset Size</span>
-                  <span className="text-xl font-bold text-[#0F172A]">{current.size}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase">Inferred Task</span>
-                  <span className="text-sm font-bold text-[#1D4ED8] truncate block mt-1">{current.task}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-xs text-[#64748B]">
-                  Target Column Identified: <span className="text-[#1D4ED8] font-mono font-bold">{current.target}</span>
+                <span className="text-[#64748B] text-[10.5px]">
+                  Step {activeStage} / 6
                 </span>
-                <button
-                  onClick={() => setActiveStage(3)}
-                  className="px-4 py-2 rounded-xl bg-[#EFF6FF] border border-[#1D4ED8]/60 text-[#1D4ED8] text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>Explore Features</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
               </div>
             </div>
-          )}
 
-          {/* ---------------- STAGE 3: DATA FEATURES ---------------- */}
-          {activeStage === 3 && (
-            <div>
-              <p className="text-xs text-[#64748B] mb-4">
-                Automated statistical profiling classifies feature types and detects missing or imbalanced variables.
-              </p>
-              <div className="space-y-2 mb-6 font-mono text-xs">
-                {[
-                  { name: "tenure_months", type: "int64", nulls: "0 (0%)", status: "Clean", imp: "High" },
-                  { name: "monthly_charges", type: "float64", nulls: "0 (0%)", status: "Clean", imp: "High" },
-                  { name: "contract_type", type: "category", nulls: "0 (0%)", status: "One-Hot Encoded", imp: "Critical" },
-                  { name: "payment_method", type: "category", nulls: "12 (0.17%)", status: "Imputed (Mode)", imp: "Medium" },
-                ].map((feat, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between text-xs"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-[#1D4ED8] font-bold">{feat.name}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-[#E2E8F0] text-[#475569]">
-                        {feat.type}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <span className="text-[#64748B] text-[11px] hidden sm:inline">{feat.nulls}</span>
-                      <span className="text-[#15803D] text-[11px] font-semibold">{feat.status}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {/* ===================================================================
+                MAIN CONNECTED PIPELINE CANVAS: 3 LEFT CARDS + ENGINE + 3 RIGHT CARDS
+                =================================================================== */}
+            <div className="relative w-full max-w-[1360px] mx-auto">
+              
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-4 items-center">
+                
+                {/* -------------------------------------------------------------
+                    LEFT COLUMN: 3 Cards (Upload, Validation, Profiling)
+                    ------------------------------------------------------------- */}
+                <div className="lg:col-span-3 xl:col-span-3 flex flex-col gap-3.5 sm:gap-4 z-20">
+                  {leftCards.map((card) => {
+                    const Icon = card.icon;
+                    const isSelected = activeStage === card.id;
+                    const isHovered = hoveredStage === card.id;
 
-              <div className="flex items-center justify-end">
-                <button
-                  onClick={() => setActiveStage(4)}
-                  className="px-4 py-2 rounded-xl bg-[#EFF6FF] border border-[#1D4ED8]/60 text-[#1D4ED8] text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>View Model Evaluation</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ---------------- STAGE 4: MODEL EVALUATION ---------------- */}
-          {activeStage === 4 && (
-            <div>
-              <p className="text-xs text-[#64748B] mb-4">
-                AutoNexa trains and benchmarks candidate models under 5-fold cross-validation.
-              </p>
-              <div className="space-y-2 mb-6 font-mono text-xs">
-                {[
-                  { name: "Random Forest Classifier", metric: "0.941", latency: "14ms", rank: "#1 Best", isBest: true },
-                  { name: "XGBoost (Hist Gradient)", metric: "0.938", latency: "9ms", rank: "#2", isBest: false },
-                  { name: "LightGBM Classifier", metric: "0.929", latency: "6ms", rank: "#3", isBest: false },
-                  { name: "Logistic Regression (L2)", metric: "0.874", latency: "2ms", rank: "#4", isBest: false },
-                ].map((m, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-3 rounded-xl border flex items-center justify-between text-xs ${
-                      m.isBest
-                        ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_2px_12px_rgba(29,78,216,0.15)]"
-                        : "bg-[#F8FAFC] border-[#E2E8F0]"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      {m.isBest && <Trophy className="w-4 h-4 text-[#1D4ED8]" />}
-                      <span className="font-bold text-[#0F172A]">{m.name}</span>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <span className="text-[#64748B] text-[11px]">{m.latency}</span>
-                      <span className="text-[#1D4ED8] font-bold text-sm">{m.metric}</span>
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded font-bold ${
-                          m.isBest ? "bg-[#1D4ED8] text-white" : "bg-[#E2E8F0] text-[#475569]"
+                    return (
+                      <motion.div
+                        key={card.id}
+                        onClick={() => setActiveStage(card.id)}
+                        onMouseEnter={() => setHoveredStage(card.id)}
+                        onMouseLeave={() => setHoveredStage(null)}
+                        whileHover={{ scale: prefersReducedMotion ? 1 : 1.015 }}
+                        transition={{ duration: 0.2 }}
+                        className={`relative p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center justify-between gap-3 group min-h-[76px] ${
+                          isSelected
+                            ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_4px_20px_rgba(29,78,216,0.18)] ring-1 ring-[#1D4ED8]/30"
+                            : isHovered
+                            ? "bg-white border-[#94A3B8] shadow-md"
+                            : "bg-white border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1]"
                         }`}
                       >
-                        {m.rank}
-                      </span>
-                    </div>
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
+                              isSelected
+                                ? "bg-[#DBEAFE] border-[#1D4ED8]/60 text-[#1D4ED8]"
+                                : "bg-[#F1F5F9] border-[#E2E8F0] text-[#334155] group-hover:text-[#1D4ED8]"
+                            }`}
+                          >
+                            {card.id === 1 ? (
+                              <div className="flex flex-col items-center">
+                                <FileText className="w-4 h-4" />
+                                <span className="text-[7px] font-mono font-bold text-[#1D4ED8] -mt-0.5 tracking-tighter">
+                                  CSV
+                                </span>
+                              </div>
+                            ) : (
+                              <Icon className="w-4 h-4" />
+                            )}
+                          </div>
+
+                          <div>
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-[10px] font-mono text-[#1D4ED8] font-bold">0{card.id}</span>
+                              <h3 className="text-xs sm:text-sm font-semibold text-[#0F172A] tracking-tight group-hover:text-[#1D4ED8] transition-colors">
+                                {card.title}
+                              </h3>
+                            </div>
+                            <p className="text-[11px] text-[#64748B] leading-snug line-clamp-1 font-normal">
+                              {card.subtitle}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Right Connection Port Dot */}
+                        <div className="relative shrink-0 flex items-center justify-center">
+                          <div
+                            className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
+                              isSelected
+                                ? "bg-[#1D4ED8] shadow-[0_0_12px_#1D4ED8] scale-125"
+                                : "bg-[#1D4ED8]/80 shadow-[0_0_6px_rgba(29,78,216,0.5)]"
+                            }`}
+                          />
+                          {isSelected && (
+                            <div className="absolute w-6 h-6 rounded-full border border-[#1D4ED8] animate-ping pointer-events-none" />
+                          )}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+
+                {/* -------------------------------------------------------------
+                    CENTER COLUMN: Central Workflow Network & Engine Plinth with Mascot
+                    ------------------------------------------------------------- */}
+                <div className="lg:col-span-6 xl:col-span-6 relative flex flex-col items-center justify-center my-3 lg:my-0 z-10 px-0 sm:px-2">
+                  
+                  <div className="relative w-full max-w-[600px] aspect-[437/225] mx-auto group select-none">
+                    <div
+                      className="pointer-events-none absolute inset-0 -bottom-6 opacity-35 blur-2xl -z-10"
+                      style={{
+                        background:
+                          "radial-gradient(ellipse 65% 55% at 50% 50%, rgba(29, 78, 216, 0.16), transparent 75%)",
+                      }}
+                    />
+
+                    <Image
+                      src="/images/landing-ref/pipeline-engine-workflow-v3.png"
+                      alt="AutoNexa AI Engine Central Plinth"
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 600px"
+                      priority
+                      className="object-contain pointer-events-none select-none transition-transform duration-700 group-hover:scale-[1.01]"
+                      style={{
+                        imageRendering: "-webkit-optimize-contrast",
+                      }}
+                    />
+
+                    {/* SVG Live Energy Conduits & Pulse Stream (Exact 437x225 ViewBox Overlay) */}
+                    <svg
+                      viewBox="0 0 437 225"
+                      className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <defs>
+                        <filter id="energyGlow" x="-30%" y="-30%" width="160%" height="160%">
+                          <feGaussianBlur stdDeviation="2.5" result="blur" />
+                          <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                          </feMerge>
+                        </filter>
+                      </defs>
+
+                      {/* Active highlight paths with dynamic energy flow */}
+                      {activeStage === 1 && (
+                        <path
+                          d="M 0 34 L 24 34 C 50 34, 55 107, 103 107"
+                          stroke="#1D4ED8"
+                          strokeWidth="3.4"
+                          strokeOpacity="0.95"
+                          filter="url(#energyGlow)"
+                          className="conduit-flow-dash"
+                        />
+                      )}
+                      {activeStage === 2 && (
+                        <path
+                          d="M 0 106 L 103 107"
+                          stroke="#1D4ED8"
+                          strokeWidth="3.4"
+                          strokeOpacity="0.95"
+                          filter="url(#energyGlow)"
+                          className="conduit-flow-dash"
+                        />
+                      )}
+                      {activeStage === 3 && (
+                        <path
+                          d="M 0 176 L 24 176 C 50 176, 55 107, 103 107"
+                          stroke="#1D4ED8"
+                          strokeWidth="3.4"
+                          strokeOpacity="0.95"
+                          filter="url(#energyGlow)"
+                          className="conduit-flow-dash"
+                        />
+                      )}
+                      {activeStage === 4 && (
+                        <path
+                          d="M 323 107 C 372 107, 377 36, 418 36 L 437 36"
+                          stroke="#1D4ED8"
+                          strokeWidth="3.4"
+                          strokeOpacity="0.95"
+                          filter="url(#energyGlow)"
+                          className="conduit-flow-dash"
+                        />
+                      )}
+                      {activeStage === 5 && (
+                        <path
+                          d="M 323 107 L 437 108"
+                          stroke="#1D4ED8"
+                          strokeWidth="3.4"
+                          strokeOpacity="0.95"
+                          filter="url(#energyGlow)"
+                          className="conduit-flow-dash"
+                        />
+                      )}
+                      {activeStage === 6 && (
+                        <path
+                          d="M 323 107 C 372 107, 377 176, 418 176 L 437 176"
+                          stroke="#1D4ED8"
+                          strokeWidth="3.4"
+                          strokeOpacity="0.95"
+                          filter="url(#energyGlow)"
+                          className="conduit-flow-dash"
+                        />
+                      )}
+
+                      {/* Animated Energy Flow Particles */}
+                      <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
+                        <animateMotion
+                          dur="2.4s"
+                          repeatCount="indefinite"
+                          path="M 0 34 L 24 34 C 50 34, 55 107, 103 107"
+                        />
+                      </circle>
+                      <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
+                        <animateMotion
+                          dur="2.1s"
+                          repeatCount="indefinite"
+                          begin="0.7s"
+                          path="M 0 106 L 103 107"
+                        />
+                      </circle>
+                      <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
+                        <animateMotion
+                          dur="2.5s"
+                          repeatCount="indefinite"
+                          begin="1.2s"
+                          path="M 0 176 L 24 176 C 50 176, 55 107, 103 107"
+                        />
+                      </circle>
+
+                      {/* Junction Nodes Pulse Rings */}
+                      {(activeStage === 1 || activeStage === 2 || activeStage === 3) && (
+                        <circle cx="103" cy="107" r="7" stroke="#1D4ED8" strokeWidth="1.6" className="animate-ping opacity-85" />
+                      )}
+                      {(activeStage === 4 || activeStage === 5 || activeStage === 6) && (
+                        <circle cx="323" cy="107" r="7" stroke="#1D4ED8" strokeWidth="1.6" className="animate-ping opacity-85" />
+                      )}
+
+                      {/* Animated Outflow Energy Particles */}
+                      <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
+                        <animateMotion
+                          dur="2.4s"
+                          repeatCount="indefinite"
+                          path="M 323 107 C 372 107, 377 36, 418 36 L 437 36"
+                        />
+                      </circle>
+                      <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
+                        <animateMotion
+                          dur="2.1s"
+                          repeatCount="indefinite"
+                          begin="0.6s"
+                          path="M 323 107 L 437 108"
+                        />
+                      </circle>
+                      <circle r="3.5" fill="#1D4ED8" filter="url(#energyGlow)" style={{ willChange: "transform" }}>
+                        <animateMotion
+                          dur="2.6s"
+                          repeatCount="indefinite"
+                          begin="1.1s"
+                          path="M 323 107 C 372 107, 377 176, 418 176 L 437 176"
+                        />
+                      </circle>
+                    </svg>
+
+                    <div
+                      onClick={() => setIsSimulating(!isSimulating)}
+                      title="Click to toggle pipeline simulation"
+                      className="absolute inset-0 cursor-pointer"
+                    />
                   </div>
-                ))}
+                </div>
+
+                {/* -------------------------------------------------------------
+                    RIGHT COLUMN: 3 Cards (Training, Evaluation, Prediction)
+                    ------------------------------------------------------------- */}
+                <div className="lg:col-span-3 xl:col-span-3 flex flex-col gap-3.5 sm:gap-4 z-20">
+                  {rightCards.map((card) => {
+                    const Icon = card.icon;
+                    const isSelected = activeStage === card.id;
+                    const isHovered = hoveredStage === card.id;
+
+                    return (
+                      <motion.div
+                        key={card.id}
+                        onClick={() => setActiveStage(card.id)}
+                        onMouseEnter={() => setHoveredStage(card.id)}
+                        onMouseLeave={() => setHoveredStage(null)}
+                        whileHover={{ scale: prefersReducedMotion ? 1 : 1.015 }}
+                        transition={{ duration: 0.2 }}
+                        className={`relative p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center justify-between gap-3 group min-h-[76px] ${
+                          isSelected
+                            ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_4px_20px_rgba(29,78,216,0.18)] ring-1 ring-[#1D4ED8]/30"
+                            : isHovered
+                            ? "bg-white border-[#94A3B8] shadow-md"
+                            : "bg-white border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1]"
+                        }`}
+                      >
+                        {/* Left Connection Port Dot */}
+                        <div className="relative shrink-0 flex items-center justify-center">
+                          <div
+                            className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
+                              isSelected
+                                ? "bg-[#1D4ED8] shadow-[0_0_12px_#1D4ED8] scale-125"
+                                : "bg-[#1D4ED8]/80 shadow-[0_0_6px_rgba(29,78,216,0.5)]"
+                            }`}
+                          />
+                          {isSelected && (
+                            <div className="absolute w-6 h-6 rounded-full border border-[#1D4ED8] animate-ping pointer-events-none" />
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-3 flex-1">
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
+                              isSelected
+                                ? "bg-[#DBEAFE] border-[#1D4ED8]/60 text-[#1D4ED8]"
+                                : "bg-[#F1F5F9] border-[#E2E8F0] text-[#334155] group-hover:text-[#1D4ED8]"
+                            }`}
+                          >
+                            <Icon className="w-4 h-4" />
+                          </div>
+
+                          <div>
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-[10px] font-mono text-[#1D4ED8] font-bold">0{card.id}</span>
+                              <h3 className="text-xs sm:text-sm font-semibold text-[#0F172A] tracking-tight group-hover:text-[#1D4ED8] transition-colors">
+                                {card.title}
+                              </h3>
+                            </div>
+                            <p className="text-[11px] text-[#64748B] leading-snug line-clamp-1 font-normal">
+                              {card.subtitle}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+
+              </div>
+            </div>
+
+            {/* ===================================================================
+                SIMULATION & STAGE TELEMETRY BAR
+                =================================================================== */}
+            <div className="mt-6 mb-5 flex flex-wrap items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-white border border-[#CBD5E1] max-w-4xl mx-auto shadow-sm">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsSimulating(!isSimulating)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                    isSimulating
+                      ? "bg-[#1D4ED8] text-white shadow-[0_4px_12px_rgba(29,78,216,0.35)]"
+                      : "bg-[#F1F5F9] text-[#0F172A] border border-[#CBD5E1] hover:bg-[#E2E8F0]"
+                  }`}
+                >
+                  {isSimulating ? (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                      <span>Pause Auto-Flow</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-3.5 h-3.5 fill-[#1D4ED8] text-[#1D4ED8]" />
+                      <span>Simulate Flow</span>
+                    </>
+                  )}
+                </button>
+
+                <span className="text-xs font-mono text-[#64748B]">
+                  Active: <span className="font-bold text-[#1D4ED8]">Stage 0{activeStage}</span> — {PIPELINE_CARDS[activeStage - 1].title}
+                </span>
               </div>
 
-              <div className="flex items-center justify-end">
+              <div className="flex items-center gap-2.5">
                 <button
-                  onClick={() => setActiveStage(5)}
-                  className="px-4 py-2 rounded-xl bg-[#EFF6FF] border border-[#1D4ED8]/60 text-[#1D4ED8] text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                  onClick={onLaunchWorkspace}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#EFF6FF] hover:bg-[#DBEAFE] border border-[#1D4ED8]/40 text-[#1D4ED8] text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
                 >
-                  <span>Experiment Tracking</span>
+                  <span>Launch Workspace</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
-          )}
 
-          {/* ---------------- STAGE 5: EXPERIMENT TRACKING ---------------- */}
-          {activeStage === 5 && (
-            <div>
-              <p className="text-xs text-[#64748B] mb-4">
-                Every training iteration, hyperparameter configuration, and metric artifact is permanently tracked.
-              </p>
-              <div className="space-y-2 mb-6 font-mono text-xs">
-                {[
-                  { run: "EXP-0941-RF", config: "n_trees: 250, max_depth: 12", score: "0.941 ROC-AUC", status: "Promoted to Prod" },
-                  { run: "EXP-0938-XGB", config: "learning_rate: 0.05, n_est: 300", score: "0.938 ROC-AUC", status: "Archived" },
-                  { run: "EXP-0929-LGBM", config: "num_leaves: 31, lr: 0.1", score: "0.929 ROC-AUC", status: "Archived" },
-                ].map((exp, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between text-xs"
+            {/* ===================================================================
+                INTERACTIVE STAGE INSPECTION DRAWER: Dynamic View per Active Stage
+                =================================================================== */}
+            <div className="max-w-4xl mx-auto rounded-2xl bg-white border border-[#CBD5E1] p-5 sm:p-7 shadow-lg">
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-5 border-b border-[#E2E8F0] gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] border border-[#1D4ED8]/60 flex items-center justify-center text-[#1D4ED8] font-mono text-xs font-bold">
+                    0{activeStage}
+                  </div>
+                  <div>
+                    <h4 className="text-sm sm:text-base font-bold text-[#0F172A]">
+                      {PIPELINE_CARDS[activeStage - 1].title}
+                    </h4>
+                    <p className="text-xs text-[#64748B]">
+                      {PIPELINE_CARDS[activeStage - 1].subtitle}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-[#64748B] font-mono">Dataset:</span>
+                  <button
+                    onClick={() => {
+                      setActivePreset("churn");
+                      setCustomProfile(null);
+                    }}
+                    className={`px-3 py-1 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
+                      activePreset === "churn" && !customProfile
+                        ? "bg-[#1D4ED8] text-white font-semibold"
+                        : "bg-[#F1F5F9] text-[#64748B] hover:text-[#0F172A]"
+                    }`}
                   >
-                    <div>
-                      <div className="font-bold text-[#0F172A] flex items-center gap-2">
-                        <span>{exp.run}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-[#DCFCE7] text-[#15803D] font-bold">
-                          {exp.status}
+                    Telco Churn
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActivePreset("housing");
+                      setCustomProfile(null);
+                    }}
+                    className={`px-3 py-1 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
+                      activePreset === "housing" && !customProfile
+                        ? "bg-[#1D4ED8] text-white font-semibold"
+                        : "bg-[#F1F5F9] text-[#64748B] hover:text-[#0F172A]"
+                    }`}
+                  >
+                    CA Housing
+                  </button>
+                </div>
+              </div>
+
+              {/* ---------------- STAGE 1: CSV UPLOAD ---------------- */}
+              {activeStage === 1 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-center">
+                  <div>
+                    <h5 className="text-sm font-bold text-[#0F172A] mb-1.5 font-sans">
+                      Tabular CSV Ingestion
+                    </h5>
+                    <p className="text-xs text-[#475569] mb-4 leading-relaxed">
+                      Upload tabular CSV files or test benchmark datasets. Delimiters, column schemas, and SHA-256 integrity hashes are computed with automatic malformed record rejection.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                        className="px-4 py-2 rounded-xl bg-[#1D4ED8] hover:bg-[#1E40AF] text-white font-semibold text-xs flex items-center gap-2 shadow-[0_4px_12px_rgba(29,78,216,0.3)] transition-all cursor-pointer"
+                      >
+                        <UploadCloud className="w-3.5 h-3.5" />
+                        <span>{isUploading ? "Uploading..." : "Upload Local CSV"}</span>
+                      </button>
+                      <button
+                        onClick={() => setActiveStage(2)}
+                        className="px-3.5 py-2 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] hover:border-[#94A3B8] text-[#0F172A] text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <span>Proceed to Validation</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-[#1D4ED8]" />
+                      </button>
+                    </div>
+                    {uploadMessage && (
+                      <p className="mt-2.5 text-xs font-mono text-[#15803D] flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>{uploadMessage}</span>
+                      </p>
+                    )}
+                  </div>
+
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="rounded-2xl border-2 border-dashed border-[#CBD5E1] hover:border-[#1D4ED8] bg-[#F8FAFC] p-6 text-center cursor-pointer transition-colors group"
+                  >
+                    <UploadCloud className="w-8 h-8 text-[#1D4ED8] mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                    <p className="text-xs font-semibold text-[#0F172A] mb-0.5">Drop tabular CSV file here</p>
+                    <p className="text-[11px] text-[#64748B]">Supports up to 50 MB. UTF-8 tabular format.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* ---------------- STAGE 2: DATA VALIDATION ---------------- */}
+              {activeStage === 2 && (
+                <div>
+                  <p className="text-xs text-[#64748B] mb-3">
+                    Automated pre-flight checks confirm schema consistency, verify delimiter parsing, and guard against target leakage.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 font-mono text-xs">
+                    {[
+                      { check: "Delimiter & Format", detail: "Comma-separated UTF-8 verified", status: "Pass", badge: "bg-[#DCFCE7] text-[#15803D]" },
+                      { check: "Schema Integrity", detail: `${current.cols} columns parsed consistently`, status: "Verified", badge: "bg-[#DCFCE7] text-[#15803D]" },
+                      { check: "Target Leakage Guard", detail: "0 overlapping post-event columns", status: "Clean", badge: "bg-[#DCFCE7] text-[#15803D]" },
+                      { check: "Type Audit", detail: "Automated numeric/categorical classification", status: "Ready", badge: "bg-[#EFF6FF] text-[#1D4ED8]" },
+                    ].map((item, idx) => (
+                      <div key={idx} className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between">
+                        <div>
+                          <div className="font-bold text-[#0F172A] flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D]" />
+                            <span>{item.check}</span>
+                          </div>
+                          <div className="text-[11px] text-[#64748B] mt-0.5">{item.detail}</div>
+                        </div>
+                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${item.badge}`}>
+                          {item.status}
                         </span>
                       </div>
-                      <div className="text-[11px] text-[#64748B] mt-0.5">{exp.config}</div>
-                    </div>
-                    <span className="text-[#1D4ED8] font-bold text-sm">{exp.score}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-end">
-                <button
-                  onClick={() => setActiveStage(6)}
-                  className="px-4 py-2 rounded-xl bg-[#EFF6FF] border border-[#1D4ED8]/60 text-[#1D4ED8] text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>Try Prediction Playground</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ---------------- STAGE 6: PREDICTION PLAYGROUND ---------------- */}
-          {activeStage === 6 && (
-            <div>
-              <p className="text-xs text-[#64748B] mb-5">
-                Interact with the deployed champion model in real time. Adjust tabular values to see immediate inference probabilities.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                
-                <div className="space-y-4 font-mono text-xs">
-                  <div>
-                    <div className="flex justify-between text-[#0F172A] mb-1.5">
-                      <span>Tenure (Months): {predTenure}</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="1"
-                      max="72"
-                      value={predTenure}
-                      onChange={(e) =>
-                        handleRecalculatePrediction(Number(e.target.value), predMonthlyCharges, predContract)
-                      }
-                      className="w-full accent-[#1D4ED8] cursor-pointer"
-                    />
+                    ))}
                   </div>
 
-                  <div>
-                    <div className="flex justify-between text-[#0F172A] mb-1.5">
-                      <span>Monthly Charges ($): {predMonthlyCharges}</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="20"
-                      max="120"
-                      value={predMonthlyCharges}
-                      onChange={(e) =>
-                        handleRecalculatePrediction(predTenure, Number(e.target.value), predContract)
-                      }
-                      className="w-full accent-[#1D4ED8] cursor-pointer"
-                    />
-                  </div>
-
-                  <div>
-                    <span className="block text-[#0F172A] mb-1.5">Contract Agreement</span>
-                    <div className="grid grid-cols-3 gap-2">
-                      {["Month-to-month", "One year", "Two year"].map((c) => (
-                        <button
-                          key={c}
-                          onClick={() => handleRecalculatePrediction(predTenure, predMonthlyCharges, c)}
-                          className={`py-2 px-2 text-[11px] rounded-lg border transition-colors cursor-pointer text-center ${
-                            predContract === c
-                              ? "bg-[#1D4ED8] text-white font-bold border-[#1D4ED8]"
-                              : "bg-[#F8FAFC] border-[#CBD5E1] text-[#64748B] hover:text-[#0F172A]"
-                          }`}
-                        >
-                          {c}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-6 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] shadow-lg text-center font-mono">
-                  <span className="text-[11px] text-[#64748B] uppercase tracking-wider block mb-2">
-                    Model Inference Result
-                  </span>
-                  <div
-                    className={`text-2xl font-bold mb-2 ${
-                      predictionResult.churnProbability > 0.5 ? "text-amber-600" : "text-[#1D4ED8]"
-                    }`}
-                  >
-                    {predictionResult.prediction}
-                  </div>
-                  <div className="text-sm text-[#0F172A] mb-4">
-                    Probability Score:{" "}
-                    <span className="text-[#1D4ED8] font-bold">
-                      {Math.round(predictionResult.churnProbability * 100)}%
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-xs text-[#15803D] font-mono flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-[#15803D]" />
+                      <span>Schema 100% Validated — Ready for Profiling</span>
                     </span>
+                    <button
+                      onClick={() => setActiveStage(3)}
+                      className="px-3.5 py-1.5 rounded-xl bg-[#EFF6FF] border border-[#1D4ED8]/60 text-[#1D4ED8] text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Proceed to Profiling</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  <div className="w-full bg-[#E2E8F0] h-2.5 rounded-full overflow-hidden mb-4">
-                    <div
-                      className="h-full bg-[#1D4ED8] transition-all duration-300"
-                      style={{ width: `${Math.round(predictionResult.churnProbability * 100)}%` }}
-                    />
+                </div>
+              )}
+
+              {/* ---------------- STAGE 3: DATA PROFILING ---------------- */}
+              {activeStage === 3 && (
+                <div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4 font-mono text-xs">
+                    <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                      <span className="text-[#64748B] block text-[10px] uppercase">Total Rows</span>
+                      <span className="text-lg font-bold text-[#0F172A]">{current.rows.toLocaleString()}</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                      <span className="text-[#64748B] block text-[10px] uppercase">Columns</span>
+                      <span className="text-lg font-bold text-[#0F172A]">{current.cols}</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                      <span className="text-[#64748B] block text-[10px] uppercase">Dataset Size</span>
+                      <span className="text-lg font-bold text-[#0F172A]">{current.size}</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                      <span className="text-[#64748B] block text-[10px] uppercase">Inferred Task</span>
+                      <span className="text-xs font-bold text-[#1D4ED8] truncate block mt-0.5">{current.task}</span>
+                    </div>
                   </div>
-                  <button
-                    onClick={onLaunchWorkspace}
-                    className="w-full py-2.5 rounded-xl bg-[#1D4ED8] hover:bg-[#1E40AF] text-white font-semibold text-xs transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(29,78,216,0.3)]"
+
+                  <div className="space-y-1.5 mb-4 font-mono text-xs">
+                    {[
+                      { name: "tenure_months", type: "int64", nulls: "0 (0%)", status: "Clean", imp: "High" },
+                      { name: "monthly_charges", type: "float64", nulls: "0 (0%)", status: "Clean", imp: "High" },
+                      { name: "contract_type", type: "category", nulls: "0 (0%)", status: "One-Hot Encoded", imp: "Critical" },
+                    ].map((feat, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between text-xs"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-[#1D4ED8] font-bold">{feat.name}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#E2E8F0] text-[#475569]">
+                            {feat.type}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-[#64748B] text-[11px] hidden sm:inline">{feat.nulls}</span>
+                          <span className="text-[#15803D] text-[11px] font-semibold">{feat.status}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-xs text-[#64748B]">
+                      Target Identified: <span className="text-[#1D4ED8] font-mono font-bold">{current.target}</span>
+                    </span>
+                    <button
+                      onClick={() => setActiveStage(4)}
+                      className="px-3.5 py-1.5 rounded-xl bg-[#EFF6FF] border border-[#1D4ED8]/60 text-[#1D4ED8] text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Proceed to Model Training</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ---------------- STAGE 4: MODEL TRAINING ---------------- */}
+              {activeStage === 4 && (
+                <div>
+                  <p className="text-xs text-[#64748B] mb-3">
+                    AutoNexa trains multi-estimator candidates in parallel under deterministic 5-fold cross validation.
+                  </p>
+                  <div className="space-y-2 mb-4 font-mono text-xs">
+                    {[
+                      { name: "Random Forest Classifier", config: "250 trees, max_depth: 12", speed: "1.4s", status: "Trained" },
+                      { name: "Hist. Gradient Boosting", config: "300 iterations, lr: 0.05", speed: "0.9s", status: "Trained" },
+                      { name: "LightGBM Classifier", config: "num_leaves: 31, fast binning", speed: "0.6s", status: "Trained" },
+                      { name: "Logistic Regression (L2)", config: "C=1.0, saga solver", speed: "0.2s", status: "Trained" },
+                    ].map((model, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between text-xs"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <FlaskConical className="w-3.5 h-3.5 text-[#1D4ED8]" />
+                          <div>
+                            <span className="font-bold text-[#0F172A]">{model.name}</span>
+                            <span className="text-[11px] text-[#64748B] ml-2 hidden sm:inline">({model.config})</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-[#64748B] text-[11px]">{model.speed}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-[#DCFCE7] text-[#15803D]">
+                            {model.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-xs text-[#1D4ED8] font-mono flex items-center gap-1.5">
+                      <Zap className="w-4 h-4 text-[#1D4ED8]" />
+                      <span>All 4 Estimators Successfully Converged</span>
+                    </span>
+                    <button
+                      onClick={() => setActiveStage(5)}
+                      className="px-3.5 py-1.5 rounded-xl bg-[#EFF6FF] border border-[#1D4ED8]/60 text-[#1D4ED8] text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Proceed to Evaluation</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ---------------- STAGE 5: MODEL EVALUATION ---------------- */}
+              {activeStage === 5 && (
+                <div>
+                  <p className="text-xs text-[#64748B] mb-3">
+                    Cross-validation benchmarks determine champion model selection based on primary metric scores and serving latency.
+                  </p>
+                  <div className="space-y-2 mb-4 font-mono text-xs">
+                    {[
+                      { name: "Random Forest Classifier", metric: "0.941", latency: "14ms", rank: "#1 Best", isBest: true },
+                      { name: "Hist. Gradient Boosting", metric: "0.938", latency: "9ms", rank: "#2", isBest: false },
+                      { name: "LightGBM Classifier", metric: "0.929", latency: "6ms", rank: "#3", isBest: false },
+                      { name: "Logistic Regression (L2)", metric: "0.874", latency: "2ms", rank: "#4", isBest: false },
+                    ].map((m, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${
+                          m.isBest
+                            ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_2px_12px_rgba(29,78,216,0.15)]"
+                            : "bg-[#F8FAFC] border-[#E2E8F0]"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          {m.isBest ? (
+                            <Trophy className="w-4 h-4 text-[#1D4ED8]" />
+                          ) : (
+                            <div className="w-4 h-4 rounded-full bg-[#E2E8F0] text-[9px] flex items-center justify-center font-bold text-[#64748B]">
+                              {idx + 1}
+                            </div>
+                          )}
+                          <span className="font-bold text-[#0F172A]">{m.name}</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-[#64748B] text-[11px]">{m.latency}</span>
+                          <span className="text-[#1D4ED8] font-bold text-xs">{m.metric}</span>
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded font-bold ${
+                              m.isBest ? "bg-[#1D4ED8] text-white" : "bg-[#E2E8F0] text-[#475569]"
+                            }`}
+                          >
+                            {m.rank}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-xs text-[#64748B]">
+                      Champion Selected: <span className="text-[#1D4ED8] font-bold">Random Forest (0.941)</span>
+                    </span>
+                    <button
+                      onClick={() => setActiveStage(6)}
+                      className="px-3.5 py-1.5 rounded-xl bg-[#EFF6FF] border border-[#1D4ED8]/60 text-[#1D4ED8] text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Try Interactive Prediction</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ---------------- STAGE 6: PREDICTION ---------------- */}
+              {activeStage === 6 && (
+                <div>
+                  <p className="text-xs text-[#64748B] mb-4">
+                    Interact with the deployed champion model in real time. Adjust tabular values to see immediate inference probabilities.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-center">
+                    
+                    <div className="space-y-3 font-mono text-xs">
+                      <div>
+                        <div className="flex justify-between text-[#0F172A] mb-1">
+                          <span>Tenure (Months): {predTenure}</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="1"
+                          max="72"
+                          value={predTenure}
+                          onChange={(e) =>
+                            handleRecalculatePrediction(Number(e.target.value), predMonthlyCharges, predContract)
+                          }
+                          className="w-full accent-[#1D4ED8] cursor-pointer"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between text-[#0F172A] mb-1">
+                          <span>Monthly Charges ($): {predMonthlyCharges}</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="20"
+                          max="120"
+                          value={predMonthlyCharges}
+                          onChange={(e) =>
+                            handleRecalculatePrediction(predTenure, Number(e.target.value), predContract)
+                          }
+                          className="w-full accent-[#1D4ED8] cursor-pointer"
+                        />
+                      </div>
+
+                      <div>
+                        <span className="block text-[#0F172A] mb-1">Contract Agreement</span>
+                        <div className="grid grid-cols-3 gap-2">
+                          {["Month-to-month", "One year", "Two year"].map((c) => (
+                            <button
+                              key={c}
+                              onClick={() => handleRecalculatePrediction(predTenure, predMonthlyCharges, c)}
+                              className={`py-1.5 px-2 text-[10.5px] rounded-lg border transition-colors cursor-pointer text-center ${
+                                predContract === c
+                                  ? "bg-[#1D4ED8] text-white font-bold border-[#1D4ED8]"
+                                  : "bg-[#F8FAFC] border-[#CBD5E1] text-[#64748B] hover:text-[#0F172A]"
+                              }`}
+                            >
+                              {c}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 sm:p-5 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] shadow-md text-center font-mono">
+                      <span className="text-[10px] text-[#64748B] uppercase tracking-wider block mb-1">
+                        Champion Model Inference
+                      </span>
+                      <div
+                        className={`text-xl font-bold mb-1 ${
+                          predictionResult.churnProbability > 0.5 ? "text-amber-600" : "text-[#1D4ED8]"
+                        }`}
+                      >
+                        {predictionResult.prediction}
+                      </div>
+                      <div className="text-xs text-[#0F172A] mb-3">
+                        Probability Score:{" "}
+                        <span className="text-[#1D4ED8] font-bold">
+                          {Math.round(predictionResult.churnProbability * 100)}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-[#E2E8F0] h-2 rounded-full overflow-hidden mb-3">
+                        <div
+                          className="h-full bg-[#1D4ED8] transition-all duration-300"
+                          style={{ width: `${Math.round(predictionResult.churnProbability * 100)}%` }}
+                        />
+                      </div>
+                      <button
+                        onClick={onLaunchWorkspace}
+                        className="w-full py-2 rounded-xl bg-[#1D4ED8] hover:bg-[#1E40AF] text-white font-semibold text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(29,78,216,0.3)]"
+                      >
+                        <span>Deploy This Model to Workspace</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Subtle Inter-Section Continuity Indicator */}
+              <div className="mt-5 pt-3.5 border-t border-[#CBD5E1]/60 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs font-mono text-[#64748B]">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
+                  <span>Full Pipeline Lifecycle • Verified Tabular Architecture</span>
+                </div>
+                <div className="flex items-center gap-3 text-[11px]">
+                  <span className="hidden md:inline">Deterministic validation & zero target leakage</span>
+                  <span className="hidden md:inline text-[#CBD5E1]">•</span>
+                  <a
+                    href="#how-it-works"
+                    className="text-[#1D4ED8] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
                   >
-                    <span>Deploy This Model to Workspace</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                    <span>Explore 7-Stage Breakdown</span>
+                    <span>↓</span>
+                  </a>
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* Subtle Inter-Section Continuity Indicator */}
-          <div className="mt-8 pt-5 border-t border-[#CBD5E1]/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-[#64748B]">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
-              <span>Full Pipeline Lifecycle • Verified Tabular Architecture</span>
             </div>
-            <div className="flex items-center gap-3 text-[11.5px]">
-              <span className="hidden md:inline">Deterministic validation & zero target leakage</span>
-              <span className="hidden md:inline text-[#CBD5E1]">•</span>
-              <a
-                href="#how-it-works"
-                className="text-[#1D4ED8] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
-              >
-                <span>Explore 7-Stage Breakdown</span>
-                <span>↓</span>
-              </a>
-            </div>
+
           </div>
 
         </div>
-
       </div>
     </section>
   );

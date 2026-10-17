@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Zap,
 } from "lucide-react";
+import ScrollReveal, { StaggerContainer, StaggerItem } from "./ScrollReveal";
 
 interface FeatureHighlightsProps {
   onLaunchWorkspace?: () => void;
@@ -100,56 +101,61 @@ export default function FeatureHighlights({ onLaunchWorkspace }: FeatureHighligh
       <div className="relative max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-10">
         
         {/* ===================================================================
-            SECTION HEADER
+            SECTION HEADER: Alternating Entrance
             =================================================================== */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-6 border-b border-[#CBD5E1]">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#CBD5E1] mb-3.5 shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
-              <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#334155] font-semibold">
-                FEATURES & CAPABILITIES
-              </span>
+          <ScrollReveal direction="left" distance={20}>
+            <div>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#CBD5E1] mb-3.5 shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
+                <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#334155] font-semibold">
+                  FEATURES & CAPABILITIES
+                </span>
+              </div>
+              <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-normal text-[#0F172A] tracking-tight leading-[1.1]">
+                Everything you need for your <span className="text-[#1E3A8A] italic font-normal">AutoML workflow.</span>
+              </h2>
             </div>
-            <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-normal text-[#0F172A] tracking-tight leading-[1.1]">
-              Everything you need for your <span className="text-[#1E3A8A] italic font-normal">AutoML workflow.</span>
-            </h2>
-          </div>
+          </ScrollReveal>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 max-w-lg">
-            <p className="text-xs sm:text-sm text-[#475569] font-sans leading-relaxed">
-              A comprehensive toolkit for tabular datasets — from exploratory profiling to multi-model benchmarking and deployment.
-            </p>
-            {onLaunchWorkspace && (
-              <button
-                onClick={onLaunchWorkspace}
-                className="px-4 py-2 rounded-xl bg-white border border-[#CBD5E1] hover:border-[#1D4ED8] text-[#1D4ED8] text-xs font-semibold flex items-center gap-1.5 shadow-xs hover:bg-[#EFF6FF] transition-all cursor-pointer shrink-0"
-              >
-                <span>Launch Workspace</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+          <ScrollReveal direction="right" distance={20} delay={0.1}>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 max-w-lg">
+              <p className="text-xs sm:text-sm text-[#475569] font-sans leading-relaxed">
+                A comprehensive toolkit for tabular datasets — from exploratory profiling to multi-model benchmarking and deployment.
+              </p>
+              {onLaunchWorkspace && (
+                <button
+                  onClick={onLaunchWorkspace}
+                  className="px-4 py-2 rounded-xl bg-white border border-[#CBD5E1] hover:border-[#1D4ED8] text-[#1D4ED8] text-xs font-semibold flex items-center gap-1.5 shadow-xs hover:bg-[#EFF6FF] transition-all cursor-pointer shrink-0"
+                >
+                  <span>Launch Workspace</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </ScrollReveal>
         </div>
 
         {/* ===================================================================
-            6 RICH FEATURE CARDS GRID
+            6 RICH FEATURE CARDS GRID: Staggered Alternating Reveals
             =================================================================== */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+        <StaggerContainer staggerDelay={0.08} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
           {FEATURES.map((feature, idx) => {
             const Icon = feature.icon;
             const isHovered = hoveredIdx === idx;
+            const isEven = idx % 2 === 0;
 
             return (
-              <div
-                key={idx}
-                onMouseEnter={() => setHoveredIdx(idx)}
-                onMouseLeave={() => setHoveredIdx(null)}
-                className={`relative p-6 sm:p-7 rounded-2xl border transition-all duration-300 flex flex-col justify-between group ${
-                  isHovered
-                    ? "bg-white border-[#1D4ED8] shadow-[0_8px_30px_rgba(29,78,216,0.15)] -translate-y-1"
-                    : "bg-white border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1]"
-                }`}
-              >
+              <StaggerItem key={idx} direction={isEven ? "left" : "right"} distance={20}>
+                <div
+                  onMouseEnter={() => setHoveredIdx(idx)}
+                  onMouseLeave={() => setHoveredIdx(null)}
+                  className={`h-full relative p-6 sm:p-7 rounded-2xl border transition-all duration-300 flex flex-col justify-between group ${
+                    isHovered
+                      ? "bg-white border-[#1D4ED8] shadow-[0_8px_30px_rgba(29,78,216,0.15)] -translate-y-1"
+                      : "bg-white border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1]"
+                  }`}
+                >
                 <div>
                   <div className="flex items-center justify-between mb-5">
                     <div
@@ -199,11 +205,11 @@ export default function FeatureHighlights({ onLaunchWorkspace }: FeatureHighligh
                     ))}
                   </div>
                 </div>
-
-              </div>
+                </div>
+              </StaggerItem>
             );
           })}
-        </div>
+        </StaggerContainer>
 
         {/* Subtle Inter-Section Continuity Indicator */}
         <div className="mt-10 pt-6 border-t border-[#CBD5E1]/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-[#64748B]">

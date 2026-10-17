@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ArrowRight, Play, Upload, ShieldCheck, Zap, Cpu } from "lucide-react";
+import ScrollReveal, { StaggerContainer, StaggerItem } from "./ScrollReveal";
 
 interface CTASectionProps {
   onLaunchWorkspace: () => void;
@@ -24,6 +25,7 @@ export default function CTASection({ onLaunchWorkspace }: CTASectionProps) {
       />
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal direction="up" distance={24} duration={0.6}>
         <div className="relative rounded-3xl bg-white border border-[#CBD5E1] p-8 sm:p-14 md:p-16 text-center shadow-[0_16px_50px_rgba(29,78,216,0.1)] overflow-hidden">
           {/* Glowing cobalt top accent line */}
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#1D4ED8] to-transparent" />
@@ -38,12 +40,14 @@ export default function CTASection({ onLaunchWorkspace }: CTASectionProps) {
           <div className="relative z-10 max-w-2xl mx-auto space-y-6">
             
             {/* Eyebrow badge */}
+            <ScrollReveal direction="down" distance={16} delay={0.1}>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] shadow-xs">
               <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8] animate-pulse" />
               <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#1D4ED8] font-semibold">
                 AUTONEXA AI LAB // READY TO TRAIN
               </span>
             </div>
+            </ScrollReveal>
 
             {/* Headline */}
             <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-normal text-[#0F172A] tracking-tight leading-[1.1]">
@@ -76,23 +80,33 @@ export default function CTASection({ onLaunchWorkspace }: CTASectionProps) {
             </div>
 
             {/* Telemetry Status Bar */}
-            <div className="pt-6 border-t border-[#E2E8F0] flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-mono text-[#64748B]">
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#1D4ED8]" />
-                <span>Leakage-Free 5-Fold CV</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-[#1D4ED8]" />
-                <span>&lt; 5ms Serving Latency</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Cpu className="w-3.5 h-3.5 text-[#1D4ED8]" />
-                <span>Multi-Model Architecture</span>
-              </span>
-            </div>
+            <StaggerContainer
+              staggerDelay={0.08}
+              className="pt-6 border-t border-[#E2E8F0] flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-mono text-[#64748B]"
+            >
+              <StaggerItem direction="up" distance={12}>
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#1D4ED8]" />
+                  <span>Leakage-Free 5-Fold CV</span>
+                </span>
+              </StaggerItem>
+              <StaggerItem direction="up" distance={12}>
+                <span className="flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-[#1D4ED8]" />
+                  <span>&lt; 5ms Serving Latency</span>
+                </span>
+              </StaggerItem>
+              <StaggerItem direction="up" distance={12}>
+                <span className="flex items-center gap-1.5">
+                  <Cpu className="w-3.5 h-3.5 text-[#1D4ED8]" />
+                  <span>Multi-Model Architecture</span>
+                </span>
+              </StaggerItem>
+            </StaggerContainer>
 
           </div>
         </div>
+        </ScrollReveal>
       </div>
     </section>
   );

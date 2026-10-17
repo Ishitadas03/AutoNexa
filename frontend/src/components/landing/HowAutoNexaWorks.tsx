@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import RobotMascot from "./RobotMascot";
 import RobotAnimationGuideModal from "./RobotAnimationGuideModal";
+import ScrollReveal, { StaggerContainer, StaggerItem } from "./ScrollReveal";
 
 interface HowAutoNexaWorksProps {
   onLaunchWorkspace: () => void;
@@ -237,36 +238,40 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
       <div className="relative max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-10">
         
         {/* ===================================================================
-            SECTION HEADER
+            SECTION HEADER: Alternating Entrance
             =================================================================== */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-6 border-b border-[#CBD5E1]">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#CBD5E1] mb-3.5 shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
-              <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#334155] font-semibold">
-                HOW AUTONEXA WORKS
-              </span>
+          <ScrollReveal direction="left" distance={20}>
+            <div>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#CBD5E1] mb-3.5 shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
+                <span className="text-[10.5px] font-mono uppercase tracking-widest text-[#334155] font-semibold">
+                  HOW AUTONEXA WORKS
+                </span>
+              </div>
+              <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-normal text-[#0F172A] tracking-tight leading-[1.1]">
+                A simple workflow from data to <span className="text-[#1E3A8A] italic font-normal">predictions.</span>
+              </h2>
             </div>
-            <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-normal text-[#0F172A] tracking-tight leading-[1.1]">
-              A simple workflow from data to <span className="text-[#1E3A8A] italic font-normal">predictions.</span>
-            </h2>
-          </div>
+          </ScrollReveal>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 max-w-lg">
-            <p className="text-xs sm:text-sm text-[#475569] font-sans leading-relaxed">
-              Follow every stage of the AutoML pipeline, designed for tabular data, strict cross-validation, and real-world deployment.
-            </p>
-            <div className="flex items-center gap-2.5 shrink-0">
-              <button
-                onClick={() => setRobotModalOpen(true)}
-                className="px-3.5 py-2 rounded-xl bg-white border border-[#CBD5E1] hover:border-[#1D4ED8] text-[#1D4ED8] text-xs font-semibold flex items-center gap-1.5 shadow-xs hover:bg-[#EFF6FF] transition-all cursor-pointer"
-                title="Open interactive Robot Animation Guide"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Animation Guide</span>
-              </button>
+          <ScrollReveal direction="right" distance={20} delay={0.1}>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 max-w-lg">
+              <p className="text-xs sm:text-sm text-[#475569] font-sans leading-relaxed">
+                Follow every stage of the AutoML pipeline, designed for tabular data, strict cross-validation, and real-world deployment.
+              </p>
+              <div className="flex items-center gap-2.5 shrink-0">
+                <button
+                  onClick={() => setRobotModalOpen(true)}
+                  className="px-3.5 py-2 rounded-xl bg-white border border-[#CBD5E1] hover:border-[#1D4ED8] text-[#1D4ED8] text-xs font-semibold flex items-center gap-1.5 shadow-xs hover:bg-[#EFF6FF] transition-all cursor-pointer"
+                  title="Open interactive Robot Animation Guide"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Animation Guide</span>
+                </button>
+              </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
 
         {/* ===================================================================
@@ -322,75 +327,76 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
               />
             </div>
 
-            <div className="grid grid-cols-7 gap-3 min-w-[980px] lg:min-w-0 relative z-10">
+            <StaggerContainer staggerDelay={0.05} className="grid grid-cols-7 gap-3 min-w-[980px] lg:min-w-0 relative z-10">
               {SEVEN_STAGES.map((stage, idx) => {
                 const Icon = stage.icon;
                 const isSelected = selectedStepIndex === idx;
                 const isCompleted = idx < selectedStepIndex;
 
                 return (
-                  <div
-                    key={stage.step}
-                    onClick={() => {
-                      setSelectedStepIndex(idx);
-                      setIsPlaying(false);
-                    }}
-                    className={`relative p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between group ${
-                      isSelected
-                        ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_4px_16px_rgba(29,78,216,0.18)] -translate-y-0.5"
-                        : isCompleted
-                        ? "bg-white border-[#CBD5E1] shadow-xs hover:border-[#1D4ED8]"
-                        : "bg-[#F8FAFC] border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1] hover:bg-white"
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span
-                          className={`text-xs font-mono font-bold transition-colors ${
-                            isSelected ? "text-[#1D4ED8]" : "text-[#64748B] group-hover:text-[#1D4ED8]"
-                          }`}
-                        >
-                          {stage.step}
-                        </span>
-                        <div
-                          className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
-                            isSelected
-                              ? "bg-[#1D4ED8] text-white shadow-sm"
-                              : isCompleted
-                              ? "bg-[#DBEAFE] text-[#1D4ED8]"
-                              : "bg-[#F1F5F9] text-[#475569] group-hover:text-[#1D4ED8]"
-                          }`}
-                        >
-                          <Icon className="w-3.5 h-3.5" />
+                  <StaggerItem key={stage.step} direction="up" distance={16}>
+                    <div
+                      onClick={() => {
+                        setSelectedStepIndex(idx);
+                        setIsPlaying(false);
+                      }}
+                      className={`h-full relative p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between group ${
+                        isSelected
+                          ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_4px_16px_rgba(29,78,216,0.18)] -translate-y-0.5"
+                          : isCompleted
+                          ? "bg-white border-[#CBD5E1] shadow-xs hover:border-[#1D4ED8]"
+                          : "bg-[#F8FAFC] border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1] hover:bg-white"
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <span
+                            className={`text-xs font-mono font-bold transition-colors ${
+                              isSelected ? "text-[#1D4ED8]" : "text-[#64748B] group-hover:text-[#1D4ED8]"
+                            }`}
+                          >
+                            {stage.step}
+                          </span>
+                          <div
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                              isSelected
+                                ? "bg-[#1D4ED8] text-white shadow-sm"
+                                : isCompleted
+                                ? "bg-[#DBEAFE] text-[#1D4ED8]"
+                                : "bg-[#F1F5F9] text-[#475569] group-hover:text-[#1D4ED8]"
+                            }`}
+                          >
+                            <Icon className="w-3.5 h-3.5" />
+                          </div>
                         </div>
+
+                        <h3
+                          className={`text-xs sm:text-sm font-semibold tracking-tight transition-colors line-clamp-1 mb-1 ${
+                            isSelected ? "text-[#0F172A]" : "text-[#1E293B] group-hover:text-[#1D4ED8]"
+                          }`}
+                        >
+                          {stage.title}
+                        </h3>
+                        <p className="text-[11px] text-[#64748B] leading-snug line-clamp-2">
+                          {stage.subtitle}
+                        </p>
                       </div>
 
-                      <h3
-                        className={`text-xs sm:text-sm font-semibold tracking-tight transition-colors line-clamp-1 mb-1 ${
-                          isSelected ? "text-[#0F172A]" : "text-[#1E293B] group-hover:text-[#1D4ED8]"
-                        }`}
-                      >
-                        {stage.title}
-                      </h3>
-                      <p className="text-[11px] text-[#64748B] leading-snug line-clamp-2">
-                        {stage.subtitle}
-                      </p>
+                      <div className="mt-3 pt-2 border-t border-[#E2E8F0] flex items-center justify-between">
+                        <span className="text-[9.5px] font-mono text-[#64748B] uppercase tracking-wider">
+                          {isSelected ? "Active" : isCompleted ? "Complete" : "Ready"}
+                        </span>
+                        {isSelected ? (
+                          <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8] animate-ping" />
+                        ) : isCompleted ? (
+                          <CheckCircle2 className="w-3 h-3 text-[#1D4ED8]" />
+                        ) : null}
+                      </div>
                     </div>
-
-                    <div className="mt-3 pt-2 border-t border-[#E2E8F0] flex items-center justify-between">
-                      <span className="text-[9.5px] font-mono text-[#64748B] uppercase tracking-wider">
-                        {isSelected ? "Active" : isCompleted ? "Complete" : "Ready"}
-                      </span>
-                      {isSelected ? (
-                        <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8] animate-ping" />
-                      ) : isCompleted ? (
-                        <CheckCircle2 className="w-3 h-3 text-[#1D4ED8]" />
-                      ) : null}
-                    </div>
-                  </div>
+                  </StaggerItem>
                 );
               })}
-            </div>
+            </StaggerContainer>
 
           </div>
         </div>
@@ -398,7 +404,8 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
         {/* ===================================================================
             MOVABLE STAGE DRILL-DOWN DECK
             =================================================================== */}
-        <div className="relative rounded-3xl bg-[#FAFCFF] sm:bg-white border border-[#CBD5E1] p-6 sm:p-8 lg:p-10 shadow-xl overflow-hidden">
+        <ScrollReveal direction="up" delay={0.12} distance={20}>
+          <div className="relative rounded-3xl bg-[#FAFCFF] sm:bg-white border border-[#CBD5E1] p-6 sm:p-8 lg:p-10 shadow-xl overflow-hidden">
           
           <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-6 mb-8 border-b border-[#E2E8F0] gap-4">
             
@@ -538,6 +545,7 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
           </div>
 
         </div>
+        </ScrollReveal>
 
         {/* Subtle Inter-Section Continuity Indicator */}
         <div className="mt-8 pt-5 border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-[#64748B]">
