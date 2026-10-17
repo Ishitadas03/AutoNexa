@@ -467,74 +467,80 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
           {/* 3-Column Pipeline Architecture */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
             
-            {/* 1. INPUT STREAM CARD */}
-            <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-[#1D4ED8] font-mono text-xs font-bold uppercase tracking-wider">
-                    <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
-                    <span>01 // Input Stream</span>
+            {/* 1. INPUT STREAM CARD (Reveals from Left) */}
+            <ScrollReveal direction="left" distance={20} delay={0.08} className="h-full">
+              <div className="h-full p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 text-[#1D4ED8] font-mono text-xs font-bold uppercase tracking-wider">
+                      <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8]" />
+                      <span>01 // Input Stream</span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#E2E8F0] text-[#475569]">
+                      Streaming
+                    </span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#E2E8F0] text-[#475569]">
-                    Streaming
-                  </span>
+                  <p className="text-xs sm:text-sm text-[#0F172A] leading-relaxed mb-4">
+                    {activeStage.inputSummary}
+                  </p>
                 </div>
-                <p className="text-xs sm:text-sm text-[#0F172A] leading-relaxed mb-4">
-                  {activeStage.inputSummary}
-                </p>
-              </div>
 
-              <div className="pt-3 border-t border-[#CBD5E1]/60 flex items-center justify-between text-[11px] font-mono text-[#64748B]">
-                <span>Format</span>
-                <span className="text-[#1D4ED8] font-semibold">{activeStage.metrics[0].value}</span>
+                <div className="pt-3 border-t border-[#CBD5E1]/60 flex items-center justify-between text-[11px] font-mono text-[#64748B]">
+                  <span>Format</span>
+                  <span className="text-[#1D4ED8] font-semibold">{activeStage.metrics[0].value}</span>
+                </div>
               </div>
-            </div>
+            </ScrollReveal>
 
-            {/* 2. PROCESSING ENGINE CARD */}
-            <div className="p-5 rounded-2xl bg-[#EFF6FF] border border-[#1D4ED8]/70 shadow-[0_4px_16px_rgba(29,78,216,0.1)] flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-[#1E40AF] font-mono text-xs font-bold uppercase tracking-wider">
-                    <span className="w-2 h-2 rounded-full bg-[#1E40AF] animate-pulse" />
-                    <span>02 // Execution Engine</span>
+            {/* 2. PROCESSING ENGINE CARD (Reveals from Upward) */}
+            <ScrollReveal direction="up" distance={20} delay={0.14} className="h-full">
+              <div className="h-full p-5 rounded-2xl bg-[#EFF6FF] border border-[#1D4ED8]/70 shadow-[0_4px_16px_rgba(29,78,216,0.1)] flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 text-[#1E40AF] font-mono text-xs font-bold uppercase tracking-wider">
+                      <span className="w-2 h-2 rounded-full bg-[#1E40AF] animate-pulse" />
+                      <span>02 // Execution Engine</span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#DBEAFE] text-[#1E40AF]">
+                      Automated
+                    </span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#DBEAFE] text-[#1E40AF]">
-                    Automated
-                  </span>
+                  <p className="text-xs sm:text-sm text-[#0F172A] leading-relaxed mb-4">
+                    {activeStage.processingSummary}
+                  </p>
                 </div>
-                <p className="text-xs sm:text-sm text-[#0F172A] leading-relaxed mb-4">
-                  {activeStage.processingSummary}
-                </p>
-              </div>
 
-              <div className="pt-3 border-t border-[#CBD5E1]/60 flex items-center justify-between text-[11px] font-mono text-[#64748B]">
-                <span>Throughput</span>
-                <span className="text-[#1E40AF] font-bold">{activeStage.metrics[1].value}</span>
+                <div className="pt-3 border-t border-[#CBD5E1]/60 flex items-center justify-between text-[11px] font-mono text-[#64748B]">
+                  <span>Throughput</span>
+                  <span className="text-[#1E40AF] font-bold">{activeStage.metrics[1].value}</span>
+                </div>
               </div>
-            </div>
+            </ScrollReveal>
 
-            {/* 3. VALIDATED ARTIFACT CARD */}
-            <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-[#15803D] font-mono text-xs font-bold uppercase tracking-wider">
-                    <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_6px_#10B981]" />
-                    <span>03 // Validated Output</span>
+            {/* 3. VALIDATED ARTIFACT CARD (Reveals from Right) */}
+            <ScrollReveal direction="right" distance={20} delay={0.2} className="h-full">
+              <div className="h-full p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 text-[#15803D] font-mono text-xs font-bold uppercase tracking-wider">
+                      <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_6px_#10B981]" />
+                      <span>03 // Validated Output</span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#DCFCE7] text-[#15803D]">
+                      Artifact
+                    </span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#DCFCE7] text-[#15803D]">
-                    Artifact
-                  </span>
+                  <p className="text-xs sm:text-sm text-[#0F172A] leading-relaxed mb-4">
+                    {activeStage.outputSummary}
+                  </p>
                 </div>
-                <p className="text-xs sm:text-sm text-[#0F172A] leading-relaxed mb-4">
-                  {activeStage.outputSummary}
-                </p>
-              </div>
 
-              <div className="pt-3 border-t border-[#CBD5E1]/60 flex items-center justify-between text-[11px] font-mono text-[#64748B]">
-                <span>Verification</span>
-                <span className="text-[#15803D] font-bold">{activeStage.metrics[2].value}</span>
+                <div className="pt-3 border-t border-[#CBD5E1]/60 flex items-center justify-between text-[11px] font-mono text-[#64748B]">
+                  <span>Verification</span>
+                  <span className="text-[#15803D] font-bold">{activeStage.metrics[2].value}</span>
+                </div>
               </div>
-            </div>
+            </ScrollReveal>
 
           </div>
 

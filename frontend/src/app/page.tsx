@@ -329,7 +329,7 @@ export default function Home() {
 
       {activeView === "landing" ? (
         /* LANDING PAGE VIEW */
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-x-clip">
           <Navbar onLaunchWorkspace={() => setActiveView("workspace")} apiConnected={apiConnected} />
           <Hero onLaunchWorkspace={() => setActiveView("workspace")} />
           <InteractivePipeline onLaunchWorkspace={() => setActiveView("workspace")} />

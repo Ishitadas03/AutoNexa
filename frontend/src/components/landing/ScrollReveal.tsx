@@ -18,28 +18,40 @@ export default function ScrollReveal({
   children,
   direction = "up",
   delay = 0,
-  duration = 0.55,
-  distance = 24,
+  duration = 0.6,
+  distance = 28,
   scale = 1,
   className = "",
   viewportAmount = 0.15,
 }: ScrollRevealProps) {
   const shouldReduceMotion = useReducedMotion();
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(typeof window !== "undefined" && window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   if (shouldReduceMotion) {
     return <div className={className}>{children}</div>;
   }
 
+  const effectiveDistance = isMobile ? Math.min(distance, 14) : distance;
+
   const getInitialPosition = () => {
     switch (direction) {
       case "left":
-        return { x: -distance, y: 0 };
+        return { x: -effectiveDistance, y: 0 };
       case "right":
-        return { x: distance, y: 0 };
+        return { x: effectiveDistance, y: 0 };
       case "down":
-        return { x: 0, y: -distance };
+        return { x: 0, y: -effectiveDistance };
       case "up":
-        return { x: 0, y: distance };
+        return { x: 0, y: effectiveDistance };
       case "none":
       default:
         return { x: 0, y: 0 };
@@ -121,7 +133,7 @@ export function StaggerItem({
   children,
   direction = "up",
   distance = 20,
-  duration = 0.5,
+  duration = 0.55,
   className = "",
 }: {
   children: React.ReactNode;
@@ -131,21 +143,33 @@ export function StaggerItem({
   className?: string;
 }) {
   const shouldReduceMotion = useReducedMotion();
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(typeof window !== "undefined" && window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   if (shouldReduceMotion) {
     return <div className={className}>{children}</div>;
   }
 
+  const effectiveDistance = isMobile ? Math.min(distance, 12) : distance;
+
   const getInitialPosition = () => {
     switch (direction) {
       case "left":
-        return { x: -distance, y: 0 };
+        return { x: -effectiveDistance, y: 0 };
       case "right":
-        return { x: distance, y: 0 };
+        return { x: effectiveDistance, y: 0 };
       case "down":
-        return { x: 0, y: -distance };
+        return { x: 0, y: -effectiveDistance };
       case "up":
-        return { x: 0, y: distance };
+        return { x: 0, y: effectiveDistance };
       case "none":
       default:
         return { x: 0, y: 0 };
