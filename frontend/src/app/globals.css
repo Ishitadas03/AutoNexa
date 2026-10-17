@@ -1,24 +1,31 @@
 @import "tailwindcss";
 
 :root {
-  --background: #06090c;
-  --foreground: #f1f5f9;
-  --panel-bg: #090e12;
-  --panel-bg-elevated: #0e151b;
-  --panel-border: #14221c;
-  --panel-border-subtle: #111a16;
-  --accent-emerald: #10b981;
-  --accent-emerald-light: #34d399;
-  --accent-emerald-muted: rgba(16, 185, 129, 0.15);
-  --connector-stroke: rgba(16, 185, 129, 0.4);
+  --background: #070D0C;
+  --background-secondary: #0D1815;
+  --card-surface: #12201C;
+  --card-elevated: #162A23;
+  --text-primary: #F1EFE1;
+  --text-secondary: #AEBEB5;
+  --emerald-muted: #2A916E;
+  --emerald-accent: #68E7B5;
+  --border-subtle: #2A4E42;
+  --border-subtle-dark: #19332A;
+  --warning-amber: #EDC54C;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-panel: var(--panel-bg);
-  --color-panel-border: var(--panel-border);
-  --color-emerald: var(--accent-emerald);
+  --color-background-secondary: var(--background-secondary);
+  --color-card: var(--card-surface);
+  --color-card-elevated: var(--card-elevated);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-emerald-muted: var(--emerald-muted);
+  --color-emerald-accent: var(--emerald-accent);
+  --color-border-subtle: var(--border-subtle);
+  --color-warning: var(--warning-amber);
+  --font-editorial: var(--font-serif-editorial), Georgia, "Times New Roman", serif;
 }
 
 /* Custom dark scrollbar */
@@ -27,84 +34,81 @@
   height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #06090c;
+  background: #070D0C;
 }
 ::-webkit-scrollbar-thumb {
-  background: #14221c;
+  background: #2A4E42;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #1d332a;
+  background: #68E7B5;
 }
 
-/* Very subtle static technical grid (minimal, developer-tool look) */
+/* Editorial display font utility */
+.font-editorial {
+  font-family: var(--font-serif-editorial), Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+/* Very subtle static technical grid */
 .bg-tech-grid {
   background-size: 32px 32px;
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+    linear-gradient(to right, rgba(104, 231, 181, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(104, 231, 181, 0.02) 1px, transparent 1px);
 }
 
 /* Subtle dot grid pattern */
 .bg-dot-grid {
   background-size: 24px 24px;
-  background-image: radial-gradient(rgba(16, 185, 129, 0.08) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(104, 231, 181, 0.08) 1px, transparent 1px);
 }
 
-/* Restrained technical panels (flat or subtly elevated, thin borders) */
-.tech-card {
-  background: #090e12;
-  border: 1px solid #14221c;
-  border-radius: 12px;
+/* AutoNexa Reference Cards */
+.autonexa-card {
+  background: #12201C;
+  border: 1px solid #2A4E42;
+  border-radius: 16px;
 }
 
-.tech-card-elevated {
-  background: #0e151b;
-  border: 1px solid #1a2c24;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+.autonexa-card:hover {
+  border-color: #3D705F;
 }
 
-.tech-card:hover {
-  border-color: #233b30;
+.autonexa-card-elevated {
+  background: #162A23;
+  border: 1px solid #336152;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5);
 }
 
-/* Ramotion signature inset canvas frame */
-.ramotion-canvas-frame {
-  background: #070c0f;
-  border: 1px solid rgba(16, 185, 129, 0.22);
-  border-radius: 24px;
-  box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.03);
-}
-
-/* Ramotion signature glowing emerald button */
-.btn-ramotion {
-  background: #06140e;
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.55);
+/* Primary mint CTA button from reference concept */
+.btn-autonexa-primary {
+  background: #68E7B5;
+  color: #071510;
   font-weight: 600;
   border-radius: 9999px;
-  box-shadow: 0 0 24px -4px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 20px -3px rgba(104, 231, 181, 0.35);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.btn-ramotion:hover {
-  background: #0a2017;
-  border-color: #10b981;
-  color: #ffffff;
-  box-shadow: 0 0 35px -2px rgba(16, 185, 129, 0.5);
+.btn-autonexa-primary:hover {
+  background: #56dca9;
+  box-shadow: 0 0 28px -2px rgba(104, 231, 181, 0.55);
   transform: translateY(-1px);
 }
 
-.btn-secondary {
-  background: #0a0f13;
-  color: #e2e8f0;
-  border: 1px solid #16241e;
+/* Secondary dark button from reference concept */
+.btn-autonexa-secondary {
+  background: #0D1815;
+  color: #F1EFE1;
+  border: 1px solid #2A4E42;
   border-radius: 9999px;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
 }
-.btn-secondary:hover {
-  background: #0e171c;
-  border-color: #233b30;
+.btn-autonexa-secondary:hover {
+  background: #12201C;
+  border-color: #68E7B5;
   color: #ffffff;
 }
 

@@ -92,10 +92,10 @@ export default function DetailsTab({ activeExperiment, onNavigateTab }: DetailsT
 
   if (!activeExperiment) {
     return (
-      <div className="p-12 text-center rounded-2xl glass-panel border border-white/5 space-y-4">
-        <FileText className="w-10 h-10 text-amber-400 mx-auto opacity-70" />
-        <h3 className="text-lg font-bold text-white">No Experiment Selected</h3>
-        <p className="text-xs text-slate-400 max-w-sm mx-auto">
+      <div className="p-12 text-center rounded-2xl autonexa-card space-y-4">
+        <FileText className="w-10 h-10 text-[#68E7B5] mx-auto opacity-70" />
+        <h3 className="text-lg font-bold text-[#F1EFE1]">No Experiment Selected</h3>
+        <p className="text-xs text-[#AEBEB5] max-w-sm mx-auto">
           Please run an AutoML training experiment to inspect its artifact metadata, checksums, and schema.
         </p>
       </div>
@@ -107,17 +107,17 @@ export default function DetailsTab({ activeExperiment, onNavigateTab }: DetailsT
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight font-sans">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#F1EFE1] tracking-tight font-sans">
             Experiment & Artifact Inspection
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+          <p className="text-xs sm:text-sm text-[#AEBEB5] mt-0.5">
             Audit cryptographic checksums, feature schema requirements, and software environment versions.
           </p>
         </div>
 
         <button
           onClick={() => onNavigateTab("prediction")}
-          className="self-start sm:self-auto px-4 py-2 rounded-xl btn-gold text-xs font-bold flex items-center gap-2 cursor-pointer shadow-lg shadow-amber-500/15"
+          className="self-start sm:self-auto px-4 py-2 rounded-xl btn-autonexa-primary text-xs font-bold flex items-center gap-2 cursor-pointer shadow-lg shadow-[#68E7B5]/15"
         >
           <span>Open Prediction Playground</span>
           <ArrowRight className="w-3.5 h-3.5" />
@@ -125,31 +125,31 @@ export default function DetailsTab({ activeExperiment, onNavigateTab }: DetailsT
       </div>
 
       {loading ? (
-        <div className="p-12 text-center rounded-2xl glass-panel border border-white/5 space-y-3">
-          <RefreshCw className="w-8 h-8 text-amber-400 animate-spin mx-auto" />
-          <p className="text-xs font-mono text-slate-400">Inspecting experiment artifacts via GET /api/v1/experiments/{activeExperiment.experiment_id}...</p>
+        <div className="p-12 text-center rounded-2xl autonexa-card space-y-3">
+          <RefreshCw className="w-8 h-8 text-[#68E7B5] animate-spin mx-auto" />
+          <p className="text-xs font-mono text-[#AEBEB5]">Inspecting experiment artifacts via GET /api/v1/experiments/{activeExperiment.experiment_id}...</p>
         </div>
       ) : inspection ? (
         <div className="space-y-6">
           {/* Artifact Integrity & Availability Card */}
-          <div className="p-6 rounded-2xl glass-panel border border-white/5 space-y-4">
+          <div className="p-6 rounded-2xl autonexa-card space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <div className="w-9 h-9 rounded-xl bg-[#0D1815] border border-[#2A4E42] flex items-center justify-center text-[#68E7B5]">
                   <Hash className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white font-mono">
+                  <h3 className="text-sm font-bold text-[#F1EFE1] font-mono">
                     Model Artifact Availability & Integrity
                   </h3>
-                  <p className="text-[11px] text-slate-400 font-mono">best_model.joblib on disk</p>
+                  <p className="text-[11px] text-[#AEBEB5]/70 font-mono">best_model.joblib on disk</p>
                 </div>
               </div>
 
               <span
                 className={`px-3 py-1 rounded-md text-xs font-mono font-semibold ${
                   inspection.artifact_availability.model_file_exists
-                    ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                    ? "bg-[#162A23] text-[#68E7B5] border border-[#68E7B5]"
                     : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
                 }`}
               >
@@ -157,57 +157,57 @@ export default function DetailsTab({ activeExperiment, onNavigateTab }: DetailsT
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-slate-900 text-xs font-mono">
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-                <span className="text-slate-500 text-[10px] uppercase block mb-1">Model Format</span>
-                <span className="text-white font-bold block">{inspection.artifact_availability.model_format}</span>
-                <span className="text-[10px] text-slate-500">Serialized scikit-learn Pipeline</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-[#2A4E42] text-xs font-mono">
+              <div className="p-3 rounded-xl bg-[#070D0C] border border-[#2A4E42]">
+                <span className="text-[#AEBEB5]/70 text-[10px] uppercase block mb-1">Model Format</span>
+                <span className="text-[#F1EFE1] font-bold block">{inspection.artifact_availability.model_format}</span>
+                <span className="text-[10px] text-[#AEBEB5]/70">Serialized scikit-learn Pipeline</span>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-                <span className="text-slate-500 text-[10px] uppercase block mb-1">Artifact Size</span>
-                <span className="text-white font-bold block">
+              <div className="p-3 rounded-xl bg-[#070D0C] border border-[#2A4E42]">
+                <span className="text-[#AEBEB5]/70 text-[10px] uppercase block mb-1">Artifact Size</span>
+                <span className="text-[#F1EFE1] font-bold block">
                   {inspection.artifact_availability.model_size_bytes
                     ? formatBytes(inspection.artifact_availability.model_size_bytes)
                     : "N/A"}
                 </span>
-                <span className="text-[10px] text-slate-500">Atomic temporary file replacement</span>
+                <span className="text-[10px] text-[#AEBEB5]/70">Atomic temporary file replacement</span>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-                <span className="text-slate-500 text-[10px] uppercase block mb-1">SHA-256 Checksum</span>
-                <span className="text-amber-400 font-bold block truncate" title={inspection.artifact_availability.model_sha256 || ""}>
+              <div className="p-3 rounded-xl bg-[#070D0C] border border-[#2A4E42]">
+                <span className="text-[#AEBEB5]/70 text-[10px] uppercase block mb-1">SHA-256 Checksum</span>
+                <span className="text-[#68E7B5] font-bold block truncate" title={inspection.artifact_availability.model_sha256 || ""}>
                   {inspection.artifact_availability.model_sha256
                     ? `${inspection.artifact_availability.model_sha256.slice(0, 18)}...`
                     : "N/A"}
                 </span>
-                <span className="text-[10px] text-slate-500">Cryptographic tamper-evidence</span>
+                <span className="text-[10px] text-[#AEBEB5]/70">Cryptographic tamper-evidence</span>
               </div>
             </div>
           </div>
 
           {/* Expected Feature Schema Inspector */}
-          <div className="p-6 rounded-2xl glass-panel border border-white/5 space-y-4">
+          <div className="p-6 rounded-2xl autonexa-card space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                <h3 className="text-xs font-bold text-[#F1EFE1] uppercase tracking-wider font-mono">
                   Expected Feature Schema ({inspection.feature_names.length} Features)
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-[#AEBEB5] mt-0.5">
                   The trained pipeline enforces these exact feature columns during inference.
                 </p>
               </div>
-              <span className="text-[11px] font-mono text-amber-400">Preserved Feature Ordering</span>
+              <span className="text-[11px] font-mono text-[#68E7B5]">Preserved Feature Ordering</span>
             </div>
 
             <div className="flex flex-wrap gap-2 pt-2">
               {inspection.feature_names.map((feat, idx) => (
                 <div
                   key={feat}
-                  className="px-3 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 flex items-center gap-2 text-xs font-mono"
+                  className="px-3 py-1.5 rounded-lg bg-[#070D0C] border border-[#2A4E42] flex items-center gap-2 text-xs font-mono"
                 >
-                  <span className="text-slate-500 text-[10px]">#{idx + 1}</span>
-                  <span className="text-white font-medium">{feat}</span>
+                  <span className="text-[#AEBEB5]/70 text-[10px]">#{idx + 1}</span>
+                  <span className="text-[#F1EFE1] font-medium">{feat}</span>
                 </div>
               ))}
             </div>
@@ -216,36 +216,36 @@ export default function DetailsTab({ activeExperiment, onNavigateTab }: DetailsT
           {/* Environment Packages & Deserialization Security Advisory */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Packages Box */}
-            <div className="p-6 rounded-2xl glass-panel border border-white/5 space-y-4">
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+            <div className="p-6 rounded-2xl autonexa-card space-y-4">
+              <h3 className="text-xs font-bold text-[#F1EFE1] uppercase tracking-wider font-mono">
                 Training Runtime Environment
               </h3>
               <div className="space-y-2 text-xs font-mono">
                 {Object.entries(inspection.package_versions || {}).map(([pkg, ver]) => (
-                  <div key={pkg} className="flex justify-between p-2 rounded-lg bg-slate-950/60 border border-slate-800">
-                    <span className="text-slate-400">{pkg}</span>
-                    <span className="text-white font-semibold">{ver}</span>
+                  <div key={pkg} className="flex justify-between p-2 rounded-lg bg-[#070D0C] border border-[#2A4E42]">
+                    <span className="text-[#AEBEB5]">{pkg}</span>
+                    <span className="text-[#F1EFE1] font-semibold">{ver}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Security Advisory Card */}
-            <div className="p-6 rounded-2xl glass-panel border border-amber-500/20 space-y-3 flex flex-col justify-between">
+            <div className="p-6 rounded-2xl autonexa-card-elevated space-y-3 flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-2 text-amber-400 mb-2">
+                <div className="flex items-center gap-2 text-[#68E7B5] mb-2">
                   <Lock className="w-4 h-4" />
                   <h3 className="text-xs font-bold uppercase tracking-wider font-mono">
                     Deserialization Security Policy
                   </h3>
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                <p className="text-xs text-[#AEBEB5] leading-relaxed font-sans">
                   {inspection.security_notice}
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-slate-900 text-[11px] text-slate-500 font-mono">
-                Paths resolved strictly inside: <span className="text-slate-400">resolved_experiments_dir</span>
+              <div className="pt-3 border-t border-[#2A4E42] text-[11px] text-[#AEBEB5]/70 font-mono">
+                Paths resolved strictly inside: <span className="text-[#F1EFE1]">resolved_experiments_dir</span>
               </div>
             </div>
           </div>

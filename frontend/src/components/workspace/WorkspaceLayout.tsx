@@ -8,12 +8,9 @@ import {
   Trophy,
   Activity,
   FileText,
-  Sparkles,
   ArrowLeft,
   Menu,
   X,
-  ExternalLink,
-  ShieldCheck,
   CheckCircle2,
 } from "lucide-react";
 import { WorkspaceTab } from "@/lib/store";
@@ -28,11 +25,11 @@ interface WorkspaceLayoutProps {
 
 const NAV_ITEMS: { id: WorkspaceTab; label: string; icon: React.ElementType }[] = [
   { id: "overview", label: "Overview", icon: Home },
-  { id: "datasets", label: "Datasets", icon: Database },
+  { id: "datasets", label: "Datasets & Profiling", icon: Database },
   { id: "training", label: "AutoML Studio", icon: SlidersHorizontal },
   { id: "leaderboard", label: "Model Leaderboard", icon: Trophy },
   { id: "prediction", label: "Prediction Playground", icon: Activity },
-  { id: "details", label: "Experiment Details", icon: FileText },
+  { id: "details", label: "Experiment Artifacts", icon: FileText },
 ];
 
 export default function WorkspaceLayout({
@@ -45,13 +42,13 @@ export default function WorkspaceLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#070e12] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#070D0C] text-[#F1EFE1] flex flex-col font-sans">
       {/* Top Banner Bar */}
-      <header className="border-b border-white/5 bg-[#0b1318]/90 backdrop-blur-md px-4 sm:px-6 py-3 flex items-center justify-between z-40 sticky top-0">
+      <header className="border-b border-[#2A4E42] bg-[#0D1815]/95 backdrop-blur-md px-4 sm:px-6 py-3 flex items-center justify-between z-40 sticky top-0">
         <div className="flex items-center gap-3">
           <button
             onClick={onExitWorkspace}
-            className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-mono"
+            className="p-1.5 rounded-lg bg-[#070D0C] border border-[#2A4E42] text-[#AEBEB5] hover:text-[#F1EFE1] hover:border-[#68E7B5] transition-colors flex items-center gap-1.5 text-xs font-mono cursor-pointer"
             title="Return to Landing Page"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -59,33 +56,33 @@ export default function WorkspaceLayout({
           </button>
 
           <div className="flex items-center gap-2">
-            <span className="text-base font-bold text-amber-400 font-mono tracking-wider">AUTONEXA</span>
-            <span className="text-xs text-slate-500 hidden sm:inline">/ Workspace</span>
+            <span className="text-base font-bold text-[#68E7B5] font-sans tracking-wide">AUTONEXA</span>
+            <span className="text-xs text-[#AEBEB5] hidden sm:inline font-mono">/ Studio Workspace</span>
           </div>
         </div>
 
         {/* Right side status indicators */}
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-950/50 text-emerald-400 border border-emerald-800/60 text-xs font-medium font-mono">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#070D0C] text-[#68E7B5] border border-[#2A4E42] text-xs font-medium font-mono">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Active System Health</span>
+            <span>FastAPI Operational</span>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+          <div className="flex items-center gap-1.5 text-xs text-[#AEBEB5] bg-[#070D0C] px-3 py-1 rounded-full border border-[#2A4E42]">
             <span
               className={`w-2 h-2 rounded-full ${
-                apiConnected === true ? "bg-emerald-400 animate-pulse" : apiConnected === false ? "bg-amber-400" : "bg-slate-500"
+                apiConnected === true ? "bg-[#68E7B5] animate-pulse shadow-[0_0_8px_#68E7B5]" : apiConnected === false ? "bg-[#EDC54C]" : "bg-[#AEBEB5]"
               }`}
             />
             <span className="text-[11px] font-mono">
-              {apiConnected === true ? "FastAPI Online" : apiConnected === false ? "Local Demo" : "Connecting..."}
+              {apiConnected === true ? "API Online" : apiConnected === false ? "Local Demo" : "Connecting..."}
             </span>
           </div>
 
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300"
+            className="lg:hidden p-1.5 rounded-lg bg-[#070D0C] border border-[#2A4E42] text-[#AEBEB5]"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -93,23 +90,29 @@ export default function WorkspaceLayout({
       </header>
 
       {/* Main Workspace Frame */}
-      <div className="flex-1 flex max-w-[1600px] w-full mx-auto p-2 sm:p-4 lg:p-6 gap-4 lg:gap-6">
-        {/* Left Desktop Sidebar (Reference Replica) */}
-        <aside className="hidden lg:flex flex-col justify-between w-64 rounded-2xl glass-panel p-5 shrink-0 h-[calc(100vh-6.5rem)] sticky top-20 border border-white/5">
+      <div className="flex-1 flex max-w-[1600px] w-full mx-auto p-3 sm:p-5 lg:p-6 gap-5 lg:gap-6">
+        {/* Left Desktop Sidebar */}
+        <aside className="hidden lg:flex flex-col justify-between w-64 rounded-2xl bg-[#0D1815] p-5 shrink-0 h-[calc(100vh-6.5rem)] sticky top-20 border border-[#2A4E42]">
           <div>
             {/* Logo in Sidebar */}
-            <div className="mb-6">
-              <span className="text-lg font-bold text-amber-400 tracking-wider font-mono">AUTONEXA</span>
-              <p className="text-[11px] text-slate-500 tracking-wide font-mono mt-0.5">AI Research Platform</p>
+            <div className="mb-6 pb-4 border-b border-[#2A4E42]/60">
+              <div className="flex items-center gap-2">
+                <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
+                  <path d="M16 4 L6 24 L11 24 L16 13 L21 24 L26 24 Z" fill="#68E7B5" />
+                  <path d="M12 18 L20 18 L18 21 L14 21 Z" fill="#2A916E" />
+                </svg>
+                <span className="text-base font-bold text-[#F1EFE1] tracking-tight">AutoNexa</span>
+              </div>
+              <p className="text-[10px] text-[#AEBEB5] tracking-wide font-mono mt-1">Research AutoML Suite</p>
             </div>
 
             {/* Navigation Header */}
-            <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500 font-mono mb-3">
-              Navigation
+            <div className="text-[10px] uppercase font-bold tracking-wider text-[#AEBEB5] font-mono mb-3">
+              Workspace Views
             </div>
 
             {/* Navigation Buttons */}
-            <nav className="space-y-1">
+            <nav className="space-y-1.5">
               {NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -117,13 +120,13 @@ export default function WorkspaceLayout({
                   <button
                     key={item.id}
                     onClick={() => onTabChange(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                       isActive
-                        ? "bg-slate-800/80 border border-slate-700/80 text-white shadow-sm font-semibold"
-                        : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/50"
+                        ? "bg-[#162A23] border border-[#2A4E42] text-[#68E7B5] shadow-sm font-semibold"
+                        : "text-[#AEBEB5] hover:text-[#F1EFE1] hover:bg-[#12201C]"
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${isActive ? "text-amber-400" : "text-slate-500"}`} />
+                    <Icon className={`w-4 h-4 ${isActive ? "text-[#68E7B5]" : "text-[#AEBEB5]"}`} />
                     <span>{item.label}</span>
                   </button>
                 );
@@ -132,36 +135,36 @@ export default function WorkspaceLayout({
           </div>
 
           {/* Sidebar Footer with Connection Status */}
-          <div className="pt-4 border-t border-slate-900/80">
-            <div className="flex items-center gap-2 text-xs text-slate-400">
+          <div className="pt-4 border-t border-[#2A4E42]/60">
+            <div className="flex items-center gap-2 text-xs text-[#AEBEB5]">
               <span
                 className={`w-2 h-2 rounded-full ${
-                  apiConnected === true ? "bg-emerald-400 animate-pulse shadow-sm shadow-emerald-500/50" : "bg-amber-400"
+                  apiConnected === true ? "bg-[#68E7B5] animate-pulse shadow-[0_0_6px_#68E7B5]" : "bg-[#EDC54C]"
                 }`}
               />
-              <span className="text-[11px] font-mono">Connected to FastAPI</span>
+              <span className="text-[11px] font-mono">FastAPI Engine (Port 8000)</span>
             </div>
-            <p className="text-[10px] text-slate-600 mt-1 font-mono">Port 8000 • v0.1.0</p>
+            <p className="text-[10px] text-[#AEBEB5]/70 mt-1 font-mono">v1.0.0 // scikit-learn // MLflow</p>
           </div>
         </aside>
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex">
-            <div className="w-72 bg-[#0c1419] p-5 flex flex-col justify-between h-full border-r border-slate-800">
+            <div className="w-72 bg-[#0D1815] p-5 flex flex-col justify-between h-full border-r border-[#2A4E42]">
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-lg font-bold text-amber-400 font-mono">AUTONEXA</span>
-                  <button onClick={() => setMobileMenuOpen(false)} className="text-slate-400 hover:text-white">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#2A4E42]">
+                  <span className="text-lg font-bold text-[#68E7B5]">AutoNexa</span>
+                  <button onClick={() => setMobileMenuOpen(false)} className="text-[#AEBEB5] hover:text-[#F1EFE1]">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500 font-mono mb-3">
-                  Navigation
+                <div className="text-[10px] uppercase font-bold tracking-wider text-[#AEBEB5] font-mono mb-3">
+                  Workspace Views
                 </div>
 
-                <nav className="space-y-1">
+                <nav className="space-y-1.5">
                   {NAV_ITEMS.map((item) => {
                     const Icon = item.icon;
                     const isActive = activeTab === item.id;
@@ -174,11 +177,11 @@ export default function WorkspaceLayout({
                         }}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
                           isActive
-                            ? "bg-slate-800 border border-slate-700 text-white font-semibold"
-                            : "text-slate-400 hover:text-slate-200"
+                            ? "bg-[#162A23] border border-[#2A4E42] text-[#68E7B5] font-semibold"
+                            : "text-[#AEBEB5] hover:text-[#F1EFE1]"
                         }`}
                       >
-                        <Icon className={`w-4 h-4 ${isActive ? "text-amber-400" : "text-slate-500"}`} />
+                        <Icon className={`w-4 h-4 ${isActive ? "text-[#68E7B5]" : "text-[#AEBEB5]"}`} />
                         <span>{item.label}</span>
                       </button>
                     );
@@ -186,16 +189,16 @@ export default function WorkspaceLayout({
                 </nav>
               </div>
 
-              <div className="pt-4 border-t border-slate-800 text-xs text-slate-400">
+              <div className="pt-4 border-t border-[#2A4E42]">
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);
                     onExitWorkspace();
                   }}
-                  className="w-full py-2 px-3 rounded-lg bg-slate-900 text-slate-300 font-mono text-xs flex items-center justify-center gap-2"
+                  className="w-full py-2 rounded-lg bg-[#070D0C] border border-[#2A4E42] text-xs text-[#AEBEB5] hover:text-[#F1EFE1] flex items-center justify-center gap-2"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  Return to Landing Page
+                  <span>Return to Landing</span>
                 </button>
               </div>
             </div>
@@ -203,8 +206,10 @@ export default function WorkspaceLayout({
           </div>
         )}
 
-        {/* Workspace Main Content View */}
-        <main className="flex-1 min-w-0 flex flex-col">{children}</main>
+        {/* Main Content Stage */}
+        <main className="flex-1 min-w-0 overflow-y-auto">
+          {children}
+        </main>
       </div>
     </div>
   );

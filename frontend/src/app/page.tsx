@@ -294,7 +294,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#06090c] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#070D0C] text-[#F1EFE1] flex flex-col font-sans">
       {/* Toast Notifications Overlay */}
       <div className="fixed bottom-4 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none">
         {toasts.map((t) => (
@@ -302,19 +302,19 @@ export default function Home() {
             key={t.id}
             className={`p-3.5 rounded-xl shadow-xl border pointer-events-auto transition-all flex items-start justify-between gap-3 text-xs font-mono backdrop-blur-md ${
               t.type === "success"
-                ? "bg-emerald-950/90 border-emerald-500/40 text-emerald-200"
+                ? "bg-[#0D1815]/95 border-[#68E7B5]/50 text-[#68E7B5]"
                 : t.type === "error"
                 ? "bg-rose-950/90 border-rose-500/40 text-rose-200"
                 : t.type === "warning"
-                ? "bg-amber-950/90 border-amber-500/40 text-amber-200"
-                : "bg-slate-900/90 border-slate-700 text-slate-200"
+                ? "bg-[#162A23]/95 border-[#EDC54C]/50 text-[#EDC54C]"
+                : "bg-[#12201C]/95 border-[#2A4E42] text-[#F1EFE1]"
             }`}
           >
             <div>
               <div className="font-bold">{t.title}</div>
               {t.message && <div className="text-[11px] opacity-80 mt-0.5">{t.message}</div>}
             </div>
-            <button onClick={() => dismissToast(t.id)} className="text-slate-400 hover:text-white shrink-0">
+            <button onClick={() => dismissToast(t.id)} className="text-[#AEBEB5] hover:text-[#F1EFE1] shrink-0 cursor-pointer">
               ✕
             </button>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { ArrowRight, Menu, X, CheckCircle2 } from "lucide-react";
 
 interface NavbarProps {
   onLaunchWorkspace: () => void;
@@ -10,9 +10,9 @@ interface NavbarProps {
 
 export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeLink, setActiveLink] = useState<"home" | "pipeline" | "how-it-works" | "features" | "workspace">("home");
+  const [activeLink, setActiveLink] = useState<"home" | "features" | "how-it-works" | "docs" | "workspace">("home");
 
-  const scrollTo = (id: string, link: "home" | "pipeline" | "how-it-works" | "features" | "workspace") => {
+  const scrollTo = (id: string, link: "home" | "features" | "how-it-works" | "docs" | "workspace") => {
     setActiveLink(link);
     setMobileMenuOpen(false);
     if (id === "top") {
@@ -23,73 +23,70 @@ export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps)
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-[#06090c]/90 backdrop-blur-md border-b border-[#14221c]">
+    <nav className="sticky top-0 z-50 w-full bg-[#070D0C]/90 backdrop-blur-md border-b border-[#2A4E42]/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-15">
-          {/* Brand Logo - Minimal geometric mark + AutoNexa */}
+        <div className="flex items-center justify-between h-16">
+          {/* Brand Logo - Geometric mark + AutoNexa */}
           <div
-            className="flex items-center gap-2.5 cursor-pointer select-none group"
+            className="flex items-center gap-3 cursor-pointer select-none group"
             onClick={() => scrollTo("top", "home")}
           >
-            <div className="w-7 h-7 relative flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+            <div className="w-8 h-8 relative flex items-center justify-center">
+              <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
                 <path
                   d="M16 4 L6 24 L11 24 L16 13 L21 24 L26 24 Z"
                   fill="url(#navEmeraldGrad)"
                 />
                 <path
                   d="M12 18 L20 18 L18 21 L14 21 Z"
-                  fill="#10b981"
+                  fill="#68E7B5"
                 />
                 <defs>
                   <linearGradient id="navEmeraldGrad" x1="6" y1="4" x2="26" y2="24" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#34d399" />
-                    <stop offset="1" stopColor="#059669" />
+                    <stop stopColor="#68E7B5" />
+                    <stop offset="1" stopColor="#2A916E" />
                   </linearGradient>
                 </defs>
               </svg>
             </div>
-            <span className="text-base font-semibold tracking-tight text-white font-sans group-hover:text-emerald-300 transition-colors">
+            <span className="text-lg font-bold tracking-tight text-[#F1EFE1] font-sans group-hover:text-[#68E7B5] transition-colors">
               AutoNexa
-            </span>
-            <span className="hidden sm:inline-block text-[10px] font-mono uppercase tracking-wider text-emerald-400/80 px-2 py-0.5 rounded-full border border-emerald-900/60 bg-[#07150f]">
-              v1.0
             </span>
           </div>
 
-          {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center gap-7 text-xs font-medium">
+          {/* Center Navigation Links (Matching Reference Concept) */}
+          <div className="hidden md:flex items-center gap-8 text-xs sm:text-sm font-medium">
             <button
               onClick={() => scrollTo("top", "home")}
               className={`transition-colors py-1 cursor-pointer ${
-                activeLink === "home" ? "text-emerald-400 font-semibold" : "text-slate-400 hover:text-slate-200"
+                activeLink === "home" ? "text-[#68E7B5] font-semibold" : "text-[#AEBEB5] hover:text-[#F1EFE1]"
               }`}
             >
               Home
             </button>
             <button
-              onClick={() => scrollTo("pipeline", "pipeline")}
+              onClick={() => scrollTo("features", "features")}
               className={`transition-colors py-1 cursor-pointer ${
-                activeLink === "pipeline" ? "text-emerald-400 font-semibold" : "text-slate-400 hover:text-slate-200"
+                activeLink === "features" ? "text-[#68E7B5] font-semibold" : "text-[#AEBEB5] hover:text-[#F1EFE1]"
               }`}
             >
-              Pipeline
+              Features
             </button>
             <button
               onClick={() => scrollTo("how-it-works", "how-it-works")}
               className={`transition-colors py-1 cursor-pointer ${
-                activeLink === "how-it-works" ? "text-emerald-400 font-semibold" : "text-slate-400 hover:text-slate-200"
+                activeLink === "how-it-works" ? "text-[#68E7B5] font-semibold" : "text-[#AEBEB5] hover:text-[#F1EFE1]"
               }`}
             >
               How It Works
             </button>
             <button
-              onClick={() => scrollTo("features", "features")}
+              onClick={() => scrollTo("pipeline", "docs")}
               className={`transition-colors py-1 cursor-pointer ${
-                activeLink === "features" ? "text-emerald-400 font-semibold" : "text-slate-400 hover:text-slate-200"
+                activeLink === "docs" ? "text-[#68E7B5] font-semibold" : "text-[#AEBEB5] hover:text-[#F1EFE1]"
               }`}
             >
-              Features
+              Documentation
             </button>
             <button
               onClick={() => {
@@ -97,7 +94,7 @@ export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps)
                 onLaunchWorkspace();
               }}
               className={`transition-colors py-1 cursor-pointer ${
-                activeLink === "workspace" ? "text-emerald-400 font-semibold" : "text-slate-400 hover:text-slate-200"
+                activeLink === "workspace" ? "text-[#68E7B5] font-semibold" : "text-[#AEBEB5] hover:text-[#F1EFE1]"
               }`}
             >
               Workspace
@@ -105,19 +102,19 @@ export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps)
           </div>
 
           {/* Right Action CTAs: Backend Status Pill + Launch Workspace Button */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3.5">
             {/* Status Pill */}
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#08120d] border border-[#14291f] text-[11px] font-mono">
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0D1815] border border-[#2A4E42] text-xs font-mono">
               <span
-                className={`w-1.5 h-1.5 rounded-full ${
+                className={`w-2 h-2 rounded-full ${
                   apiConnected === true
-                    ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"
+                    ? "bg-[#68E7B5] shadow-[0_0_8px_#68E7B5]"
                     : apiConnected === false
-                    ? "bg-amber-400"
-                    : "bg-slate-500 animate-pulse"
+                    ? "bg-[#EDC54C]"
+                    : "bg-[#AEBEB5] animate-pulse"
                 }`}
               />
-              <span className="text-slate-400">
+              <span className="text-[#AEBEB5]">
                 {apiConnected === true
                   ? "API Connected"
                   : apiConnected === false
@@ -126,31 +123,31 @@ export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps)
               </span>
             </div>
 
-            {/* Launch Workspace Button - Ramotion glowing pill */}
+            {/* Launch Workspace Button - Mint pill button from reference */}
             <button
               onClick={onLaunchWorkspace}
-              className="btn-ramotion px-4 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+              className="btn-autonexa-primary px-5 py-2 text-xs sm:text-sm flex items-center gap-2 cursor-pointer font-semibold"
             >
               <span>Launch Workspace</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5 stroke-[2.2]" />
             </button>
           </div>
 
           {/* Mobile hamburger button */}
-          <div className="md:hidden flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#08120d] border border-[#14291f] text-[10px] font-mono">
+          <div className="md:hidden flex items-center gap-2.5">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0D1815] border border-[#2A4E42] text-[10px] font-mono">
               <span
                 className={`w-1.5 h-1.5 rounded-full ${
-                  apiConnected === true ? "bg-emerald-400" : "bg-amber-400"
+                  apiConnected === true ? "bg-[#68E7B5]" : "bg-[#EDC54C]"
                 }`}
               />
-              <span className="text-slate-400">
-                {apiConnected === true ? "API" : "Sim"}
+              <span className="text-[#AEBEB5]">
+                {apiConnected === true ? "Live" : "Sim"}
               </span>
             </div>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1.5 rounded text-slate-400 hover:text-white"
+              className="p-2 rounded-lg text-[#AEBEB5] hover:text-[#F1EFE1] bg-[#0D1815] border border-[#2A4E42]"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -161,37 +158,37 @@ export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps)
 
       {/* Mobile dropdown menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-[#14221c] bg-[#06090c] px-4 py-3 space-y-2 text-xs">
+        <div className="md:hidden border-b border-[#2A4E42] bg-[#070D0C] px-5 py-4 space-y-3 text-sm">
           <button
             onClick={() => scrollTo("top", "home")}
-            className="block w-full text-left py-1.5 text-slate-300 hover:text-emerald-400 font-medium"
+            className="block w-full text-left py-1.5 text-[#F1EFE1] hover:text-[#68E7B5] font-medium"
           >
             Home
           </button>
           <button
-            onClick={() => scrollTo("pipeline", "pipeline")}
-            className="block w-full text-left py-1.5 text-slate-400 hover:text-emerald-400 font-medium"
+            onClick={() => scrollTo("features", "features")}
+            className="block w-full text-left py-1.5 text-[#AEBEB5] hover:text-[#68E7B5] font-medium"
           >
-            Pipeline
+            Features
           </button>
           <button
             onClick={() => scrollTo("how-it-works", "how-it-works")}
-            className="block w-full text-left py-1.5 text-slate-400 hover:text-emerald-400 font-medium"
+            className="block w-full text-left py-1.5 text-[#AEBEB5] hover:text-[#68E7B5] font-medium"
           >
             How It Works
           </button>
           <button
-            onClick={() => scrollTo("features", "features")}
-            className="block w-full text-left py-1.5 text-slate-400 hover:text-emerald-400 font-medium"
+            onClick={() => scrollTo("pipeline", "docs")}
+            className="block w-full text-left py-1.5 text-[#AEBEB5] hover:text-[#68E7B5] font-medium"
           >
-            Features
+            Documentation
           </button>
           <button
             onClick={() => {
               setMobileMenuOpen(false);
               onLaunchWorkspace();
             }}
-            className="block w-full text-left py-1.5 text-slate-400 hover:text-emerald-400 font-medium"
+            className="block w-full text-left py-1.5 text-[#AEBEB5] hover:text-[#68E7B5] font-medium"
           >
             Workspace
           </button>
@@ -201,7 +198,7 @@ export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps)
                 setMobileMenuOpen(false);
                 onLaunchWorkspace();
               }}
-              className="btn-ramotion w-full py-2 text-xs flex items-center justify-center gap-1.5"
+              className="btn-autonexa-primary w-full py-2.5 text-xs flex items-center justify-center gap-2"
             >
               <span>Launch Workspace</span>
               <ArrowRight className="w-3.5 h-3.5" />

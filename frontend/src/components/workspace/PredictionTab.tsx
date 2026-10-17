@@ -146,10 +146,10 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
 
   if (!activeExperiment) {
     return (
-      <div className="p-12 text-center rounded-2xl glass-panel border border-white/5 space-y-4">
-        <Activity className="w-10 h-10 text-amber-400 mx-auto opacity-70" />
-        <h3 className="text-lg font-bold text-white">No Trained Pipeline Available</h3>
-        <p className="text-xs text-slate-400 max-w-sm mx-auto">
+      <div className="p-12 text-center rounded-2xl autonexa-card space-y-4">
+        <Activity className="w-10 h-10 text-[#68E7B5] mx-auto opacity-70" />
+        <h3 className="text-lg font-bold text-[#F1EFE1]">No Trained Pipeline Available</h3>
+        <p className="text-xs text-[#AEBEB5] max-w-sm mx-auto">
           Please train an AutoML model in the Studio first so a winning pipeline is exported for inference.
         </p>
       </div>
@@ -163,32 +163,32 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight font-sans">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#F1EFE1] tracking-tight font-sans">
             Prediction Playground
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+          <p className="text-xs sm:text-sm text-[#AEBEB5] mt-0.5">
             Execute low-latency tabular predictions on new records using the fitted winning pipeline.
           </p>
         </div>
 
         {/* Tab switch between Single Record and CSV Batch */}
-        <div className="p-1 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-1 self-start sm:self-auto">
+        <div className="p-1 rounded-xl bg-[#0D1815] border border-[#2A4E42] flex items-center gap-1 self-start sm:self-auto">
           <button
             onClick={() => setMode("single")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
               mode === "single"
-                ? "bg-amber-500 text-slate-950 shadow-sm"
-                : "text-slate-400 hover:text-white"
+                ? "bg-[#68E7B5] text-[#070D0C] shadow-sm font-bold"
+                : "text-[#AEBEB5] hover:text-[#F1EFE1]"
             }`}
           >
             Single Record (JSON)
           </button>
           <button
             onClick={() => setMode("batch")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
               mode === "batch"
-                ? "bg-amber-500 text-slate-950 shadow-sm"
-                : "text-slate-400 hover:text-white"
+                ? "bg-[#68E7B5] text-[#070D0C] shadow-sm font-bold"
+                : "text-[#AEBEB5] hover:text-[#F1EFE1]"
             }`}
           >
             Batch Prediction (CSV)
@@ -197,23 +197,23 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
       </div>
 
       {/* Model Spec Pill */}
-      <div className="flex flex-wrap items-center gap-3 p-3 rounded-xl glass-panel text-xs font-mono">
+      <div className="flex flex-wrap items-center gap-3 p-3 rounded-xl autonexa-card text-xs font-mono">
         <div>
-          <span className="text-slate-500">Pipeline:</span>{" "}
-          <span className="text-white font-bold">{activeExperiment.best_model}</span>
+          <span className="text-[#AEBEB5]/70">Pipeline:</span>{" "}
+          <span className="text-[#F1EFE1] font-bold">{activeExperiment.best_model}</span>
         </div>
-        <span className="text-slate-700">•</span>
+        <span className="text-[#2A4E42]">•</span>
         <div>
-          <span className="text-slate-500">Target:</span>{" "}
-          <span className="text-amber-400 font-bold">{activeExperiment.target_column}</span>
+          <span className="text-[#AEBEB5]/70">Target:</span>{" "}
+          <span className="text-[#68E7B5] font-bold">{activeExperiment.target_column}</span>
         </div>
-        <span className="text-slate-700">•</span>
+        <span className="text-[#2A4E42]">•</span>
         <div>
-          <span className="text-slate-500">Task:</span>{" "}
-          <span className="text-slate-300 capitalize">{activeExperiment.task_type}</span>
+          <span className="text-[#AEBEB5]/70">Task:</span>{" "}
+          <span className="text-[#F1EFE1] capitalize">{activeExperiment.task_type}</span>
         </div>
-        <span className="text-slate-700">•</span>
-        <div className="ml-auto flex items-center gap-1.5 text-emerald-400 text-[11px]">
+        <span className="text-[#2A4E42]">•</span>
+        <div className="ml-auto flex items-center gap-1.5 text-[#68E7B5] text-[11px]">
           <CheckCircle2 className="w-3.5 h-3.5" />
           <span>Zero Retraining Guard Active</span>
         </div>
@@ -223,13 +223,13 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
         /* Single Record Mode */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Dynamic Form (2 Cols) */}
-          <div className="lg:col-span-2 rounded-2xl glass-panel p-6 border border-white/5 space-y-5">
+          <div className="lg:col-span-2 rounded-2xl autonexa-card p-6 space-y-5">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 font-mono">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#68E7B5] font-mono">
                   Input Record Features ({expectedFeatures.length})
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-[#AEBEB5] mt-0.5">
                   Pre-populated with sample values. Edit fields and submit for instant inference.
                 </p>
               </div>
@@ -239,7 +239,7 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {expectedFeatures.map((feat) => (
                   <div key={feat}>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1 font-mono truncate" title={feat}>
+                    <label className="block text-xs font-semibold text-[#F1EFE1] mb-1 font-mono truncate" title={feat}>
                       {feat}
                     </label>
                     <input
@@ -247,7 +247,7 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
                       value={recordValues[feat] ?? ""}
                       onChange={(e) => handleInputChange(feat, e.target.value)}
                       placeholder={`Enter ${feat}...`}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                      className="w-full px-3 py-2 rounded-xl bg-[#070D0C] border border-[#2A4E42] text-xs text-[#F1EFE1] focus:outline-none focus:border-[#68E7B5] font-mono"
                     />
                   </div>
                 ))}
@@ -263,11 +263,11 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
               <button
                 type="submit"
                 disabled={isPredicting}
-                className="w-full py-3.5 rounded-xl btn-gold text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-amber-500/15 disabled:opacity-50"
+                className="w-full py-3.5 rounded-xl btn-autonexa-primary text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#68E7B5]/15 disabled:opacity-50"
               >
                 {isPredicting ? (
                   <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <RefreshCw className="w-4 h-4 animate-spin text-[#070D0C]" />
                     <span>Executing Pipeline Inference...</span>
                   </>
                 ) : (
@@ -281,30 +281,30 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
           </div>
 
           {/* Prediction Result Display (1 Col) */}
-          <div className="rounded-2xl glass-panel-glow border border-amber-500/30 p-6 flex flex-col justify-between space-y-6">
+          <div className="rounded-2xl autonexa-card-elevated border border-[#2A4E42] p-6 flex flex-col justify-between space-y-6">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-amber-400 font-mono">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-[#68E7B5] font-mono">
                   Inference Output
                 </span>
-                <span className="text-[10px] font-mono text-slate-500">POST /predict</span>
+                <span className="text-[10px] font-mono text-[#AEBEB5]/70">POST /predict</span>
               </div>
 
               {predictionResult ? (
                 <div className="space-y-5">
-                  <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-center space-y-1">
-                    <span className="text-[10px] text-slate-500 uppercase font-mono">
+                  <div className="p-4 rounded-xl bg-[#070D0C] border border-[#2A4E42] text-center space-y-1">
+                    <span className="text-[10px] text-[#AEBEB5]/70 uppercase font-mono">
                       Predicted {predictionResult.target_column}
                     </span>
-                    <div className="text-2xl sm:text-3xl font-extrabold text-amber-400 font-mono">
+                    <div className="text-2xl sm:text-3xl font-extrabold text-[#68E7B5] font-mono">
                       {String(predictionResult.predictions[0])}
                     </div>
                   </div>
 
                   {/* Class Probabilities Bar Preview (if available) */}
                   {predictionResult.probabilities && predictionResult.probabilities[0] && (
-                    <div className="space-y-3 pt-2 border-t border-slate-900">
-                      <span className="text-xs font-bold text-white font-mono block">
+                    <div className="space-y-3 pt-2 border-t border-[#2A4E42]">
+                      <span className="text-xs font-bold text-[#F1EFE1] font-mono block">
                         Class Probability Distributions
                       </span>
                       <div className="space-y-2">
@@ -314,12 +314,12 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
                           return (
                             <div key={cls} className="space-y-1">
                               <div className="flex justify-between text-xs font-mono">
-                                <span className="text-slate-300">Class &quot;{cls}&quot;</span>
-                                <span className="text-amber-400 font-bold">{pct}%</span>
+                                <span className="text-[#AEBEB5]">Class &quot;{cls}&quot;</span>
+                                <span className="text-[#68E7B5] font-bold">{pct}%</span>
                               </div>
-                              <div className="w-full h-2 rounded-full bg-slate-900 overflow-hidden">
+                              <div className="w-full h-2 rounded-full bg-[#070D0C] border border-[#2A4E42] overflow-hidden">
                                 <div
-                                  className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full transition-all duration-500"
+                                  className="h-full bg-gradient-to-r from-[#2A916E] to-[#68E7B5] rounded-full transition-all duration-500"
                                   style={{ width: `${pct}%` }}
                                 />
                               </div>
@@ -330,20 +330,20 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
                     </div>
                   )}
 
-                  <div className="p-2.5 rounded-lg bg-slate-950/40 text-[10px] font-mono text-slate-400 space-y-1">
+                  <div className="p-2.5 rounded-lg bg-[#070D0C] border border-[#2A4E42] text-[10px] font-mono text-[#AEBEB5] space-y-1">
                     <div>Status: 200 OK</div>
                     <div>Evaluator: {predictionResult.selected_model}</div>
                   </div>
                 </div>
               ) : (
-                <div className="py-12 text-center text-slate-500 text-xs font-mono space-y-2">
-                  <Activity className="w-8 h-8 mx-auto opacity-40 text-amber-400" />
+                <div className="py-12 text-center text-[#AEBEB5]/60 text-xs font-mono space-y-2">
+                  <Activity className="w-8 h-8 mx-auto opacity-40 text-[#68E7B5]" />
                   <p>Click &quot;Generate Tabular Prediction&quot; to test your model.</p>
                 </div>
               )}
             </div>
 
-            <div className="text-[10px] text-slate-500 font-mono pt-4 border-t border-slate-900">
+            <div className="text-[10px] text-[#AEBEB5]/70 font-mono pt-4 border-t border-[#2A4E42]">
               Transformations: Imputation + Scaling + OneHot applied by fitted Pipeline.
             </div>
           </div>
@@ -352,21 +352,21 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
         /* Batch CSV Mode */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* File Picker & Upload (1 Col) */}
-          <div className="rounded-2xl glass-panel p-6 border border-white/5 space-y-5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 font-mono">
+          <div className="rounded-2xl autonexa-card p-6 space-y-5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#68E7B5] font-mono">
               Upload Inference CSV
             </h3>
 
             <form onSubmit={handleBatchPredict} className="space-y-4">
-              <div className="p-6 rounded-xl border border-dashed border-slate-800 bg-slate-950/60 text-center space-y-2">
-                <Upload className="w-8 h-8 text-amber-400 mx-auto" />
+              <div className="p-6 rounded-xl border border-dashed border-[#2A4E42] bg-[#070D0C] text-center space-y-2">
+                <Upload className="w-8 h-8 text-[#68E7B5] mx-auto" />
                 <input
                   type="file"
                   accept=".csv"
                   onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
-                  className="text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-mono file:bg-slate-900 file:text-amber-400 hover:file:bg-slate-800"
+                  className="text-xs text-[#AEBEB5] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-mono file:bg-[#162A23] file:text-[#68E7B5] hover:file:bg-[#12201C] file:cursor-pointer"
                 />
-                <p className="text-[10px] text-slate-500 font-mono">
+                <p className="text-[10px] text-[#AEBEB5]/70 font-mono">
                   Target column is optional; if present, it is ignored safely.
                 </p>
               </div>
@@ -380,11 +380,11 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
               <button
                 type="submit"
                 disabled={!csvFile || isBatchPredicting}
-                className="w-full py-3 rounded-xl btn-gold text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-amber-500/15 disabled:opacity-50"
+                className="w-full py-3 rounded-xl btn-autonexa-primary text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#68E7B5]/15 disabled:opacity-50"
               >
                 {isBatchPredicting ? (
                   <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <RefreshCw className="w-4 h-4 animate-spin text-[#070D0C]" />
                     <span>Executing Batch Prediction...</span>
                   </>
                 ) : (
@@ -398,16 +398,16 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
           </div>
 
           {/* Results Preview & Download (2 Cols) */}
-          <div className="lg:col-span-2 rounded-2xl glass-panel p-6 border border-white/5 space-y-4 flex flex-col justify-between">
+          <div className="lg:col-span-2 rounded-2xl autonexa-card p-6 space-y-4 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-white font-mono">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1EFE1] font-mono">
                   Batch Output Preview
                 </h3>
                 {batchResultBlob && (
                   <button
                     onClick={downloadBatchCsv}
-                    className="px-3 py-1.5 rounded-lg btn-gold text-xs font-bold flex items-center gap-1.5 shadow-md shadow-amber-500/20"
+                    className="px-3 py-1.5 rounded-lg btn-autonexa-primary text-xs font-bold flex items-center gap-1.5 shadow-md shadow-[#68E7B5]/20 cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Download CSV</span>
@@ -416,9 +416,9 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
               </div>
 
               {batchPreviewRows.length > 0 ? (
-                <div className="overflow-x-auto border border-slate-800 rounded-xl">
+                <div className="overflow-x-auto border border-[#2A4E42] rounded-xl">
                   <table className="w-full text-left text-xs font-mono">
-                    <thead className="bg-[#0b1218] border-b border-slate-800 text-[10px] text-slate-400 uppercase">
+                    <thead className="bg-[#0D1815] border-b border-[#2A4E42] text-[10px] text-[#AEBEB5] uppercase">
                       <tr>
                         {batchPreviewRows[0].map((h, i) => (
                           <th key={i} className="p-2.5 font-bold whitespace-nowrap">
@@ -427,9 +427,9 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                    <tbody className="divide-y divide-[#2A4E42]/60 text-[#AEBEB5]">
                       {batchPreviewRows.slice(1).map((r, rI) => (
-                        <tr key={rI} className="hover:bg-slate-800/30">
+                        <tr key={rI} className="hover:bg-[#162A23]/50">
                           {r.map((val, cI) => (
                             <td key={cI} className="p-2.5 whitespace-nowrap">
                               {val}
@@ -441,15 +441,15 @@ export default function PredictionTab({ activeExperiment }: PredictionTabProps) 
                   </table>
                 </div>
               ) : (
-                <div className="py-16 text-center text-slate-500 text-xs font-mono space-y-2">
-                  <FileText className="w-8 h-8 mx-auto opacity-40 text-amber-400" />
+                <div className="py-16 text-center text-[#AEBEB5]/60 text-xs font-mono space-y-2">
+                  <FileText className="w-8 h-8 mx-auto opacity-40 text-[#68E7B5]" />
                   <p>Upload a CSV file to generate predictions and download enriched output.</p>
                 </div>
               )}
             </div>
 
-            <div className="text-[11px] text-slate-500 font-mono pt-4 border-t border-slate-900">
-              Downloadable CSV attaches original features plus <span className="text-amber-400 font-bold">predicted_{activeExperiment.target_column}</span> column.
+            <div className="text-[11px] text-[#AEBEB5]/70 font-mono pt-4 border-t border-[#2A4E42]">
+              Downloadable CSV attaches original features plus <span className="text-[#68E7B5] font-bold">predicted_{activeExperiment.target_column}</span> column.
             </div>
           </div>
         </div>
