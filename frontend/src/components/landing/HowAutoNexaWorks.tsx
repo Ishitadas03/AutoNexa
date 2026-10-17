@@ -340,30 +340,40 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
                         setSelectedStepIndex(idx);
                         setIsPlaying(false);
                       }}
-                      className={`h-full relative p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between group ${
+                      className={`h-full relative p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between group overflow-hidden ${
                         isSelected
-                          ? "bg-[#EFF6FF] border-[#1D4ED8] shadow-[0_4px_16px_rgba(29,78,216,0.18)] -translate-y-0.5"
+                          ? "bg-[#0F172A] border-[#3B82F6] shadow-[0_6px_24px_rgba(29,78,216,0.35)] -translate-y-0.5"
                           : isCompleted
-                          ? "bg-white border-[#CBD5E1] shadow-xs hover:border-[#1D4ED8]"
-                          : "bg-[#F8FAFC] border-[#E2E8F0] shadow-xs hover:border-[#CBD5E1] hover:bg-white"
+                          ? "bg-[#0F172A] border-[#1E293B] shadow-xs hover:border-[#334155] hover:bg-[#131D33]"
+                          : "bg-[#0F172A] border-[#1E293B] shadow-xs hover:border-[#334155] hover:bg-[#131D33]"
                       }`}
                     >
+                      {/* Subtle ambient glow on active card */}
+                      {isSelected && (
+                        <div
+                          className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-28 h-20 rounded-full blur-xl opacity-35"
+                          style={{
+                            background: "radial-gradient(circle, #3B82F6 0%, transparent 70%)",
+                          }}
+                        />
+                      )}
+
                       <div>
                         <div className="flex items-center justify-between mb-3">
                           <span
                             className={`text-xs font-mono font-bold transition-colors ${
-                              isSelected ? "text-[#1D4ED8]" : "text-[#64748B] group-hover:text-[#1D4ED8]"
+                              isSelected ? "text-[#60A5FA]" : isCompleted ? "text-[#38BDF8]" : "text-[#64748B] group-hover:text-[#60A5FA]"
                             }`}
                           >
                             {stage.step}
                           </span>
                           <div
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                            className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-all duration-200 ${
                               isSelected
-                                ? "bg-[#1D4ED8] text-white shadow-sm"
+                                ? "bg-[#1D4ED8] border-[#3B82F6] text-white shadow-[0_0_10px_rgba(59,130,246,0.5)]"
                                 : isCompleted
-                                ? "bg-[#DBEAFE] text-[#1D4ED8]"
-                                : "bg-[#F1F5F9] text-[#475569] group-hover:text-[#1D4ED8]"
+                                ? "bg-[#1E293B] border-[#334155] text-[#38BDF8]"
+                                : "bg-[#1E293B] border-[#334155] text-[#94A3B8] group-hover:text-[#60A5FA] group-hover:border-[#3B82F6]/50"
                             }`}
                           >
                             <Icon className="w-3.5 h-3.5" />
@@ -372,24 +382,28 @@ export default function HowAutoNexaWorks({ onLaunchWorkspace }: HowAutoNexaWorks
 
                         <h3
                           className={`text-xs sm:text-sm font-semibold tracking-tight transition-colors line-clamp-1 mb-1 ${
-                            isSelected ? "text-[#0F172A]" : "text-[#1E293B] group-hover:text-[#1D4ED8]"
+                            isSelected ? "text-white" : "text-slate-200 group-hover:text-white"
                           }`}
                         >
                           {stage.title}
                         </h3>
-                        <p className="text-[11px] text-[#64748B] leading-snug line-clamp-2">
+                        <p className="text-[11px] text-[#94A3B8] leading-snug line-clamp-2">
                           {stage.subtitle}
                         </p>
                       </div>
 
-                      <div className="mt-3 pt-2 border-t border-[#E2E8F0] flex items-center justify-between">
-                        <span className="text-[9.5px] font-mono text-[#64748B] uppercase tracking-wider">
+                      <div className="mt-3 pt-2 border-t border-[#1E293B] flex items-center justify-between">
+                        <span
+                          className={`text-[9.5px] font-mono uppercase tracking-wider ${
+                            isSelected ? "text-[#60A5FA] font-bold" : isCompleted ? "text-[#38BDF8]" : "text-[#64748B]"
+                          }`}
+                        >
                           {isSelected ? "Active" : isCompleted ? "Complete" : "Ready"}
                         </span>
                         {isSelected ? (
-                          <span className="w-2 h-2 rounded-full bg-[#1D4ED8] shadow-[0_0_6px_#1D4ED8] animate-ping" />
+                          <span className="w-2 h-2 rounded-full bg-[#3B82F6] shadow-[0_0_6px_#3B82F6] animate-ping" />
                         ) : isCompleted ? (
-                          <CheckCircle2 className="w-3 h-3 text-[#1D4ED8]" />
+                          <CheckCircle2 className="w-3 h-3 text-[#38BDF8]" />
                         ) : null}
                       </div>
                     </div>
