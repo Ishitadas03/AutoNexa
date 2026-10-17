@@ -27,7 +27,7 @@ export default function SettingsTab({
   onClearData,
   onReloadBenchmarks,
 }: SettingsTabProps) {
-  const [apiUrl, setApiUrl] = useState("http://localhost:8000");
+  const [apiUrl, setApiUrl] = useState(() => api.getBaseUrl() || "http://127.0.0.1:8000");
   const [isPinging, setIsPinging] = useState(false);
   const [pingResult, setPingResult] = useState<{ status: string; latencyMs: number } | null>(null);
 
@@ -43,7 +43,7 @@ export default function SettingsTab({
     setPingResult(null);
     const start = performance.now();
     try {
-      const res = await api.checkHealth();
+      const res = await api.checkHealth(apiUrl);
       const latency = Math.round(performance.now() - start);
       setPingResult({
         status: res.status || "healthy",
