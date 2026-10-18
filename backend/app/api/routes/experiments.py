@@ -1,11 +1,29 @@
-"""Experiment metadata inspection, model artifact integrity, and tabular inference endpoints."""
+"""Experiment metadata inspection, model artifact integrity, tabular inference, explainability, and error analysis endpoints."""
 
-from fastapi import APIRouter, Depends, File, Response, UploadFile, status
+from typing import Literal, Optional
+from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
 
+from app.schemas.error_analysis import (
+    ErrorAnalysisRequest,
+    ErrorAnalysisResponse,
+)
+from app.schemas.explainability import (
+    GlobalFeatureImportanceResponse,
+    PredictionExplanationRequest,
+    PredictionExplanationResponse,
+)
 from app.schemas.prediction import (
     ExperimentInspectionResponse,
     PredictionRequest,
     PredictionResponse,
+)
+from app.services.automl.error_analysis_service import (
+    ErrorAnalysisService,
+    get_error_analysis_service,
+)
+from app.services.automl.explainability_service import (
+    ExplainabilityService,
+    get_explainability_service,
 )
 from app.services.automl.prediction_service import (
     PredictionService,
@@ -78,3 +96,84 @@ async def predict_csv(
 ) -> Response:
     """Execute batch inference on an uploaded CSV file and return a downloadable CSV response."""
     return await service.predict_csv(experiment_id=experiment_id, file=file)
+
+
+@router.get(
+    "/{experiment_id}/explainability/importance",
+    response_model=GlobalFeatureImportanceResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Compute Global Feature Importance",
+    description=(
+        "Calculates global feature importances for the experiment's winning pipeline. "
+        "Supports native tree feature importance for compatible tree-based estimators and model-agnostic "
+        "permutation importance over a reproducible evaluation sample. Maps transformed and one-hot encoded "
+        "columns back to human-readable labels and original input feature names without data leakage."
+    ),
+)
+def get_feature_importance(
+    experiment_id: str,
+    method: Literal["auto", "native", "permutation"] = Query(
+        default="auto",
+        description="Calculation method: 'auto' (native tree if available, else permutation), 'native', or 'permutation'",
+    ),
+    sample_size: Optional[int] = Query(
+        default=None,
+        ge=5,
+        le=500,
+        description="Maximum sample size used for permutation evaluation (5 to 500)",
+    ),
+    random_state: Optional[int] = Query(
+        default=None,
+        description="Optional seed override for evaluation sampling and permutation shuffling",
+    ),
+    service: ExplainabilityService = Depends(get_explainability_service),
+) -> GlobalFeatureImportanceResponse:
+    """Compute global feature importances for the experiment's trained model."""
+    return service.compute_global_importance(
+        experiment_id=experiment_id,
+        method=method,
+        sample_size=sample_size,
+        random_state=random_state,
+    )
+
+
+@router.post(
+    "/{experiment_id}/explainability/prediction",
+    response_model=PredictionExplanationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Compute Local Prediction Explanations",
+    description=(
+        "Generates local feature attributions for individual tabular records using SHAP (TreeExplainer, "
+        "LinearExplainer, or generic explainer) or a robust model-agnostic marginal perturbation fallback. "
+        "Aggregates preprocessed categorical contributions back to original feature spaces and provides base expected values."
+    ),
+)
+def explain_prediction(
+    experiment_id: str,
+    request: PredictionExplanationRequest,
+    service: ExplainabilityService = Depends(get_explainability_service),
+) -> PredictionExplanationResponse:
+    """Generate instance-level prediction explanations for tabular records."""
+    return service.compute_local_explanations(experiment_id=experiment_id, request=request)
+
+
+@router.post(
+    "/{experiment_id}/error-analysis",
+    response_model=ErrorAnalysisResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Perform Prediction Error Analysis",
+    description=(
+        "Executes comprehensive error diagnostics on model predictions. For classification: confusion matrix, "
+        "per-class precision/recall/F1, false positives/negatives, probability calibration buckets, and prioritized "
+        "misclassified instances. For regression: signed and absolute residual statistics, feature-error correlations, "
+        "categorical error slices, and high-error outlier samples. Evaluates strictly on the independent test partition "
+        "by default to prevent training optimism and data leakage."
+    ),
+)
+def analyze_prediction_errors(
+    experiment_id: str,
+    request: ErrorAnalysisRequest = ErrorAnalysisRequest(),
+    service: ErrorAnalysisService = Depends(get_error_analysis_service),
+) -> ErrorAnalysisResponse:
+    """Compute comprehensive prediction error analysis for the experiment's winning pipeline."""
+    return service.analyze_errors(experiment_id=experiment_id, request=request)

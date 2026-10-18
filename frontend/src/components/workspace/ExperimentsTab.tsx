@@ -19,6 +19,7 @@ import {
   Clock,
   Database,
   ExternalLink,
+  Sparkles,
 } from "lucide-react";
 import { ExperimentInspectionResponse, TrainingResponse } from "@/types/api";
 import { api } from "@/lib/api";
@@ -277,7 +278,28 @@ export default function ExperimentsTab({
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => onNavigateTab("explainability")}
+                  className="px-3 py-2 rounded-xl bg-white border border-[#CBD5E1] hover:border-[#1D4ED8] text-[#0F172A] text-xs font-semibold flex items-center gap-1.5 shadow-xs hover:bg-[#EFF6FF] transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#1D4ED8]" />
+                  <span>Explain (SHAP)</span>
+                </button>
+                <button
+                  onClick={() => onNavigateTab("error_analysis")}
+                  className="px-3 py-2 rounded-xl bg-white border border-[#CBD5E1] hover:border-[#1D4ED8] text-[#0F172A] text-xs font-semibold flex items-center gap-1.5 shadow-xs hover:bg-amber-50 transition-all cursor-pointer"
+                >
+                  <AlertTriangle className="w-3.5 h-3.5 text-[#D97706]" />
+                  <span>Error Diagnostics</span>
+                </button>
+                <button
+                  onClick={() => onNavigateTab("benchmarks")}
+                  className="px-3 py-2 rounded-xl bg-white border border-[#CBD5E1] hover:border-[#1D4ED8] text-[#0F172A] text-xs font-semibold flex items-center gap-1.5 shadow-xs hover:bg-[#F8FAFC] transition-all cursor-pointer"
+                >
+                  <GitCompare className="w-3.5 h-3.5 text-[#15803D]" />
+                  <span>Benchmark</span>
+                </button>
                 <button
                   onClick={() => onNavigateTab("prediction")}
                   className="px-3.5 py-2 rounded-xl bg-[#1D4ED8] text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs hover:bg-[#1E40AF] transition-all cursor-pointer"

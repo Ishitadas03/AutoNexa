@@ -133,6 +133,28 @@ class Settings(BaseSettings):
         description="Maximum permitted upload size for CSV batch prediction in bytes (default 5 MB)",
     )
 
+    # Explainability, Error Analysis & Benchmarking Limits
+    max_explainability_sample_size: int = Field(
+        default=500,
+        validation_alias=AliasChoices("MAX_EXPLAINABILITY_SAMPLE_SIZE"),
+        description="Maximum background evaluation sample size for feature importance and SHAP",
+    )
+    max_explainability_records: int = Field(
+        default=50,
+        validation_alias=AliasChoices("MAX_EXPLAINABILITY_RECORDS"),
+        description="Maximum permitted records in a single local prediction explanation request",
+    )
+    max_benchmark_experiments: int = Field(
+        default=20,
+        validation_alias=AliasChoices("MAX_BENCHMARK_EXPERIMENTS"),
+        description="Maximum number of experiments that can be compared in a single benchmark request",
+    )
+    explainability_n_permutations: int = Field(
+        default=5,
+        validation_alias=AliasChoices("EXPLAINABILITY_N_PERMUTATIONS"),
+        description="Number of shuffle iterations for permutation feature importance",
+    )
+
     @property
     def resolved_upload_dir(self) -> Path:
         """Return absolute Path for uploads directory, creating it if needed."""

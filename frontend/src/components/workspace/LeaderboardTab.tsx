@@ -130,6 +130,27 @@ export default function LeaderboardTab({
 
         <div className="flex flex-wrap items-center gap-2.5">
           <button
+            onClick={() => onNavigateTab("explainability")}
+            className="px-3.5 py-2 rounded-xl bg-white border border-[#CBD5E1] hover:border-[#1D4ED8] text-[#0F172A] text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs hover:bg-[#EFF6FF] transition-all"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#1D4ED8]" />
+            <span>Explain Model</span>
+          </button>
+          <button
+            onClick={() => onNavigateTab("error_analysis")}
+            className="px-3.5 py-2 rounded-xl bg-white border border-[#CBD5E1] hover:border-[#1D4ED8] text-[#0F172A] text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs hover:bg-amber-50 transition-all"
+          >
+            <AlertCircle className="w-3.5 h-3.5 text-[#D97706]" />
+            <span>Error Diagnostics</span>
+          </button>
+          <button
+            onClick={() => onNavigateTab("benchmarks")}
+            className="px-3.5 py-2 rounded-xl bg-white border border-[#CBD5E1] hover:border-[#1D4ED8] text-[#0F172A] text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs hover:bg-[#F8FAFC] transition-all"
+          >
+            <BarChart2 className="w-3.5 h-3.5 text-[#15803D]" />
+            <span>Research Benchmarks</span>
+          </button>
+          <button
             onClick={() => onNavigateTab("prediction")}
             className="px-4 py-2 rounded-xl bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-[0_4px_12px_rgba(29,78,216,0.25)] transition-all"
           >

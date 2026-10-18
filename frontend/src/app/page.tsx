@@ -18,6 +18,9 @@ import LeaderboardTab from "@/components/workspace/LeaderboardTab";
 import ExperimentsTab from "@/components/workspace/ExperimentsTab";
 import PredictionTab from "@/components/workspace/PredictionTab";
 import ModelRegistryTab from "@/components/workspace/ModelRegistryTab";
+import ExplainabilityTab from "@/components/workspace/ExplainabilityTab";
+import ErrorAnalysisTab from "@/components/workspace/ErrorAnalysisTab";
+import BenchmarkingTab from "@/components/workspace/BenchmarkingTab";
 import DocumentationTab from "@/components/workspace/DocumentationTab";
 import SettingsTab from "@/components/workspace/SettingsTab";
 
@@ -408,6 +411,33 @@ export default function Home() {
 
           {activeTab === "prediction" && (
             <PredictionTab activeExperiment={activeExperiment} />
+          )}
+
+          {activeTab === "explainability" && (
+            <ExplainabilityTab
+              activeExperiment={activeExperiment}
+              experiments={experiments}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+              onSelectExperiment={(id) => setActiveExperimentId(id)}
+            />
+          )}
+
+          {activeTab === "error_analysis" && (
+            <ErrorAnalysisTab
+              activeExperiment={activeExperiment}
+              experiments={experiments}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+              onSelectExperiment={(id) => setActiveExperimentId(id)}
+            />
+          )}
+
+          {activeTab === "benchmarks" && (
+            <BenchmarkingTab
+              experiments={experiments}
+              activeExperiment={activeExperiment}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+              onSelectExperiment={(id) => setActiveExperimentId(id)}
+            />
           )}
 
           {activeTab === "models" && (

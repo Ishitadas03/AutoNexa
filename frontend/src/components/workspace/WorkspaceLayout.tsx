@@ -16,6 +16,9 @@ import {
   Menu,
   X,
   CheckCircle2,
+  Sparkles,
+  AlertTriangle,
+  GitCompare,
 } from "lucide-react";
 import { WorkspaceTab } from "@/lib/store";
 
@@ -49,6 +52,14 @@ const NAV_GROUPS: NavGroup[] = [
       { id: "experiments", label: "Experiments", icon: History },
       { id: "prediction", label: "Prediction Playground", icon: Activity },
       { id: "models", label: "Model Registry", icon: Layers },
+    ],
+  },
+  {
+    title: "Explainability & Research",
+    items: [
+      { id: "explainability", label: "Model Explainability", icon: Sparkles },
+      { id: "error_analysis", label: "Error Diagnostics", icon: AlertTriangle },
+      { id: "benchmarks", label: "Research Benchmarks", icon: GitCompare },
     ],
   },
   {

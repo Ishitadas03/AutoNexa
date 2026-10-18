@@ -3,9 +3,16 @@
 import {
   AnalysisRequest,
   AnalysisResponse,
+  BenchmarkCompareRequest,
+  BenchmarkComparisonResponse,
   DatasetProfileResponse,
+  ErrorAnalysisRequest,
+  ErrorAnalysisResponse,
   ExperimentInspectionResponse,
+  GlobalFeatureImportanceResponse,
   HealthResponse,
+  PredictionExplanationRequest,
+  PredictionExplanationResponse,
   PredictionRequest,
   PredictionResponse,
   TrainingRequest,
@@ -173,5 +180,66 @@ export const api = {
 
     const blob = await res.blob();
     return { blob, filename };
+  },
+
+  /** Compute global feature importances for an experiment's winning pipeline */
+  async getFeatureImportance(
+    experimentId: string,
+    method?: "auto" | "native" | "permutation",
+    sampleSize?: number,
+    randomState?: number
+  ): Promise<GlobalFeatureImportanceResponse> {
+    const params = new URLSearchParams();
+    if (method) params.append("method", method);
+    if (sampleSize) params.append("sample_size", sampleSize.toString());
+    if (randomState !== undefined) params.append("random_state", randomState.toString());
+
+    const qs = params.toString() ? `?${params.toString()}` : "";
+    const url = getEffectiveUrl(`/api/v1/experiments/${experimentId}/explainability/importance${qs}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<GlobalFeatureImportanceResponse>(res);
+  },
+
+  /** Generate local prediction attributions for input records */
+  async explainPrediction(
+    experimentId: string,
+    request: PredictionExplanationRequest
+  ): Promise<PredictionExplanationResponse> {
+    const url = getEffectiveUrl(`/api/v1/experiments/${experimentId}/explainability/prediction`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    return handleResponse<PredictionExplanationResponse>(res);
+  },
+
+  /** Execute prediction error analysis */
+  async analyzeErrors(
+    experimentId: string,
+    request?: ErrorAnalysisRequest
+  ): Promise<ErrorAnalysisResponse> {
+    const url = getEffectiveUrl(`/api/v1/experiments/${experimentId}/error-analysis`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request || {}),
+    });
+    return handleResponse<ErrorAnalysisResponse>(res);
+  },
+
+  /** Comparative research benchmarking across multiple experiments */
+  async compareBenchmarks(request: BenchmarkCompareRequest): Promise<BenchmarkComparisonResponse> {
+    const url = getEffectiveUrl(`/api/v1/benchmarks/compare`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    return handleResponse<BenchmarkComparisonResponse>(res);
   },
 };

@@ -182,6 +182,28 @@ flowchart TD
     - Features are validated against expected training columns. Target column is optional: if present in the input CSV (e.g., holdout evaluation data), it is safely excluded from inference features.
     - Emits a downloadable enriched CSV containing original input columns, `predicted_{target_column}`, and `probability_{class}` columns.
 
+### 3.8 Model Explainability, Prediction Error Analysis & Research Benchmarking (Phase 8 Implemented)
+- **Role**: Rigorous model interpretability, error diagnosis, and empirical comparability auditing.
+- **Implemented Capabilities**:
+  - **Global Feature Importance (`GET /api/v1/experiments/{experiment_id}/explainability/importance`)**:
+    - **Native Tree-Based Importance**: Extracts impurity/Gini or variance reduction importances directly from compatible tree estimators (`RandomForest`, `DecisionTree`).
+    - **One-Hot Reverse Mapping**: Automatically traverses the fitted `ColumnTransformer`'s `get_feature_names_out()`, disassembles transformed column prefixes (`numeric__`, `categorical__`), and maps expanded dummy variables (e.g. `categorical__contract_one-year`) back to human-readable labels (`contract = one-year`) and original input feature spaces (`contract`). Aggregates net feature importances with normalized relative percentages.
+    - **Model-Agnostic Permutation Importance**: Evaluates performance degradation across repeated shuffles (`n_repeats=5`) on reproducible samples of holdout evaluation data without altering fitted pipeline parameters. Computes mean and standard deviation of importance.
+    - **Scientific Limitations**: Clarifies in all response payloads that feature importances demonstrate predictive association rather than causal mechanisms.
+  - **Local Prediction Explanations (`POST /api/v1/experiments/{experiment_id}/explainability/prediction`)**:
+    - **SHAP Integration**: Integrates `shap` 0.51.0 with estimators using `TreeExplainer` for tree models, `LinearExplainer` for linear models, and generic explainers with background reference distributions.
+    - **Model-Agnostic Marginal Perturbation Fallback**: Automatically activates when SHAP is disabled or unsupported, computing leave-one-covariate-out feature attribution against background distributions without system crashes.
+    - **Task-Specific Representation**: Correctly differentiates continuous regression values, binary positive class log-odds/probabilities, and multiclass per-class attribution maps.
+  - **Prediction Error Analysis (`POST /api/v1/experiments/{experiment_id}/error-analysis`)**:
+    - **Classification Error Diagnostics**: Computes confusion matrix, per-class precision, recall, F1-score, support, false-positive/negative counts, class imbalance ratios, Brier score quadratic loss, and confidence calibration buckets. Prioritizes misclassified instances by model confidence (most confident mistakes first).
+    - **Regression Residual Diagnostics**: Analyzes signed and absolute residuals ($e_i = y_i - \hat{y}_i$), reporting MAE, RMSE, median absolute error, $R^2$, and distribution percentiles (min, 25%, median, 75%, max, std). Correlates numeric predictors with absolute error magnitudes and computes sliced error profiles across categorical levels.
+    - **Leakage Safeguards**: Evaluates strictly on the untouched holdout test partition by default. When the caller requests the training partition, explicitly tags `is_independent_test_evaluation=False` and appends an audit warning regarding training error optimism.
+  - **Reproducible Research Benchmarking (`POST /api/v1/benchmarks/compare`)**:
+    - **Scientific Comparability Audit**: Inspects candidate experiments across 6 experimental dimensions: dataset SHA-256 fingerprint, target column, evaluation strategy (holdout vs cross-validation), test split sizes, random seeds, and input feature schemas.
+    - **Comparability Classification**: Flags runs as `strictly_comparable`, `conditionally_comparable`, or `non_comparable`, preventing invalid claims of model superiority when evaluation conditions differ.
+    - **Normalized Leaderboard**: Synthesizes a ranked leaderboard sorted by primary metric, computing absolute deltas and relative percentages against an optional designated baseline experiment.
+    - **Reproducibility Manifest**: Generates machine-readable records of dataset fingerprints, software package versions, random seeds, and execution durations.
+
 ---
 
 ## 4. Architectural Principles
@@ -190,3 +212,4 @@ flowchart TD
 2. **Reproducibility by Design**: Every experiment run records exact seeds, package versions, and data hashes to guarantee replicable research results.
 3. **Resource Sensitivity**: Automated execution must respect system constraints to prevent out-of-memory crashes on constrained hardware.
 4. **Security & Data Privacy**: Safe handling of user-submitted files, strict size limits, sanitization of file paths without arbitrary code execution, and containment of serialized model loading.
+5. **Scientific Rigor & Leakage Prevention**: Never evaluate test metrics on training partitions without explicit audit flags. Disclaim causal attribution in model explainability and reject non-equivalent benchmark comparisons.

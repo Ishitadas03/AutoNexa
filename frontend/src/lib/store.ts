@@ -17,6 +17,9 @@ export type WorkspaceTab =
   | "experiments"
   | "details"
   | "prediction"
+  | "explainability"
+  | "error_analysis"
+  | "benchmarks"
   | "models"
   | "docs"
   | "settings";
