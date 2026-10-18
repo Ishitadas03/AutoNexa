@@ -112,6 +112,14 @@ class CandidateMeasurement(BaseModel):
         default=None,
         description="Peak memory allocated during training in bytes on the Python heap via tracemalloc (excludes external native C/C++ library buffers)",
     )
+    peak_process_rss_bytes: Optional[int] = Field(
+        default=None,
+        description="Operating system process Resident Set Size (RSS) in bytes measured via psutil at training completion",
+    )
+    rss_delta_bytes: Optional[int] = Field(
+        default=None,
+        description="Change in process Resident Set Size (RSS) during training in bytes via psutil",
+    )
 
     # Complexity
     complexity: ModelComplexityMetadata = Field(..., description="Quantified structural model complexity")

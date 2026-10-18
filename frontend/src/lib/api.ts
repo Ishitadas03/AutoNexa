@@ -30,6 +30,9 @@ import {
   MultiObjectiveSelectionRequest,
   MultiObjectiveSelectionResult,
   ParetoCandidateResult,
+  DatasetCatalogEntry,
+  RobustBenchmarkRequest,
+  RobustBenchmarkResponse,
 } from "@/types/api";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -405,6 +408,44 @@ export const api = {
   /** Get CSV download URL for multi-objective candidates */
   getMultiObjectiveCsvUrl(experimentId: string): string {
     return getEffectiveUrl(`/api/v1/benchmarks/multi-objective/${encodeURIComponent(experimentId)}/export-csv`);
+  },
+
+  /** Phase 11: List curated benchmark datasets with provenance */
+  async getBenchmarkDatasetCatalog(): Promise<DatasetCatalogEntry[]> {
+    const url = getEffectiveUrl("/api/v1/benchmarks/dataset-catalog");
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<DatasetCatalogEntry[]>(res);
+  },
+
+  /** Phase 11: Execute multi-seed robust benchmark */
+  async runRobustBenchmark(request: RobustBenchmarkRequest): Promise<RobustBenchmarkResponse> {
+    const url = getEffectiveUrl("/api/v1/benchmarks/robust");
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    return handleResponse<RobustBenchmarkResponse>(res);
+  },
+
+  /** Phase 11: Retrieve existing robust benchmark by ID */
+  async getRobustBenchmark(robustBenchmarkId: string): Promise<RobustBenchmarkResponse> {
+    const url = getEffectiveUrl(`/api/v1/benchmarks/robust/${encodeURIComponent(robustBenchmarkId)}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<RobustBenchmarkResponse>(res);
+  },
+
+  /** Phase 11: Get CSV download URL for robust benchmark seed runs */
+  getRobustBenchmarkCsvUrl(robustBenchmarkId: string): string {
+    return getEffectiveUrl(`/api/v1/benchmarks/robust/${encodeURIComponent(robustBenchmarkId)}/export-csv`);
   },
 };
 

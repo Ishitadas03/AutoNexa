@@ -26,9 +26,18 @@ from app.schemas.research_benchmark import (
     RepeatedRunGroupResponse,
     RepeatedRunRequest,
 )
+from app.schemas.robust_benchmark import (
+    DatasetCatalogEntry,
+    RobustBenchmarkRequest,
+    RobustBenchmarkResponse,
+)
 from app.services.automl.benchmark_service import (
     BenchmarkService,
     get_benchmark_service,
+)
+from app.services.automl.dataset_catalog import (
+    DatasetCatalogService,
+    get_dataset_catalog_service,
 )
 from app.services.automl.hpo_service import (
     HPOService,
@@ -42,6 +51,10 @@ from app.services.automl.multi_objective_service import (
 from app.services.automl.research_benchmarking_service import (
     ResearchBenchmarkingService,
     get_research_benchmark_service,
+)
+from app.services.automl.robust_benchmarking_service import (
+    RobustBenchmarkingService,
+    get_robust_benchmark_service,
 )
 
 router = APIRouter(prefix="/benchmarks", tags=["Benchmarks"])
@@ -319,4 +332,87 @@ def export_multi_objective_csv(
         media_type="text/csv",
         headers={"Content-Disposition": f'attachment; filename="multi_objective_{experiment_id}.csv"'},
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase 11: Robust Multi-Seed Benchmarking & Dataset Catalog Endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/dataset-catalog",
+    response_model=List[DatasetCatalogEntry],
+    status_code=status.HTTP_200_OK,
+    summary="List Curated & Cached Benchmark Datasets",
+    description=(
+        "Returns the catalog of reproducible benchmark datasets available on local disk, "
+        "including cryptographic SHA-256 fingerprints, licenses, task types, provenance, and row/feature counts."
+    ),
+)
+def list_benchmark_dataset_catalog(
+    service: DatasetCatalogService = Depends(get_dataset_catalog_service),
+) -> List[DatasetCatalogEntry]:
+    """List all available benchmark datasets with provenance metadata."""
+    return service.list_catalog()
+
+
+@router.post(
+    "/robust",
+    response_model=RobustBenchmarkResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Execute Multi-Seed Robust AutoML Benchmark",
+    description=(
+        "Executes a rigorous multi-seed experimental protocol across multiple distinct random seeds. "
+        "Ensures matched data splits, strict holdout test partition isolation, fold-level preprocessing without leakage, "
+        "process RSS profiling via psutil, and paired statistical hypothesis testing with Bonferroni correction."
+    ),
+)
+def execute_robust_benchmark(
+    request: RobustBenchmarkRequest,
+    service: RobustBenchmarkingService = Depends(get_robust_benchmark_service),
+) -> RobustBenchmarkResponse:
+    """Execute multi-seed robust benchmark experiment."""
+    return service.run_robust_benchmark(request=request)
+
+
+@router.get(
+    "/robust/{robust_benchmark_id}",
+    response_model=RobustBenchmarkResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve Robust Benchmark Report",
+    description="Loads a previously executed robust benchmark report including aggregate statistics, paired tests, and raw seed traces.",
+)
+def get_robust_benchmark_report(
+    robust_benchmark_id: str,
+    service: RobustBenchmarkingService = Depends(get_robust_benchmark_service),
+) -> RobustBenchmarkResponse:
+    """Retrieve robust benchmark report by ID."""
+    report = service.get_robust_benchmark(benchmark_id=robust_benchmark_id)
+    if not report:
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Robust benchmark '{robust_benchmark_id}' not found.",
+        )
+    return report
+
+
+@router.get(
+    "/robust/{robust_benchmark_id}/export-csv",
+    status_code=status.HTTP_200_OK,
+    summary="Download Robust Benchmark Seed Runs as CSV",
+    description="Streams a CSV export of all individual seed runs, metrics, and resource profiling measurements.",
+)
+def export_robust_benchmark_csv(
+    robust_benchmark_id: str,
+    service: RobustBenchmarkingService = Depends(get_robust_benchmark_service),
+) -> Response:
+    """Download robust benchmark per-seed runs as CSV."""
+    csv_content = service.export_csv(benchmark_id=robust_benchmark_id)
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="robust_benchmark_{robust_benchmark_id}.csv"'},
+    )
+
 

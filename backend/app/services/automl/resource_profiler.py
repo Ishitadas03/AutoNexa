@@ -66,6 +66,48 @@ class ResourceProfiler:
         return latency_ms_per_sample, throughput_samples_sec
 
     @staticmethod
+    def get_process_rss_bytes() -> Optional[int]:
+        """Read current process Resident Set Size (RSS) in bytes via psutil.
+
+        Returns:
+            Current process RSS in bytes, or None if psutil is unavailable or fails.
+        """
+        try:
+            import psutil
+            return int(psutil.Process().memory_info().rss)
+        except Exception as exc:
+            logger.warning("Failed to read process RSS via psutil: %s", exc)
+            return None
+
+    @staticmethod
+    def profile_training_execution(
+        fit_fn: Any,
+    ) -> Tuple[float, Optional[int], Optional[int], Optional[int]]:
+        """Profile pipeline fitting with monotonic clock, Python heap tracking, and process RSS.
+
+        Returns:
+            Tuple[duration_seconds, peak_python_heap_bytes, peak_process_rss_bytes, rss_delta_bytes]
+        """
+        rss_baseline = ResourceProfiler.get_process_rss_bytes()
+        tracemalloc.start()
+        t0 = time.perf_counter()
+        try:
+            fit_fn()
+        finally:
+            elapsed = time.perf_counter() - t0
+            _, peak_heap = tracemalloc.get_traced_memory()
+            tracemalloc.stop()
+            rss_after = ResourceProfiler.get_process_rss_bytes()
+
+        duration_seconds = round(elapsed, 4)
+        rss_delta = (
+            (rss_after - rss_baseline)
+            if (rss_after is not None and rss_baseline is not None)
+            else None
+        )
+        return duration_seconds, peak_heap, rss_after, rss_delta
+
+    @staticmethod
     def measure_artifact_size_bytes(pipeline: Any) -> int:
         """Measure serialized joblib disk footprint in bytes without persisting to disk."""
         buf = io.BytesIO()

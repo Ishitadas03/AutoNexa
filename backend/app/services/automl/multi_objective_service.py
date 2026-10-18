@@ -395,12 +395,9 @@ class MultiObjectiveService:
                     ("model", sklearn.base.clone(estimator)),
                 ])
 
-                tracemalloc.start()
-                t0_train = time.perf_counter()
-                candidate_pipeline.fit(X_train_val, y_train_val)
-                train_duration = round(time.perf_counter() - t0_train, 4)
-                _, peak_mem = tracemalloc.get_traced_memory()
-                tracemalloc.stop()
+                train_duration, peak_mem, peak_rss, rss_delta = ResourceProfiler.profile_training_execution(
+                    lambda: candidate_pipeline.fit(X_train_val, y_train_val)
+                )
 
                 fitted_pipelines[cand_id] = candidate_pipeline
 
@@ -430,6 +427,8 @@ class MultiObjectiveService:
                     inference_throughput_samples_per_sec=tput_sec,
                     model_artifact_size_bytes=artifact_size,
                     peak_memory_bytes=peak_mem,
+                    peak_process_rss_bytes=peak_rss,
+                    rss_delta_bytes=rss_delta,
                     complexity=complexity,
                     test_score=None,
                     test_metrics=None,
@@ -698,6 +697,8 @@ class MultiObjectiveService:
                 "inference_throughput_samples_per_sec": m.inference_throughput_samples_per_sec,
                 "model_artifact_size_bytes": m.model_artifact_size_bytes,
                 "peak_memory_bytes": m.peak_memory_bytes if m.peak_memory_bytes is not None else "",
+                "peak_process_rss_bytes": m.peak_process_rss_bytes if m.peak_process_rss_bytes is not None else "",
+                "rss_delta_bytes": m.rss_delta_bytes if m.rss_delta_bytes is not None else "",
                 "complexity_score": m.complexity.summary_complexity_score,
                 "complexity_unit": m.complexity.complexity_unit,
                 "distance_to_utopia": c.distance_to_utopia if c.distance_to_utopia is not None else "",

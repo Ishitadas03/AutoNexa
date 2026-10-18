@@ -1,0 +1,1836 @@
+{
+  "manifest_version": "1.0.0",
+  "phase": "Phase 11: Robust AutoML Benchmarking & Statistical Reliability",
+  "created_at": "2026-10-18T19:22:09.229142+00:00",
+  "git": {
+    "git_commit": "1928b8fef17ba91d4ac635dff32d105ff1f9c179",
+    "git_branch": "main",
+    "is_dirty": true,
+    "uncommitted_files_count": 20
+  },
+  "execution_platform": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python_version": "3.11.3",
+    "cpu_count": 12,
+    "system_total_ram_gb": 7.34,
+    "machine": "AMD64",
+    "package_versions": {
+      "scikit-learn": "1.9.1",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "scipy": "1.17.1",
+      "psutil": "7.2.2"
+    },
+    "profiler_instrumentation": {
+      "process_rss_scope": "psutil.Process().memory_info().rss (Resident Set Size including native C libs)",
+      "python_heap_scope": "tracemalloc.get_traced_memory() (Python interpreter heap allocations only)",
+      "sampling_overhead": "Low: Monotonic timing via time.perf_counter(), instantaneous pre/post fit memory reads"
+    }
+  },
+  "scientific_safeguards": {
+    "leakage_prevention": "Train/Val and Holdout Test partition strictly isolated at 80/20. Feature scaling and imputation transformers fit strictly inside each CV fold. Final holdout test set evaluated post-selection and never used for model selection or tuning.",
+    "statistical_methods": {
+      "sample_variance": "Bessel's correction (ddof=1) applied for all sample standard deviations",
+      "confidence_intervals": "Student's t-distribution with df=N-1 and Non-Parametric Bootstrap (B=1000 resamples)",
+      "paired_comparison": "Exact per-seed difference Delta_s = Score_A,s - Score_B,s on matched partitions",
+      "effect_size": "Cohen's dz = Mean(Delta) / Std(Delta)",
+      "multiple_testing": "Bonferroni FWER adjustment: p_adj = min(1.0, p * m)",
+      "small_sample_policy": "Conservative warning for N < 5; non-rejection of null does not prove equivalence"
+    }
+  },
+  "experiments": {
+    "classification_experiment": {
+      "benchmark_id": "79104ef6-8467-4465-b59c-6c7b098add35",
+      "dataset": {
+        "dataset_id": "wine_multiclass",
+        "name": "Wine Recognition Benchmark",
+        "source": "local_fixture",
+        "provenance": "Forina et al. (1991), Institute of Pharmaceutical and Food Analysis and Technologies, Genoa / OpenML ID 187",
+        "license": "CC BY 4.0",
+        "task_type": "multiclass_classification",
+        "target_column": "target",
+        "n_rows": 178,
+        "n_features": 13,
+        "numeric_features_count": 13,
+        "categorical_features_count": 0,
+        "has_missing_values": false,
+        "missing_cells_count": 0,
+        "dataset_fingerprint": "0ee18636804d9b0623a71b3f7e6d4b53a34eba03821c2db6e525e593a0580723",
+        "is_cached": true,
+        "description": "178 instances, 13 continuous chemical constituents of wines grown in the same region in Italy across 3 cultivars."
+      },
+      "seeds_evaluated": [
+        42,
+        123,
+        456,
+        789,
+        1011
+      ],
+      "primary_metric": "f1_weighted",
+      "baseline_strategy": "decision_tree",
+      "method_summaries": {
+        "logistic_regression": {
+          "method_name": "logistic_regression",
+          "n_seeds_requested": 5,
+          "n_seeds_successful": 5,
+          "n_seeds_failed": 0,
+          "validation_score": {
+            "metric_name": "validation_f1_weighted",
+            "valid_runs": 5,
+            "mean": 0.9816,
+            "std": 0.0128,
+            "median": 0.9857,
+            "q25": 0.9716,
+            "q75": 0.9929,
+            "iqr": 0.0213,
+            "min": 0.9648,
+            "max": 0.9929,
+            "ci_95_t": [
+              0.9657,
+              0.9975
+            ],
+            "ci_95_bootstrap": [
+              0.9717,
+              0.9915
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "holdout_test_score": {
+            "metric_name": "holdout_test_f1_weighted",
+            "valid_runs": 5,
+            "mean": 0.9889,
+            "std": 0.0152,
+            "median": 1.0,
+            "q25": 0.9724,
+            "q75": 1.0,
+            "iqr": 0.0276,
+            "min": 0.972,
+            "max": 1.0,
+            "ci_95_t": [
+              0.97,
+              1.0078
+            ],
+            "ci_95_bootstrap": [
+              0.9777,
+              1.0
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "training_duration_seconds": {
+            "metric_name": "training_duration_seconds",
+            "valid_runs": 5,
+            "mean": 0.0347,
+            "std": 0.006,
+            "median": 0.0325,
+            "q25": 0.0314,
+            "q75": 0.033,
+            "iqr": 0.0016,
+            "min": 0.0311,
+            "max": 0.0454,
+            "ci_95_t": [
+              0.0272,
+              0.0422
+            ],
+            "ci_95_bootstrap": [
+              0.0315,
+              0.0401
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "inference_latency_ms": {
+            "metric_name": "inference_latency_ms",
+            "valid_runs": 5,
+            "mean": 0.0267,
+            "std": 0.0071,
+            "median": 0.0243,
+            "q25": 0.0234,
+            "q75": 0.0245,
+            "iqr": 0.0011,
+            "min": 0.0221,
+            "max": 0.0394,
+            "ci_95_t": [
+              0.0179,
+              0.0356
+            ],
+            "ci_95_bootstrap": [
+              0.0231,
+              0.0332
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "model_artifact_size_bytes": {
+            "metric_name": "model_artifact_size_bytes",
+            "valid_runs": 5,
+            "mean": 2240.8,
+            "std": 3.4928,
+            "median": 2241.0,
+            "q25": 2241.0,
+            "q75": 2243.0,
+            "iqr": 2.0,
+            "min": 2235.0,
+            "max": 2244.0,
+            "ci_95_t": [
+              2236.4631,
+              2245.1369
+            ],
+            "ci_95_bootstrap": [
+              2237.8,
+              2243.0
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_heap_bytes": {
+            "metric_name": "peak_heap_bytes",
+            "valid_runs": 5,
+            "mean": 138922.0,
+            "std": 2683.4422,
+            "median": 137657.0,
+            "q25": 137657.0,
+            "q75": 137977.0,
+            "iqr": 320.0,
+            "min": 137604.0,
+            "max": 143715.0,
+            "ci_95_t": [
+              135590.0664,
+              142253.9336
+            ],
+            "ci_95_bootstrap": [
+              137635.8,
+              141355.8
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_process_rss_bytes": {
+            "metric_name": "peak_process_rss_bytes",
+            "valid_runs": 5,
+            "mean": 221903257.6,
+            "std": 1830104.5343,
+            "median": 222334976.0,
+            "q25": 221655040.0,
+            "q75": 223014912.0,
+            "iqr": 1359872.0,
+            "min": 218902528.0,
+            "max": 223608832.0,
+            "ci_95_t": [
+              219630882.6869,
+              224175632.5131
+            ],
+            "ci_95_bootstrap": [
+              220275507.2,
+              223116492.8
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "rss_delta_bytes": {
+            "metric_name": "rss_delta_bytes",
+            "valid_runs": 5,
+            "mean": 52428.8,
+            "std": 117234.3608,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0,
+            "iqr": 0.0,
+            "min": 0.0,
+            "max": 262144.0,
+            "ci_95_t": [
+              -93136.8851,
+              197994.4851
+            ],
+            "ci_95_bootstrap": [
+              0.0,
+              157286.4
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          }
+        },
+        "decision_tree": {
+          "method_name": "decision_tree",
+          "n_seeds_requested": 5,
+          "n_seeds_successful": 5,
+          "n_seeds_failed": 0,
+          "validation_score": {
+            "metric_name": "validation_f1_weighted",
+            "valid_runs": 5,
+            "mean": 0.8991,
+            "std": 0.0195,
+            "median": 0.8932,
+            "q25": 0.8867,
+            "q75": 0.9082,
+            "iqr": 0.0215,
+            "min": 0.8793,
+            "max": 0.9283,
+            "ci_95_t": [
+              0.875,
+              0.9233
+            ],
+            "ci_95_bootstrap": [
+              0.885,
+              0.9145
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "holdout_test_score": {
+            "metric_name": "holdout_test_f1_weighted",
+            "valid_runs": 5,
+            "mean": 0.9279,
+            "std": 0.0465,
+            "median": 0.9162,
+            "q25": 0.8901,
+            "q75": 0.945,
+            "iqr": 0.0549,
+            "min": 0.8881,
+            "max": 1.0,
+            "ci_95_t": [
+              0.8702,
+              0.9856
+            ],
+            "ci_95_bootstrap": [
+              0.8945,
+              0.9666
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "training_duration_seconds": {
+            "metric_name": "training_duration_seconds",
+            "valid_runs": 5,
+            "mean": 0.0222,
+            "std": 0.0036,
+            "median": 0.0207,
+            "q25": 0.0193,
+            "q75": 0.0245,
+            "iqr": 0.0052,
+            "min": 0.0191,
+            "max": 0.0272,
+            "ci_95_t": [
+              0.0177,
+              0.0266
+            ],
+            "ci_95_bootstrap": [
+              0.0195,
+              0.0251
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "inference_latency_ms": {
+            "metric_name": "inference_latency_ms",
+            "valid_runs": 5,
+            "mean": 0.0268,
+            "std": 0.0049,
+            "median": 0.0252,
+            "q25": 0.0241,
+            "q75": 0.0301,
+            "iqr": 0.006,
+            "min": 0.0211,
+            "max": 0.0333,
+            "ci_95_t": [
+              0.0207,
+              0.0328
+            ],
+            "ci_95_bootstrap": [
+              0.0231,
+              0.0304
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "model_artifact_size_bytes": {
+            "metric_name": "model_artifact_size_bytes",
+            "valid_runs": 5,
+            "mean": 2507.8,
+            "std": 120.8437,
+            "median": 2474.0,
+            "q25": 2428.0,
+            "q75": 2621.0,
+            "iqr": 193.0,
+            "min": 2370.0,
+            "max": 2646.0,
+            "ci_95_t": [
+              2357.7527,
+              2657.8473
+            ],
+            "ci_95_bootstrap": [
+              2416.4,
+              2601.6
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_heap_bytes": {
+            "metric_name": "peak_heap_bytes",
+            "valid_runs": 5,
+            "mean": 137335.4,
+            "std": 453.2221,
+            "median": 137204.0,
+            "q25": 137203.0,
+            "q75": 137204.0,
+            "iqr": 1.0,
+            "min": 136945.0,
+            "max": 138121.0,
+            "ci_95_t": [
+              136772.6504,
+              137898.1496
+            ],
+            "ci_95_bootstrap": [
+              137048.6,
+              137754.0
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_process_rss_bytes": {
+            "metric_name": "peak_process_rss_bytes",
+            "valid_runs": 5,
+            "mean": 221972889.6,
+            "std": 1688127.529,
+            "median": 222330880.0,
+            "q25": 221659136.0,
+            "q75": 223014912.0,
+            "iqr": 1355776.0,
+            "min": 219250688.0,
+            "max": 223608832.0,
+            "ci_95_t": [
+              219876802.4228,
+              224068976.7772
+            ],
+            "ci_95_bootstrap": [
+              220485222.4,
+              223115673.6
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "rss_delta_bytes": {
+            "metric_name": "rss_delta_bytes",
+            "valid_runs": 5,
+            "mean": 2457.6,
+            "std": 7984.5739,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0,
+            "iqr": 0.0,
+            "min": -4096.0,
+            "max": 16384.0,
+            "ci_95_t": [
+              -7456.558,
+              12371.758
+            ],
+            "ci_95_bootstrap": [
+              -2457.6,
+              9830.4
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          }
+        },
+        "random_forest": {
+          "method_name": "random_forest",
+          "n_seeds_requested": 5,
+          "n_seeds_successful": 5,
+          "n_seeds_failed": 0,
+          "validation_score": {
+            "metric_name": "validation_f1_weighted",
+            "valid_runs": 5,
+            "mean": 0.9575,
+            "std": 0.0214,
+            "median": 0.9645,
+            "q25": 0.9576,
+            "q75": 0.9648,
+            "iqr": 0.0072,
+            "min": 0.9218,
+            "max": 0.9789,
+            "ci_95_t": [
+              0.9309,
+              0.9841
+            ],
+            "ci_95_bootstrap": [
+              0.9376,
+              0.9704
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "holdout_test_score": {
+            "metric_name": "holdout_test_f1_weighted",
+            "valid_runs": 5,
+            "mean": 0.9889,
+            "std": 0.0151,
+            "median": 1.0,
+            "q25": 0.9724,
+            "q75": 1.0,
+            "iqr": 0.0276,
+            "min": 0.9723,
+            "max": 1.0,
+            "ci_95_t": [
+              0.9701,
+              1.0077
+            ],
+            "ci_95_bootstrap": [
+              0.9779,
+              1.0
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "training_duration_seconds": {
+            "metric_name": "training_duration_seconds",
+            "valid_runs": 5,
+            "mean": 0.2442,
+            "std": 0.0316,
+            "median": 0.2309,
+            "q25": 0.2237,
+            "q75": 0.2483,
+            "iqr": 0.0246,
+            "min": 0.2209,
+            "max": 0.2974,
+            "ci_95_t": [
+              0.205,
+              0.2834
+            ],
+            "ci_95_bootstrap": [
+              0.224,
+              0.2694
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "inference_latency_ms": {
+            "metric_name": "inference_latency_ms",
+            "valid_runs": 5,
+            "mean": 0.049,
+            "std": 0.0082,
+            "median": 0.0453,
+            "q25": 0.0433,
+            "q75": 0.0518,
+            "iqr": 0.0085,
+            "min": 0.0426,
+            "max": 0.0622,
+            "ci_95_t": [
+              0.0389,
+              0.0592
+            ],
+            "ci_95_bootstrap": [
+              0.0436,
+              0.056
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "model_artifact_size_bytes": {
+            "metric_name": "model_artifact_size_bytes",
+            "valid_runs": 5,
+            "mean": 13597.4,
+            "std": 404.5075,
+            "median": 13617.0,
+            "q25": 13478.0,
+            "q75": 13646.0,
+            "iqr": 168.0,
+            "min": 13059.0,
+            "max": 14187.0,
+            "ci_95_t": [
+              13095.1376,
+              14099.6624
+            ],
+            "ci_95_bootstrap": [
+              13288.0,
+              13903.4
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_heap_bytes": {
+            "metric_name": "peak_heap_bytes",
+            "valid_runs": 5,
+            "mean": 141155.6,
+            "std": 323.4962,
+            "median": 141310.0,
+            "q25": 140937.0,
+            "q75": 141417.0,
+            "iqr": 480.0,
+            "min": 140697.0,
+            "max": 141417.0,
+            "ci_95_t": [
+              140753.9264,
+              141557.2736
+            ],
+            "ci_95_bootstrap": [
+              140889.0,
+              141395.6
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_process_rss_bytes": {
+            "metric_name": "peak_process_rss_bytes",
+            "valid_runs": 5,
+            "mean": 222005657.6,
+            "std": 1618465.8684,
+            "median": 222326784.0,
+            "q25": 221667328.0,
+            "q75": 223010816.0,
+            "iqr": 1343488.0,
+            "min": 219418624.0,
+            "max": 223604736.0,
+            "ci_95_t": [
+              219996066.7989,
+              224015248.4011
+            ],
+            "ci_95_bootstrap": [
+              220586803.2,
+              223111577.6
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "rss_delta_bytes": {
+            "metric_name": "rss_delta_bytes",
+            "valid_runs": 5,
+            "mean": 8192.0,
+            "std": 23170.475,
+            "median": -4096.0,
+            "q25": -4096.0,
+            "q75": 4096.0,
+            "iqr": 8192.0,
+            "min": -4096.0,
+            "max": 49152.0,
+            "ci_95_t": [
+              -20577.9446,
+              36961.9446
+            ],
+            "ci_95_bootstrap": [
+              -4096.0,
+              29491.2
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          }
+        },
+        "hist_gradient_boosting": {
+          "method_name": "hist_gradient_boosting",
+          "n_seeds_requested": 5,
+          "n_seeds_successful": 5,
+          "n_seeds_failed": 0,
+          "validation_score": {
+            "metric_name": "validation_f1_weighted",
+            "valid_runs": 5,
+            "mean": 0.9535,
+            "std": 0.0222,
+            "median": 0.9502,
+            "q25": 0.9434,
+            "q75": 0.9718,
+            "iqr": 0.0284,
+            "min": 0.9235,
+            "max": 0.9785,
+            "ci_95_t": [
+              0.9259,
+              0.9811
+            ],
+            "ci_95_bootstrap": [
+              0.9354,
+              0.9688
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "holdout_test_score": {
+            "metric_name": "holdout_test_f1_weighted",
+            "valid_runs": 5,
+            "mean": 0.9778,
+            "std": 0.0124,
+            "median": 0.9724,
+            "q25": 0.9723,
+            "q75": 0.9724,
+            "iqr": 0.0001,
+            "min": 0.9721,
+            "max": 1.0,
+            "ci_95_t": [
+              0.9625,
+              0.9932
+            ],
+            "ci_95_bootstrap": [
+              0.9722,
+              0.9889
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "training_duration_seconds": {
+            "metric_name": "training_duration_seconds",
+            "valid_runs": 5,
+            "mean": 0.2432,
+            "std": 0.0069,
+            "median": 0.2456,
+            "q25": 0.2365,
+            "q75": 0.2461,
+            "iqr": 0.0096,
+            "min": 0.2357,
+            "max": 0.2519,
+            "ci_95_t": [
+              0.2346,
+              0.2517
+            ],
+            "ci_95_bootstrap": [
+              0.238,
+              0.2484
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "inference_latency_ms": {
+            "metric_name": "inference_latency_ms",
+            "valid_runs": 5,
+            "mean": 0.0394,
+            "std": 0.0038,
+            "median": 0.0395,
+            "q25": 0.0377,
+            "q75": 0.0418,
+            "iqr": 0.0041,
+            "min": 0.0341,
+            "max": 0.0439,
+            "ci_95_t": [
+              0.0347,
+              0.0441
+            ],
+            "ci_95_bootstrap": [
+              0.0366,
+              0.0422
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "model_artifact_size_bytes": {
+            "metric_name": "model_artifact_size_bytes",
+            "valid_runs": 5,
+            "mean": 33485.4,
+            "std": 766.0997,
+            "median": 33772.0,
+            "q25": 33208.0,
+            "q75": 33889.0,
+            "iqr": 681.0,
+            "min": 32294.0,
+            "max": 34264.0,
+            "ci_95_t": [
+              32534.1615,
+              34436.6385
+            ],
+            "ci_95_bootstrap": [
+              32870.8,
+              34039.0
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_heap_bytes": {
+            "metric_name": "peak_heap_bytes",
+            "valid_runs": 5,
+            "mean": 435508.6,
+            "std": 6019.7964,
+            "median": 435382.0,
+            "q25": 430497.0,
+            "q75": 437946.0,
+            "iqr": 7449.0,
+            "min": 429435.0,
+            "max": 444283.0,
+            "ci_95_t": [
+              428034.0356,
+              442983.1644
+            ],
+            "ci_95_bootstrap": [
+              431261.6,
+              440051.31
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_process_rss_bytes": {
+            "metric_name": "peak_process_rss_bytes",
+            "valid_runs": 5,
+            "mean": 222870732.8,
+            "std": 1080247.2984,
+            "median": 223047680.0,
+            "q25": 222347264.0,
+            "q75": 223563776.0,
+            "iqr": 1216512.0,
+            "min": 221315072.0,
+            "max": 224079872.0,
+            "ci_95_t": [
+              221529428.6204,
+              224212036.9796
+            ],
+            "ci_95_bootstrap": [
+              221971251.2,
+              223666995.2
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "rss_delta_bytes": {
+            "metric_name": "rss_delta_bytes",
+            "valid_runs": 5,
+            "mean": 317030.4,
+            "std": 113015.4615,
+            "median": 266240.0,
+            "q25": 237568.0,
+            "q75": 360448.0,
+            "iqr": 122880.0,
+            "min": 225280.0,
+            "max": 495616.0,
+            "ci_95_t": [
+              176703.1702,
+              457357.6298
+            ],
+            "ci_95_bootstrap": [
+              238387.2,
+              416972.8
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          }
+        }
+      },
+      "paired_comparisons": [
+        {
+          "method_a": "logistic_regression",
+          "method_b": "decision_tree",
+          "metric_name": "f1_weighted",
+          "greater_is_better": true,
+          "n_matched_seeds": 5,
+          "mean_difference": 0.0824,
+          "std_difference": 0.0138,
+          "ci_95_difference": [
+            0.0654,
+            0.0995
+          ],
+          "cohens_dz": 5.9941,
+          "cohens_dz_magnitude": "large",
+          "t_statistic": 13.4033,
+          "t_test_p_value": 0.0002,
+          "wilcoxon_statistic": 0.0,
+          "wilcoxon_p_value": 0.0625,
+          "bonferroni_adjusted_p_value": 0.0006,
+          "verdict": "statistically_superior",
+          "per_seed_differences": [
+            {
+              "seed": 42,
+              "score_a": 0.9716,
+              "score_b": 0.8793,
+              "delta": 0.0923
+            },
+            {
+              "seed": 123,
+              "score_a": 0.9648,
+              "score_b": 0.8867,
+              "delta": 0.0781
+            },
+            {
+              "seed": 456,
+              "score_a": 0.9857,
+              "score_b": 0.9082,
+              "delta": 0.0775
+            },
+            {
+              "seed": 789,
+              "score_a": 0.9929,
+              "score_b": 0.9283,
+              "delta": 0.0646
+            },
+            {
+              "seed": 1011,
+              "score_a": 0.9929,
+              "score_b": 0.8932,
+              "delta": 0.0997
+            }
+          ],
+          "interpretation": "'logistic_regression' demonstrates statistically significant superiority over 'decision_tree' on f1_weighted (mean paired delta = +0.0824, p = 0.0006 < 0.05, Cohen's dz = 5.99 [large] across N=5 matched seeds)."
+        },
+        {
+          "method_a": "random_forest",
+          "method_b": "decision_tree",
+          "metric_name": "f1_weighted",
+          "greater_is_better": true,
+          "n_matched_seeds": 5,
+          "mean_difference": 0.0584,
+          "std_difference": 0.022,
+          "ci_95_difference": [
+            0.0311,
+            0.0856
+          ],
+          "cohens_dz": 2.6596,
+          "cohens_dz_magnitude": "large",
+          "t_statistic": 5.947,
+          "t_test_p_value": 0.004,
+          "wilcoxon_statistic": 0.0,
+          "wilcoxon_p_value": 0.0625,
+          "bonferroni_adjusted_p_value": 0.012,
+          "verdict": "statistically_superior",
+          "per_seed_differences": [
+            {
+              "seed": 42,
+              "score_a": 0.9218,
+              "score_b": 0.8793,
+              "delta": 0.0425
+            },
+            {
+              "seed": 123,
+              "score_a": 0.9789,
+              "score_b": 0.8867,
+              "delta": 0.0922
+            },
+            {
+              "seed": 456,
+              "score_a": 0.9648,
+              "score_b": 0.9082,
+              "delta": 0.0566
+            },
+            {
+              "seed": 789,
+              "score_a": 0.9645,
+              "score_b": 0.9283,
+              "delta": 0.0362
+            },
+            {
+              "seed": 1011,
+              "score_a": 0.9576,
+              "score_b": 0.8932,
+              "delta": 0.0644
+            }
+          ],
+          "interpretation": "'random_forest' demonstrates statistically significant superiority over 'decision_tree' on f1_weighted (mean paired delta = +0.0584, p = 0.0120 < 0.05, Cohen's dz = 2.66 [large] across N=5 matched seeds)."
+        },
+        {
+          "method_a": "hist_gradient_boosting",
+          "method_b": "decision_tree",
+          "metric_name": "f1_weighted",
+          "greater_is_better": true,
+          "n_matched_seeds": 5,
+          "mean_difference": 0.0543,
+          "std_difference": 0.0258,
+          "ci_95_difference": [
+            0.0223,
+            0.0864
+          ],
+          "cohens_dz": 2.1067,
+          "cohens_dz_magnitude": "large",
+          "t_statistic": 4.7107,
+          "t_test_p_value": 0.0092,
+          "wilcoxon_statistic": 0.0,
+          "wilcoxon_p_value": 0.0625,
+          "bonferroni_adjusted_p_value": 0.0276,
+          "verdict": "statistically_superior",
+          "per_seed_differences": [
+            {
+              "seed": 42,
+              "score_a": 0.9235,
+              "score_b": 0.8793,
+              "delta": 0.0442
+            },
+            {
+              "seed": 123,
+              "score_a": 0.9785,
+              "score_b": 0.8867,
+              "delta": 0.0918
+            },
+            {
+              "seed": 456,
+              "score_a": 0.9718,
+              "score_b": 0.9082,
+              "delta": 0.0636
+            },
+            {
+              "seed": 789,
+              "score_a": 0.9502,
+              "score_b": 0.9283,
+              "delta": 0.0219
+            },
+            {
+              "seed": 1011,
+              "score_a": 0.9434,
+              "score_b": 0.8932,
+              "delta": 0.0502
+            }
+          ],
+          "interpretation": "'hist_gradient_boosting' demonstrates statistically significant superiority over 'decision_tree' on f1_weighted (mean paired delta = +0.0543, p = 0.0276 < 0.05, Cohen's dz = 2.11 [large] across N=5 matched seeds)."
+        }
+      ],
+      "raw_runs_count": 20,
+      "csv_artifact": "docs/research/classification_seed_runs.csv"
+    },
+    "regression_experiment": {
+      "benchmark_id": "5b16ddef-7d0f-46b0-a35f-14fea48d4d9d",
+      "dataset": {
+        "dataset_id": "diabetes_regression",
+        "name": "Diabetes Disease Progression",
+        "source": "local_fixture",
+        "provenance": "Efron, Hastie, Johnstone & Tibshirani (2004), LARS / OpenML ID 531",
+        "license": "Public Domain / CC0",
+        "task_type": "regression",
+        "target_column": "target",
+        "n_rows": 442,
+        "n_features": 10,
+        "numeric_features_count": 10,
+        "categorical_features_count": 0,
+        "has_missing_values": false,
+        "missing_cells_count": 0,
+        "dataset_fingerprint": "628ac10ad7a59a6d9929771095fd50c2e27084b1104a2ea53683b0273f6bf13b",
+        "is_cached": true,
+        "description": "442 diabetes patients, 10 baseline variables (age, sex, bmi, bp, s1-s6), target is quantitative disease progression measure."
+      },
+      "seeds_evaluated": [
+        42,
+        123,
+        456,
+        789,
+        1011
+      ],
+      "primary_metric": "rmse",
+      "baseline_strategy": "ridge",
+      "method_summaries": {
+        "ridge": {
+          "method_name": "ridge",
+          "n_seeds_requested": 5,
+          "n_seeds_successful": 5,
+          "n_seeds_failed": 0,
+          "validation_score": {
+            "metric_name": "validation_rmse",
+            "valid_runs": 5,
+            "mean": 55.4313,
+            "std": 1.1085,
+            "median": 55.7403,
+            "q25": 55.3857,
+            "q75": 55.9518,
+            "iqr": 0.5661,
+            "min": 53.5834,
+            "max": 56.4951,
+            "ci_95_t": [
+              54.0549,
+              56.8076
+            ],
+            "ci_95_bootstrap": [
+              54.4885,
+              56.1268
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "holdout_test_score": {
+            "metric_name": "holdout_test_rmse",
+            "valid_runs": 5,
+            "mean": 54.1899,
+            "std": 3.921,
+            "median": 53.3048,
+            "q25": 52.2166,
+            "q75": 53.7775,
+            "iqr": 1.5609,
+            "min": 50.7606,
+            "max": 60.8899,
+            "ci_95_t": [
+              49.3213,
+              59.0585
+            ],
+            "ci_95_bootstrap": [
+              51.8518,
+              57.6382
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "training_duration_seconds": {
+            "metric_name": "training_duration_seconds",
+            "valid_runs": 5,
+            "mean": 0.0233,
+            "std": 0.0049,
+            "median": 0.0265,
+            "q25": 0.0184,
+            "q75": 0.0269,
+            "iqr": 0.0085,
+            "min": 0.0176,
+            "max": 0.0273,
+            "ci_95_t": [
+              0.0173,
+              0.0294
+            ],
+            "ci_95_bootstrap": [
+              0.0195,
+              0.0269
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "inference_latency_ms": {
+            "metric_name": "inference_latency_ms",
+            "valid_runs": 5,
+            "mean": 0.03,
+            "std": 0.0035,
+            "median": 0.0312,
+            "q25": 0.0278,
+            "q75": 0.0328,
+            "iqr": 0.005,
+            "min": 0.025,
+            "max": 0.0333,
+            "ci_95_t": [
+              0.0256,
+              0.0344
+            ],
+            "ci_95_bootstrap": [
+              0.0271,
+              0.0326
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "model_artifact_size_bytes": {
+            "metric_name": "model_artifact_size_bytes",
+            "valid_runs": 5,
+            "mean": 1661.4,
+            "std": 3.2094,
+            "median": 1661.0,
+            "q25": 1660.0,
+            "q75": 1664.0,
+            "iqr": 4.0,
+            "min": 1657.0,
+            "max": 1665.0,
+            "ci_95_t": [
+              1657.4151,
+              1665.3849
+            ],
+            "ci_95_bootstrap": [
+              1659.0,
+              1663.8
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_heap_bytes": {
+            "metric_name": "peak_heap_bytes",
+            "valid_runs": 5,
+            "mean": 206915.8,
+            "std": 561.5618,
+            "median": 206727.0,
+            "q25": 206674.0,
+            "q75": 206727.0,
+            "iqr": 53.0,
+            "min": 206540.0,
+            "max": 207911.0,
+            "ci_95_t": [
+              206218.5289,
+              207613.0711
+            ],
+            "ci_95_bootstrap": [
+              206604.2,
+              207426.8
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_process_rss_bytes": {
+            "metric_name": "peak_process_rss_bytes",
+            "valid_runs": 5,
+            "mean": 226869248.0,
+            "std": 781719.2124,
+            "median": 226893824.0,
+            "q25": 226656256.0,
+            "q75": 227364864.0,
+            "iqr": 708608.0,
+            "min": 225689600.0,
+            "max": 227741696.0,
+            "ci_95_t": [
+              225898615.3973,
+              227839880.6027
+            ],
+            "ci_95_bootstrap": [
+              226217984.0,
+              227421388.8
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "rss_delta_bytes": {
+            "metric_name": "rss_delta_bytes",
+            "valid_runs": 5,
+            "mean": 3276.8,
+            "std": 7327.1475,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0,
+            "iqr": 0.0,
+            "min": 0.0,
+            "max": 16384.0,
+            "ci_95_t": [
+              -5821.0553,
+              12374.6553
+            ],
+            "ci_95_bootstrap": [
+              0.0,
+              9830.4
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          }
+        },
+        "decision_tree": {
+          "method_name": "decision_tree",
+          "n_seeds_requested": 5,
+          "n_seeds_successful": 5,
+          "n_seeds_failed": 0,
+          "validation_score": {
+            "metric_name": "validation_rmse",
+            "valid_runs": 5,
+            "mean": 74.2325,
+            "std": 2.5045,
+            "median": 75.1304,
+            "q25": 74.6457,
+            "q75": 75.309,
+            "iqr": 0.6633,
+            "min": 69.8682,
+            "max": 76.209,
+            "ci_95_t": [
+              71.1227,
+              77.3422
+            ],
+            "ci_95_bootstrap": [
+              72.0088,
+              75.6806
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "holdout_test_score": {
+            "metric_name": "holdout_test_rmse",
+            "valid_runs": 5,
+            "mean": 67.5319,
+            "std": 4.8512,
+            "median": 67.7213,
+            "q25": 66.9337,
+            "q75": 68.1715,
+            "iqr": 1.2378,
+            "min": 60.586,
+            "max": 74.2468,
+            "ci_95_t": [
+              61.5082,
+              73.5555
+            ],
+            "ci_95_bootstrap": [
+              63.4401,
+              71.4791
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "training_duration_seconds": {
+            "metric_name": "training_duration_seconds",
+            "valid_runs": 5,
+            "mean": 0.0211,
+            "std": 0.002,
+            "median": 0.0202,
+            "q25": 0.02,
+            "q75": 0.022,
+            "iqr": 0.002,
+            "min": 0.0191,
+            "max": 0.0242,
+            "ci_95_t": [
+              0.0186,
+              0.0236
+            ],
+            "ci_95_bootstrap": [
+              0.0197,
+              0.0227
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "inference_latency_ms": {
+            "metric_name": "inference_latency_ms",
+            "valid_runs": 5,
+            "mean": 0.028,
+            "std": 0.0046,
+            "median": 0.0265,
+            "q25": 0.0246,
+            "q75": 0.0316,
+            "iqr": 0.007,
+            "min": 0.0234,
+            "max": 0.0341,
+            "ci_95_t": [
+              0.0223,
+              0.0338
+            ],
+            "ci_95_bootstrap": [
+              0.0245,
+              0.0316
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "model_artifact_size_bytes": {
+            "metric_name": "model_artifact_size_bytes",
+            "valid_runs": 5,
+            "mean": 3978.8,
+            "std": 220.2038,
+            "median": 3860.0,
+            "q25": 3846.0,
+            "q75": 4171.0,
+            "iqr": 325.0,
+            "min": 3760.0,
+            "max": 4257.0,
+            "ci_95_t": [
+              3705.3809,
+              4252.2191
+            ],
+            "ci_95_bootstrap": [
+              3814.4,
+              4143.2
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_heap_bytes": {
+            "metric_name": "peak_heap_bytes",
+            "valid_runs": 5,
+            "mean": 206479.8,
+            "std": 433.3534,
+            "median": 206287.0,
+            "q25": 206287.0,
+            "q75": 206287.0,
+            "iqr": 0.0,
+            "min": 206283.0,
+            "max": 207255.0,
+            "ci_95_t": [
+              205941.7206,
+              207017.8794
+            ],
+            "ci_95_bootstrap": [
+              206284.6,
+              206867.8
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_process_rss_bytes": {
+            "metric_name": "peak_process_rss_bytes",
+            "valid_runs": 5,
+            "mean": 226898739.2,
+            "std": 726952.8827,
+            "median": 226893824.0,
+            "q25": 226656256.0,
+            "q75": 227364864.0,
+            "iqr": 708608.0,
+            "min": 225837056.0,
+            "max": 227741696.0,
+            "ci_95_t": [
+              225996107.9772,
+              227801370.4228
+            ],
+            "ci_95_bootstrap": [
+              226306457.6,
+              227421388.8
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "rss_delta_bytes": {
+            "metric_name": "rss_delta_bytes",
+            "valid_runs": 5,
+            "mean": 10649.6,
+            "std": 23813.2295,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0,
+            "iqr": 0.0,
+            "min": 0.0,
+            "max": 53248.0,
+            "ci_95_t": [
+              -18918.4298,
+              40217.6298
+            ],
+            "ci_95_bootstrap": [
+              0.0,
+              31948.8
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          }
+        },
+        "random_forest": {
+          "method_name": "random_forest",
+          "n_seeds_requested": 5,
+          "n_seeds_successful": 5,
+          "n_seeds_failed": 0,
+          "validation_score": {
+            "metric_name": "validation_rmse",
+            "valid_runs": 5,
+            "mean": 58.7198,
+            "std": 1.3426,
+            "median": 58.6662,
+            "q25": 57.5086,
+            "q75": 59.3985,
+            "iqr": 1.8899,
+            "min": 57.4146,
+            "max": 60.6109,
+            "ci_95_t": [
+              57.0527,
+              60.3868
+            ],
+            "ci_95_bootstrap": [
+              57.7025,
+              59.737
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "holdout_test_score": {
+            "metric_name": "holdout_test_rmse",
+            "valid_runs": 5,
+            "mean": 57.9273,
+            "std": 3.909,
+            "median": 55.4675,
+            "q25": 55.2484,
+            "q75": 60.88,
+            "iqr": 5.6316,
+            "min": 54.7316,
+            "max": 63.3091,
+            "ci_95_t": [
+              53.0736,
+              62.781
+            ],
+            "ci_95_bootstrap": [
+              55.0855,
+              61.1078
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "training_duration_seconds": {
+            "metric_name": "training_duration_seconds",
+            "valid_runs": 5,
+            "mean": 0.2267,
+            "std": 0.0119,
+            "median": 0.2262,
+            "q25": 0.2232,
+            "q75": 0.2353,
+            "iqr": 0.0121,
+            "min": 0.2092,
+            "max": 0.2398,
+            "ci_95_t": [
+              0.212,
+              0.2415
+            ],
+            "ci_95_bootstrap": [
+              0.2172,
+              0.2353
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "inference_latency_ms": {
+            "metric_name": "inference_latency_ms",
+            "valid_runs": 5,
+            "mean": 0.0468,
+            "std": 0.0032,
+            "median": 0.0463,
+            "q25": 0.0454,
+            "q75": 0.0495,
+            "iqr": 0.0041,
+            "min": 0.0425,
+            "max": 0.0505,
+            "ci_95_t": [
+              0.0428,
+              0.0508
+            ],
+            "ci_95_bootstrap": [
+              0.0444,
+              0.0493
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "model_artifact_size_bytes": {
+            "metric_name": "model_artifact_size_bytes",
+            "valid_runs": 5,
+            "mean": 105893.0,
+            "std": 3009.4154,
+            "median": 105948.0,
+            "q25": 103282.0,
+            "q75": 108354.0,
+            "iqr": 5072.0,
+            "min": 102524.0,
+            "max": 109357.0,
+            "ci_95_t": [
+              102156.3173,
+              109629.6827
+            ],
+            "ci_95_bootstrap": [
+              103663.6,
+              108274.0
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_heap_bytes": {
+            "metric_name": "peak_heap_bytes",
+            "valid_runs": 5,
+            "mean": 209427.8,
+            "std": 237.6956,
+            "median": 209255.0,
+            "q25": 209255.0,
+            "q75": 209655.0,
+            "iqr": 400.0,
+            "min": 209255.0,
+            "max": 209719.0,
+            "ci_95_t": [
+              209132.6619,
+              209722.9381
+            ],
+            "ci_95_bootstrap": [
+              209255.0,
+              209613.4
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_process_rss_bytes": {
+            "metric_name": "peak_process_rss_bytes",
+            "valid_runs": 5,
+            "mean": 227030630.4,
+            "std": 542055.7323,
+            "median": 226906112.0,
+            "q25": 226680832.0,
+            "q75": 227397632.0,
+            "iqr": 716800.0,
+            "min": 226414592.0,
+            "max": 227753984.0,
+            "ci_95_t": [
+              226357579.3121,
+              227703681.4879
+            ],
+            "ci_95_bootstrap": [
+              226619187.2,
+              227468083.2
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "rss_delta_bytes": {
+            "metric_name": "rss_delta_bytes",
+            "valid_runs": 5,
+            "mean": 125337.6,
+            "std": 241570.2598,
+            "median": 20480.0,
+            "q25": 12288.0,
+            "q75": 32768.0,
+            "iqr": 20480.0,
+            "min": 4096.0,
+            "max": 557056.0,
+            "ci_95_t": [
+              -174611.4946,
+              425286.6946
+            ],
+            "ci_95_bootstrap": [
+              10649.6,
+              340807.68
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          }
+        },
+        "hist_gradient_boosting": {
+          "method_name": "hist_gradient_boosting",
+          "n_seeds_requested": 5,
+          "n_seeds_successful": 5,
+          "n_seeds_failed": 0,
+          "validation_score": {
+            "metric_name": "validation_rmse",
+            "valid_runs": 5,
+            "mean": 57.81,
+            "std": 1.3634,
+            "median": 56.9477,
+            "q25": 56.8998,
+            "q75": 59.0063,
+            "iqr": 2.1065,
+            "min": 56.6375,
+            "max": 59.5587,
+            "ci_95_t": [
+              56.1171,
+              59.5029
+            ],
+            "ci_95_bootstrap": [
+              56.8045,
+              58.864
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "holdout_test_score": {
+            "metric_name": "holdout_test_rmse",
+            "valid_runs": 5,
+            "mean": 57.4304,
+            "std": 4.4534,
+            "median": 54.9669,
+            "q25": 54.8214,
+            "q75": 61.3699,
+            "iqr": 6.5485,
+            "min": 52.9823,
+            "max": 63.0115,
+            "ci_95_t": [
+              51.9008,
+              62.96
+            ],
+            "ci_95_bootstrap": [
+              54.1149,
+              60.7459
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "training_duration_seconds": {
+            "metric_name": "training_duration_seconds",
+            "valid_runs": 5,
+            "mean": 0.1888,
+            "std": 0.0171,
+            "median": 0.185,
+            "q25": 0.1805,
+            "q75": 0.2031,
+            "iqr": 0.0226,
+            "min": 0.1667,
+            "max": 0.2088,
+            "ci_95_t": [
+              0.1675,
+              0.2101
+            ],
+            "ci_95_bootstrap": [
+              0.1759,
+              0.2009
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "inference_latency_ms": {
+            "metric_name": "inference_latency_ms",
+            "valid_runs": 5,
+            "mean": 0.0318,
+            "std": 0.0049,
+            "median": 0.0295,
+            "q25": 0.0287,
+            "q75": 0.0351,
+            "iqr": 0.0064,
+            "min": 0.0271,
+            "max": 0.0386,
+            "ci_95_t": [
+              0.0258,
+              0.0378
+            ],
+            "ci_95_bootstrap": [
+              0.0282,
+              0.0358
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "model_artifact_size_bytes": {
+            "metric_name": "model_artifact_size_bytes",
+            "valid_runs": 5,
+            "mean": 32686.6,
+            "std": 201.443,
+            "median": 32746.0,
+            "q25": 32657.0,
+            "q75": 32775.0,
+            "iqr": 118.0,
+            "min": 32360.0,
+            "max": 32895.0,
+            "ci_95_t": [
+              32436.4754,
+              32936.7246
+            ],
+            "ci_95_bootstrap": [
+              32514.4,
+              32817.6
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_heap_bytes": {
+            "metric_name": "peak_heap_bytes",
+            "valid_runs": 5,
+            "mean": 472029.0,
+            "std": 18783.5125,
+            "median": 474068.0,
+            "q25": 465524.0,
+            "q75": 475854.0,
+            "iqr": 10330.0,
+            "min": 446369.0,
+            "max": 498330.0,
+            "ci_95_t": [
+              448706.1887,
+              495351.8113
+            ],
+            "ci_95_bootstrap": [
+              457805.8,
+              486925.33
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "peak_process_rss_bytes": {
+            "metric_name": "peak_process_rss_bytes",
+            "valid_runs": 5,
+            "mean": 227375513.6,
+            "std": 634652.6974,
+            "median": 227364864.0,
+            "q25": 226893824.0,
+            "q75": 227741696.0,
+            "iqr": 847872.0,
+            "min": 226652160.0,
+            "max": 228225024.0,
+            "ci_95_t": [
+              226587488.1943,
+              228163539.0057
+            ],
+            "ci_95_bootstrap": [
+              226891366.4,
+              227859722.24
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          },
+          "rss_delta_bytes": {
+            "metric_name": "rss_delta_bytes",
+            "valid_runs": 5,
+            "mean": 3276.8,
+            "std": 12756.9195,
+            "median": 0.0,
+            "q25": -4096.0,
+            "q75": 4096.0,
+            "iqr": 8192.0,
+            "min": -8192.0,
+            "max": 24576.0,
+            "ci_95_t": [
+              -12563.0077,
+              19116.6077
+            ],
+            "ci_95_bootstrap": [
+              -4915.2,
+              13926.4
+            ],
+            "interpretation_notes": "Sample statistics based on N=5 independent seed replicates. Sample standard deviation computed with Bessel's correction (ddof=1). Confidence intervals characterize sampling variability of the mean across seeds. Note: Overlapping confidence intervals between competing models do not prove equivalence; cross-validation fold evaluations within an individual seed are not independent replicates."
+          }
+        }
+      },
+      "paired_comparisons": [
+        {
+          "method_a": "decision_tree",
+          "method_b": "ridge",
+          "metric_name": "rmse",
+          "greater_is_better": false,
+          "n_matched_seeds": 5,
+          "mean_difference": 18.8012,
+          "std_difference": 1.4818,
+          "ci_95_difference": [
+            16.9613,
+            20.6411
+          ],
+          "cohens_dz": 12.6882,
+          "cohens_dz_magnitude": "large",
+          "t_statistic": 28.3718,
+          "t_test_p_value": 0.0,
+          "wilcoxon_statistic": 0.0,
+          "wilcoxon_p_value": 0.0625,
+          "bonferroni_adjusted_p_value": 0.0,
+          "verdict": "statistically_inferior",
+          "per_seed_differences": [
+            {
+              "seed": 42,
+              "score_a": 75.1304,
+              "score_b": 55.7403,
+              "delta": 19.3901
+            },
+            {
+              "seed": 123,
+              "score_a": 76.209,
+              "score_b": 56.4951,
+              "delta": 19.7139
+            },
+            {
+              "seed": 456,
+              "score_a": 75.309,
+              "score_b": 55.3857,
+              "delta": 19.9233
+            },
+            {
+              "seed": 789,
+              "score_a": 69.8682,
+              "score_b": 53.5834,
+              "delta": 16.2848
+            },
+            {
+              "seed": 1011,
+              "score_a": 74.6457,
+              "score_b": 55.9518,
+              "delta": 18.6939
+            }
+          ],
+          "interpretation": "'decision_tree' is statistically inferior to 'ridge' on rmse (mean paired delta = +18.8012, p = 0.0000 < 0.05, Cohen's dz = 12.69 [large] across N=5 matched seeds)."
+        },
+        {
+          "method_a": "random_forest",
+          "method_b": "ridge",
+          "metric_name": "rmse",
+          "greater_is_better": false,
+          "n_matched_seeds": 5,
+          "mean_difference": 3.2885,
+          "std_difference": 1.1223,
+          "ci_95_difference": [
+            1.895,
+            4.682
+          ],
+          "cohens_dz": 2.9302,
+          "cohens_dz_magnitude": "large",
+          "t_statistic": 6.5522,
+          "t_test_p_value": 0.0028,
+          "wilcoxon_statistic": 0.0,
+          "wilcoxon_p_value": 0.0625,
+          "bonferroni_adjusted_p_value": 0.0084,
+          "verdict": "statistically_inferior",
+          "per_seed_differences": [
+            {
+              "seed": 42,
+              "score_a": 57.4146,
+              "score_b": 55.7403,
+              "delta": 1.6743
+            },
+            {
+              "seed": 123,
+              "score_a": 59.3985,
+              "score_b": 56.4951,
+              "delta": 2.9034
+            },
+            {
+              "seed": 456,
+              "score_a": 58.6662,
+              "score_b": 55.3857,
+              "delta": 3.2805
+            },
+            {
+              "seed": 789,
+              "score_a": 57.5086,
+              "score_b": 53.5834,
+              "delta": 3.9252
+            },
+            {
+              "seed": 1011,
+              "score_a": 60.6109,
+              "score_b": 55.9518,
+              "delta": 4.6591
+            }
+          ],
+          "interpretation": "'random_forest' is statistically inferior to 'ridge' on rmse (mean paired delta = +3.2885, p = 0.0084 < 0.05, Cohen's dz = 2.93 [large] across N=5 matched seeds)."
+        },
+        {
+          "method_a": "hist_gradient_boosting",
+          "method_b": "ridge",
+          "metric_name": "rmse",
+          "greater_is_better": false,
+          "n_matched_seeds": 5,
+          "mean_difference": 2.3787,
+          "std_difference": 1.0168,
+          "ci_95_difference": [
+            1.1162,
+            3.6413
+          ],
+          "cohens_dz": 2.3394,
+          "cohens_dz_magnitude": "large",
+          "t_statistic": 5.2311,
+          "t_test_p_value": 0.0064,
+          "wilcoxon_statistic": 0.0,
+          "wilcoxon_p_value": 0.0625,
+          "bonferroni_adjusted_p_value": 0.0192,
+          "verdict": "statistically_inferior",
+          "per_seed_differences": [
+            {
+              "seed": 42,
+              "score_a": 56.8998,
+              "score_b": 55.7403,
+              "delta": 1.1595
+            },
+            {
+              "seed": 123,
+              "score_a": 59.0063,
+              "score_b": 56.4951,
+              "delta": 2.5112
+            },
+            {
+              "seed": 456,
+              "score_a": 56.9477,
+              "score_b": 55.3857,
+              "delta": 1.562
+            },
+            {
+              "seed": 789,
+              "score_a": 56.6375,
+              "score_b": 53.5834,
+              "delta": 3.0541
+            },
+            {
+              "seed": 1011,
+              "score_a": 59.5587,
+              "score_b": 55.9518,
+              "delta": 3.6069
+            }
+          ],
+          "interpretation": "'hist_gradient_boosting' is statistically inferior to 'ridge' on rmse (mean paired delta = +2.3787, p = 0.0192 < 0.05, Cohen's dz = 2.34 [large] across N=5 matched seeds)."
+        }
+      ],
+      "raw_runs_count": 20,
+      "csv_artifact": "docs/research/regression_seed_runs.csv"
+    }
+  },
+  "generated_plots": [
+    "docs/research/plots/phase_11_seed_variability.png",
+    "docs/research/plots/phase_11_paired_differences.png",
+    "docs/research/plots/phase_11_resource_rss_vs_heap.png"
+  ]
+}

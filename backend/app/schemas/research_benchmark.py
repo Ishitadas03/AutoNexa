@@ -103,6 +103,9 @@ class MetricStatisticalSummary(BaseModel):
     mean: float = Field(..., description="Arithmetic mean of metric across valid runs")
     std: Optional[float] = Field(default=None, description="Sample standard deviation (ddof=1, None if valid_runs < 2)")
     median: float = Field(..., description="Median metric score")
+    q25: Optional[float] = Field(default=None, description="25th percentile (1st quartile)")
+    q75: Optional[float] = Field(default=None, description="75th percentile (3rd quartile)")
+    iqr: Optional[float] = Field(default=None, description="Interquartile range (q75 - q25)")
     min: float = Field(..., description="Minimum metric score recorded")
     max: float = Field(..., description="Maximum metric score recorded")
     ci_95_t: Optional[List[float]] = Field(

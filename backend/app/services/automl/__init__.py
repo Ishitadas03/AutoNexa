@@ -2,6 +2,10 @@
 
 from app.services.automl.baseline_evaluator import BaselineEvaluator
 from app.services.automl.benchmark_service import BenchmarkService, get_benchmark_service
+from app.services.automl.dataset_catalog import (
+    DatasetCatalogService,
+    get_dataset_catalog_service,
+)
 from app.services.automl.error_analysis_service import ErrorAnalysisService, get_error_analysis_service
 from app.services.automl.evaluator import ModelEvaluator
 from app.services.automl.explainability_service import ExplainabilityService, get_explainability_service
@@ -19,6 +23,10 @@ from app.services.automl.research_benchmarking_service import (
     ResearchBenchmarkingService,
     get_research_benchmark_service,
 )
+from app.services.automl.robust_benchmarking_service import (
+    RobustBenchmarkingService,
+    get_robust_benchmark_service,
+)
 from app.services.automl.resource_profiler import ResourceProfiler
 from app.services.automl.statistical_engine import StatisticalEngine
 from app.services.automl.tracker import MLflowTracker, compute_dataset_fingerprint
@@ -28,6 +36,7 @@ __all__ = [
     "BaselineEvaluator",
     "BayesianOptunaOptimizer",
     "BenchmarkService",
+    "DatasetCatalogService",
     "ErrorAnalysisService",
     "ExplainabilityService",
     "HPOService",
@@ -39,6 +48,7 @@ __all__ = [
     "RandomSearchOptimizer",
     "ResearchBenchmarkingService",
     "ResourceProfiler",
+    "RobustBenchmarkingService",
     "StatisticalEngine",
     "TrainingService",
     "build_preprocessor",
@@ -49,6 +59,7 @@ __all__ = [
     "get_hpo_service",
     "get_multi_objective_service",
     "get_research_benchmark_service",
+    "get_robust_benchmark_service",
     "get_training_service",
 ]
 

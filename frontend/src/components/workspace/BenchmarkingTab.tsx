@@ -59,6 +59,12 @@ import {
   MultiObjectiveSelectionResult,
   ParetoCandidateResult,
   SelectionPolicy,
+  DatasetCatalogEntry,
+  RobustBenchmarkRequest,
+  RobustBenchmarkResponse,
+  PairedComparisonResult,
+  MethodAggregateStatistics,
+  SeedRunRecord,
 } from "@/types/api";
 import { api } from "@/lib/api";
 import { WorkspaceTab } from "@/lib/store";
@@ -77,7 +83,23 @@ export default function BenchmarkingTab({
   onSelectExperiment,
 }: BenchmarkingTabProps) {
   // Navigation sub-tabs within Benchmarking
-  const [subTab, setSubTab] = useState<"comparison" | "repeated_runs" | "baselines" | "hpo_search" | "multi_objective">("comparison");
+  const [subTab, setSubTab] = useState<"comparison" | "repeated_runs" | "baselines" | "hpo_search" | "multi_objective" | "robust">("comparison");
+
+  // Phase 11: Robust Benchmarking State
+  const [catalogEntries, setCatalogEntries] = useState<DatasetCatalogEntry[]>([]);
+  const [isCatalogLoading, setIsCatalogLoading] = useState(false);
+  const [robustDatasetId, setRobustDatasetId] = useState<string>("wine_multiclass");
+  const [robustSeedCount, setRobustSeedCount] = useState<number>(5);
+  const [robustCandidates, setRobustCandidates] = useState<string[]>([
+    "decision_tree",
+    "random_forest",
+    "hist_gradient_boosting",
+  ]);
+  const [robustBaseline, setRobustBaseline] = useState<string>("decision_tree");
+  const [robustCvFolds, setRobustCvFolds] = useState<number>(3);
+  const [robustResult, setRobustResult] = useState<RobustBenchmarkResponse | null>(null);
+  const [isRobustLoading, setIsRobustLoading] = useState(false);
+  const [robustError, setRobustError] = useState<string | null>(null);
 
   // Multi-Model comparison state
   const [selectedExpIds, setSelectedExpIds] = useState<string[]>([]);
@@ -323,6 +345,63 @@ export default function BenchmarkingTab({
       setMoError(typeof msg === "string" ? msg : JSON.stringify(msg));
     } finally {
       setIsReSelecting(false);
+    }
+  };
+
+  // Phase 11: Load Benchmark Dataset Catalog
+  useEffect(() => {
+    if (subTab === "robust" && catalogEntries.length === 0 && !isCatalogLoading) {
+      setIsCatalogLoading(true);
+      api
+        .getBenchmarkDatasetCatalog()
+        .then((entries) => {
+          setCatalogEntries(entries);
+          if (entries.length > 0 && !entries.some((e) => e.dataset_id === robustDatasetId)) {
+            setRobustDatasetId(entries[0].dataset_id);
+          }
+        })
+        .catch((err) => console.error("Failed to load dataset catalog:", err))
+        .finally(() => setIsCatalogLoading(false));
+    }
+  }, [subTab, catalogEntries.length, isCatalogLoading, robustDatasetId]);
+
+  const selectedCatalogEntry = useMemo(() => {
+    return catalogEntries.find((c) => c.dataset_id === robustDatasetId) || null;
+  }, [catalogEntries, robustDatasetId]);
+
+  // Phase 11: Execute Robust Multi-Seed Benchmark
+  const handleRunRobustBenchmark = async () => {
+    if (!robustDatasetId) {
+      setRobustError("Please select a benchmark dataset from the catalog.");
+      return;
+    }
+    setIsRobustLoading(true);
+    setRobustError(null);
+
+    const baseSeeds = [42, 123, 456, 789, 1011, 1213, 1415, 1617, 1819, 2021];
+    const seeds = baseSeeds.slice(0, Math.max(2, Math.min(robustSeedCount, 10)));
+
+    const payload: RobustBenchmarkRequest = {
+      dataset_id: robustDatasetId,
+      seeds,
+      candidate_strategies: robustCandidates.length > 0 ? robustCandidates : undefined,
+      baseline_strategy: robustBaseline || undefined,
+      cv_folds: robustCvFolds,
+      test_size: 0.2,
+      alpha: 0.05,
+      bootstrap_resamples: 1000,
+    };
+
+    try {
+      const res = await api.runRobustBenchmark(payload);
+      setRobustResult(res);
+    } catch (err: unknown) {
+      console.error("Robust benchmark failed:", err);
+      const e = err as { detail?: string; message?: string };
+      const msg = e?.detail || e?.message || "Failed to execute robust benchmark.";
+      setRobustError(typeof msg === "string" ? msg : JSON.stringify(msg));
+    } finally {
+      setIsRobustLoading(false);
     }
   };
 
@@ -662,6 +741,17 @@ export default function BenchmarkingTab({
             >
               <Target className="w-3.5 h-3.5 text-[#1D4ED8]" />
               Multi-Objective &amp; Pareto
+            </button>
+            <button
+              onClick={() => setSubTab("robust")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                subTab === "robust"
+                  ? "bg-white text-[#1D4ED8] shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A]"
+              }`}
+            >
+              <Scale className="w-3.5 h-3.5 text-[#059669]" />
+              Robust Benchmarks
             </button>
           </div>
         </div>
@@ -2516,6 +2606,593 @@ export default function BenchmarkingTab({
                   <div className="text-[11px] text-[#64748B]">
                     Hover over breaches and dominated badges for granular failure rationale.
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* SUB-TAB 6: ROBUST BENCHMARKING (PHASE 11)                                  */}
+      {/* ========================================================================= */}
+      {subTab === "robust" && (
+        <div className="space-y-6">
+          {/* Top Configuration & Protocol Setup Card */}
+          <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#F1F5F9]">
+              <div className="flex items-center gap-3">
+                <span className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <Scale className="w-5 h-5" />
+                </span>
+                <div>
+                  <h2 className="text-base font-bold text-[#0F172A]">
+                    Multi-Seed Robust AutoML Benchmarking Protocol
+                  </h2>
+                  <p className="text-xs text-[#64748B]">
+                    Multi-Seed Matched Evaluation &middot; Bessel ddof=1 Uncertainty &middot; Paired Hypothesis Tests &middot; Zero Test-Set Leakage
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleRunRobustBenchmark}
+                  disabled={isRobustLoading}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center gap-2 cursor-pointer shadow-xs transition-colors disabled:opacity-50"
+                >
+                  {isRobustLoading ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Executing Multi-Seed Protocol...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Scale className="w-3.5 h-3.5" />
+                      <span>Execute Robust Benchmark</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {robustError && (
+              <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-bold">Benchmarking Execution Failure</div>
+                  <div className="mt-0.5">{robustError}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Protocol Configuration Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column: Dataset Catalog & Provenance */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider flex items-center gap-2">
+                  <Database className="w-4 h-4 text-emerald-600" />
+                  <span>Benchmark Dataset Catalog &amp; Provenance</span>
+                </h3>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    Select Curated Benchmark Dataset
+                  </label>
+                  <select
+                    value={robustDatasetId}
+                    onChange={(e) => setRobustDatasetId(e.target.value)}
+                    disabled={isRobustLoading || isCatalogLoading}
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-xs font-medium text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  >
+                    {catalogEntries.map((cat) => (
+                      <option key={cat.dataset_id} value={cat.dataset_id}>
+                        {cat.name} ({cat.task_type.replace("_", " ")}, {cat.n_rows} rows, {cat.n_features} features)
+                      </option>
+                    ))}
+                    {catalogEntries.length === 0 && (
+                      <option value="wine_multiclass">Wine Recognition Benchmark</option>
+                    )}
+                  </select>
+                </div>
+
+                {selectedCatalogEntry && (
+                  <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-[#0F172A]">{selectedCatalogEntry.name}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                          {selectedCatalogEntry.source.replace("_", " ")}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          {selectedCatalogEntry.license}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-[#64748B] text-[11px] leading-relaxed">
+                      {selectedCatalogEntry.description}
+                    </p>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-[#E2E8F0]">
+                      <div>
+                        <div className="text-[10px] text-[#64748B] uppercase">Instances</div>
+                        <div className="font-bold text-[#0F172A] font-mono">{selectedCatalogEntry.n_rows}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-[#64748B] uppercase">Features</div>
+                        <div className="font-bold text-[#0F172A] font-mono">
+                          {selectedCatalogEntry.numeric_features_count} num / {selectedCatalogEntry.categorical_features_count} cat
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-[#64748B] uppercase">Target</div>
+                        <div className="font-bold text-[#0F172A] font-mono">{selectedCatalogEntry.target_column}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-[#64748B] uppercase">Task Type</div>
+                        <div className="font-bold text-[#0F172A] capitalize">
+                          {selectedCatalogEntry.task_type.replace("_", " ")}
+                        </div>
+                      </div>
+                      <div className="col-span-2">
+                        <div className="text-[10px] text-[#64748B] uppercase">SHA-256 Fingerprint</div>
+                        <div className="font-mono text-[10px] text-[#334155] truncate" title={selectedCatalogEntry.dataset_fingerprint}>
+                          {selectedCatalogEntry.dataset_fingerprint}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-[10px] text-[#64748B] italic pt-1">
+                      Provenance: {selectedCatalogEntry.provenance}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: Multi-Seed & Protocol Configuration */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-emerald-600" />
+                  <span>Multi-Seed Protocol &amp; Candidate Strategies</span>
+                </h3>
+
+                {/* Seed Count Selection */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-[#334155]">
+                      Random Seeds Evaluated (Minimum 2, Recommended &ge; 5)
+                    </label>
+                    <span className="text-xs font-bold text-emerald-700 font-mono">{robustSeedCount} Seeds</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[3, 5, 7, 10].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setRobustSeedCount(num)}
+                        disabled={isRobustLoading}
+                        className={`py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer border ${
+                          robustSeedCount === num
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-300 shadow-xs"
+                            : "bg-[#F8FAFC] text-[#64748B] border-[#CBD5E1] hover:text-[#0F172A]"
+                        }`}
+                      >
+                        {num} Seeds {num === 5 && "(Default)"}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {[42, 123, 456, 789, 1011, 1213, 1415, 1617, 1819, 2021]
+                      .slice(0, robustSeedCount)
+                      .map((s) => (
+                        <span
+                          key={s}
+                          className="px-2 py-0.5 rounded-md bg-[#F1F5F9] border border-[#CBD5E1] text-[10px] font-mono text-[#334155]"
+                        >
+                          seed={s}
+                        </span>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Candidate Strategies & Baseline */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      Baseline Strategy
+                    </label>
+                    <select
+                      value={robustBaseline}
+                      onChange={(e) => setRobustBaseline(e.target.value)}
+                      disabled={isRobustLoading}
+                      className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-xs font-medium text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    >
+                      <option value="decision_tree">Decision Tree (Standard)</option>
+                      <option value="logistic_regression">Logistic Regression (Linear)</option>
+                      <option value="ridge">Ridge Regressor (L2 Linear)</option>
+                      <option value="random_forest">Random Forest (Ensemble)</option>
+                      <option value="hist_gradient_boosting">HistGradientBoosting (Boosted)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      Cross-Validation Folds
+                    </label>
+                    <select
+                      value={robustCvFolds}
+                      onChange={(e) => setRobustCvFolds(parseInt(e.target.value, 10))}
+                      disabled={isRobustLoading}
+                      className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-xs font-medium text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    >
+                      <option value={2}>2 Folds (Fast test)</option>
+                      <option value={3}>3 Folds (Recommended)</option>
+                      <option value={5}>5 Folds (Rigorous)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Data-Leakage Safeguard Box */}
+                <div className="p-3 rounded-xl bg-emerald-50/50 border border-emerald-200 text-xs text-emerald-900 space-y-1">
+                  <div className="font-bold flex items-center gap-1.5 text-emerald-800">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Scientific Partition Integrity Guarantee</span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-emerald-800/90">
+                    For every seed, data is partitioned into 80% Train/Val and an untouched 20% Holdout Test set. Preprocessing is strictly fit inside fold boundaries. The test set is evaluated post-selection and never touched during hyperparameter tuning or candidate ranking.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Results Presentation Section */}
+          {robustResult && (
+            <div className="space-y-6">
+              {/* Executive Overview Banner */}
+              <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        {robustResult.dataset.name}
+                      </span>
+                      <span className="text-xs text-[#64748B]">
+                        Primary Metric: <strong className="text-[#0F172A] uppercase">{robustResult.primary_metric}</strong> ({robustResult.greater_is_better ? "Higher is better" : "Lower is better"})
+                      </span>
+                      <span className="text-xs text-[#64748B]">
+                        Baseline: <strong className="text-[#0F172A]">{robustResult.baseline_strategy}</strong>
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-[#64748B] font-mono">
+                      Benchmark ID: {robustResult.robust_benchmark_id} &middot; Seeds Evaluated: [{robustResult.seeds_evaluated.join(", ")}]
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={api.getRobustBenchmarkCsvUrl(robustResult.robust_benchmark_id)}
+                      download={`robust_benchmark_${robustResult.robust_benchmark_id}.csv`}
+                      className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1] text-xs font-semibold text-[#0F172A] hover:bg-[#F8FAFC] inline-flex items-center gap-1.5 shadow-xs transition-colors"
+                    >
+                      <Download className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Download Seed Runs CSV</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Statistical Uncertainty Matrix Table */}
+              <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h3 className="text-sm font-bold text-[#0F172A]">
+                      Method Performance &amp; Statistical Uncertainty Matrix
+                    </h3>
+                    <p className="text-xs text-[#64748B]">
+                      Sample Mean &plusmn; Bessel Sample Std (ddof=1) &middot; Median &middot; Interquartile Range (IQR) &middot; Student-t 95% CI &middot; Bootstrap 95% CI
+                    </p>
+                  </div>
+                  <div className="text-xs font-mono text-[#64748B]">
+                    Seeds: {robustResult.seeds_evaluated.length} &middot; Alpha: 0.05
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-[#CBD5E1] text-[#64748B] font-semibold bg-[#F8FAFC]">
+                        <th className="py-2.5 px-3">Method / Strategy</th>
+                        <th className="py-2.5 px-3 text-center">Valid Seeds</th>
+                        <th className="py-2.5 px-3 text-right">CV Score (Mean &plusmn; s)</th>
+                        <th className="py-2.5 px-3 text-right">Median [IQR]</th>
+                        <th className="py-2.5 px-3 text-center">Student-t 95% CI</th>
+                        <th className="py-2.5 px-3 text-center">Bootstrap 95% CI</th>
+                        <th className="py-2.5 px-3 text-right">Holdout Test Score</th>
+                        <th className="py-2.5 px-3 text-right">Duration (s)</th>
+                        <th className="py-2.5 px-3 text-right">Latency (ms)</th>
+                        <th className="py-2.5 px-3 text-right">Peak Heap (KB)</th>
+                        <th className="py-2.5 px-3 text-right">Process RSS (MB)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E2E8F0]">
+                      {Object.entries(robustResult.method_summaries).map(([mName, s]) => {
+                        const isBase = mName === robustResult.baseline_strategy;
+                        const vScore = s.validation_score;
+                        const tScore = s.holdout_test_score;
+                        const heapKb = Math.round(s.peak_heap_bytes.mean / 1024);
+                        const rssMb = s.peak_process_rss_bytes ? (s.peak_process_rss_bytes.mean / (1024 * 1024)).toFixed(1) : "--";
+
+                        return (
+                          <tr key={mName} className={`hover:bg-[#F8FAFC] transition-colors ${isBase ? "bg-emerald-50/20" : ""}`}>
+                            <td className="py-3 px-3">
+                              <div className="font-bold text-[#0F172A] flex items-center gap-1.5">
+                                <span>{mName}</span>
+                                {isBase && (
+                                  <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    Baseline
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+
+                            <td className="py-3 px-3 text-center font-mono">
+                              <span className={s.n_seeds_failed > 0 ? "text-amber-600 font-bold" : "text-[#0F172A]"}>
+                                {s.n_seeds_successful} / {s.n_seeds_requested}
+                              </span>
+                            </td>
+
+                            <td className="py-3 px-3 text-right font-mono font-bold text-[#0F172A]">
+                              {vScore.mean.toFixed(4)}
+                              {vScore.std !== null && vScore.std !== undefined ? (
+                                <span className="font-normal text-[#64748B] text-[11px]">
+                                  {" "}&plusmn; {vScore.std.toFixed(4)}
+                                </span>
+                              ) : null}
+                            </td>
+
+                            <td className="py-3 px-3 text-right font-mono text-[#334155]">
+                              {vScore.median.toFixed(4)}
+                              {vScore.iqr !== null && vScore.iqr !== undefined && (
+                                <span className="text-[10px] text-[#64748B] block">
+                                  IQR: {vScore.iqr.toFixed(4)}
+                                </span>
+                              )}
+                            </td>
+
+                            <td className="py-3 px-3 text-center font-mono text-[11px] text-[#475569]">
+                              {vScore.ci_95_t ? `[${vScore.ci_95_t[0].toFixed(4)}, ${vScore.ci_95_t[1].toFixed(4)}]` : "--"}
+                            </td>
+
+                            <td className="py-3 px-3 text-center font-mono text-[11px] text-[#475569]">
+                              {vScore.ci_95_bootstrap ? `[${vScore.ci_95_bootstrap[0].toFixed(4)}, ${vScore.ci_95_bootstrap[1].toFixed(4)}]` : "--"}
+                            </td>
+
+                            <td className="py-3 px-3 text-right font-mono">
+                              {tScore ? (
+                                <span className="font-semibold text-emerald-700">
+                                  {tScore.mean.toFixed(4)}
+                                  {tScore.std ? ` ± ${tScore.std.toFixed(4)}` : ""}
+                                </span>
+                              ) : (
+                                <span className="text-[#94A3B8] italic">--</span>
+                              )}
+                            </td>
+
+                            <td className="py-3 px-3 text-right font-mono text-[#475569]">
+                              {s.training_duration_seconds.mean.toFixed(3)}s
+                            </td>
+
+                            <td className="py-3 px-3 text-right font-mono text-[#475569]">
+                              {s.inference_latency_ms.mean.toFixed(2)}
+                            </td>
+
+                            <td className="py-3 px-3 text-right font-mono text-[#475569]">
+                              {heapKb} KB
+                            </td>
+
+                            <td className="py-3 px-3 text-right font-mono text-emerald-800 font-semibold">
+                              {rssMb} MB
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="pt-2 text-[11px] text-[#64748B] flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-[#F1F5F9]">
+                  <div>
+                    * <strong>Process RSS:</strong> Operating system resident set size via psutil (native libraries + Python process).
+                    &middot; <strong>Peak Heap:</strong> Python object allocations via tracemalloc.
+                  </div>
+                  <div>
+                    Degrees of freedom for sample standard deviation ddof=1 (Bessel's correction).
+                  </div>
+                </div>
+              </div>
+
+              {/* Seed-Matched Paired Difference & Hypothesis Testing Card */}
+              <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-6">
+                <div>
+                  <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Seed-Matched Paired Difference &amp; Statistical Significance Testing</span>
+                  </h3>
+                  <p className="text-xs text-[#64748B] mt-0.5">
+                    Evaluates exact per-seed performance deltas &Delta;<sub>s</sub> = Score(Candidate) &minus; Score(Baseline).
+                    Accounts for common random seeds, effect sizes (Cohen&apos;s d<sub>z</sub>), paired Student-t test, non-parametric Wilcoxon test, and Bonferroni FWER adjustment.
+                  </p>
+                </div>
+
+                {robustResult.paired_comparisons.length === 0 ? (
+                  <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#64748B] text-center">
+                    No candidate strategies compared against baseline.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4">
+                    {robustResult.paired_comparisons.map((comp) => {
+                      const verdictBadges: Record<string, { label: string; class: string }> = {
+                        statistically_superior: {
+                          label: "Statistically Superior",
+                          class: "bg-emerald-100 text-emerald-800 border-emerald-300",
+                        },
+                        statistically_inferior: {
+                          label: "Statistically Inferior",
+                          class: "bg-red-100 text-red-800 border-red-300",
+                        },
+                        inconclusive_high_variance: {
+                          label: "Inconclusive / High Variance",
+                          class: "bg-amber-100 text-amber-800 border-amber-300",
+                        },
+                        statistically_equivalent: {
+                          label: "Statistically Equivalent",
+                          class: "bg-blue-100 text-blue-800 border-blue-300",
+                        },
+                        insufficient_sample_size: {
+                          label: "Sample Size N < 5",
+                          class: "bg-slate-100 text-slate-700 border-slate-300",
+                        },
+                      };
+                      const vb = verdictBadges[comp.verdict] || verdictBadges.insufficient_sample_size;
+
+                      return (
+                        <div key={comp.method_a} className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-sm text-[#0F172A]">{comp.method_a}</span>
+                              <span className="text-xs text-[#64748B]">vs Baseline</span>
+                              <span className="font-bold text-sm text-[#334155]">{comp.method_b}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ml-2 ${vb.class}`}>
+                                {vb.label}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3 text-xs font-mono">
+                              <div>
+                                <span className="text-[#64748B]">Mean &Delta;: </span>
+                                <strong className={comp.mean_difference >= 0 ? "text-emerald-700" : "text-red-700"}>
+                                  {comp.mean_difference >= 0 ? "+" : ""}{comp.mean_difference.toFixed(4)}
+                                </strong>
+                              </div>
+                              <div>
+                                <span className="text-[#64748B]">Cohen&apos;s d<sub>z</sub>: </span>
+                                <strong>{typeof comp.cohens_dz === "number" ? comp.cohens_dz.toFixed(2) : "0.00"}</strong>
+                                <span className="text-[10px] text-[#64748B] ml-1 uppercase">({comp.cohens_dz_magnitude})</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Statistical Metrics Grid */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-white rounded-lg border border-[#E2E8F0] text-xs">
+                            <div>
+                              <div className="text-[10px] text-[#64748B] uppercase">Matched Seeds (N)</div>
+                              <div className="font-bold font-mono text-[#0F172A]">{comp.n_matched_seeds}</div>
+                            </div>
+                            <div>
+                              <div className="text-[10px] text-[#64748B] uppercase">95% CI of Difference</div>
+                              <div className="font-mono text-[#0F172A]">
+                                {comp.ci_95_difference ? `[${comp.ci_95_difference[0].toFixed(4)}, ${comp.ci_95_difference[1].toFixed(4)}]` : "--"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-[10px] text-[#64748B] uppercase">Paired t-test p-value</div>
+                              <div className="font-mono text-[#0F172A]">
+                                {typeof comp.t_test_p_value === "number" ? comp.t_test_p_value.toFixed(4) : "N/A"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-[10px] text-[#64748B] uppercase">Bonferroni Adj. p-value</div>
+                              <div className="font-mono text-[#0F172A]">
+                                {typeof comp.bonferroni_adjusted_p_value === "number" ? comp.bonferroni_adjusted_p_value.toFixed(4) : "N/A"}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Scientific Interpretation Statement */}
+                          <p className="text-xs text-[#334155] leading-relaxed italic bg-emerald-50/40 p-3 rounded-lg border border-emerald-100">
+                            {comp.interpretation}
+                          </p>
+
+                          {/* Per-seed granular delta breakdown table */}
+                          <div>
+                            <div className="text-[11px] font-bold text-[#64748B] uppercase mb-1.5">
+                              Per-Seed Matched Difference Trace (&Delta;<sub>s</sub> = Score<sub>A</sub> &minus; Score<sub>B</sub>)
+                            </div>
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-xs text-left">
+                                <thead>
+                                  <tr className="border-b border-[#CBD5E1] text-[#64748B]">
+                                    <th className="py-1 px-2 font-mono">Seed</th>
+                                    <th className="py-1 px-2 font-mono">{comp.method_a} Score</th>
+                                    <th className="py-1 px-2 font-mono">{comp.method_b} Score</th>
+                                    <th className="py-1 px-2 font-mono text-right">Delta (&Delta;<sub>s</sub>)</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {comp.per_seed_differences.map((rec) => (
+                                    <tr key={rec.seed} className="border-b border-[#F1F5F9]">
+                                      <td className="py-1.5 px-2 font-mono text-[#64748B]">{rec.seed}</td>
+                                      <td className="py-1.5 px-2 font-mono font-semibold">{rec.score_a.toFixed(4)}</td>
+                                      <td className="py-1.5 px-2 font-mono text-[#64748B]">{rec.score_b.toFixed(4)}</td>
+                                      <td className="py-1.5 px-2 font-mono text-right font-bold">
+                                        <span className={rec.delta >= 0 ? "text-emerald-700" : "text-red-700"}>
+                                          {rec.delta >= 0 ? "+" : ""}{rec.delta.toFixed(4)}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Execution Platform & Scientific Guidance Disclosure */}
+              <div className="p-6 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] shadow-xs space-y-4">
+                <div className="flex items-center gap-2">
+                  <Cpu className="w-4 h-4 text-[#1D4ED8]" />
+                  <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">
+                    Hardware Platform, Profiler Scope, &amp; Scientific Limitations
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs bg-white p-4 rounded-xl border border-[#E2E8F0]">
+                  <div>
+                    <span className="text-[10px] text-[#64748B] uppercase block">Platform &amp; OS</span>
+                    <strong className="text-[#0F172A]">{robustResult.execution_platform.platform}</strong>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-[#64748B] uppercase block">Python Version</span>
+                    <strong className="text-[#0F172A] font-mono">{robustResult.execution_platform.python_version}</strong>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-[#64748B] uppercase block">CPU Cores</span>
+                    <strong className="text-[#0F172A] font-mono">{robustResult.execution_platform.cpu_count} Physical / Logical</strong>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-[#64748B] uppercase block">System Total RAM</span>
+                    <strong className="text-[#0F172A] font-mono">{robustResult.execution_platform.system_total_ram_gb} GB</strong>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-white rounded-xl border border-[#E2E8F0] space-y-2 text-xs">
+                  <div className="font-bold text-[#0F172A] flex items-center gap-1.5">
+                    <Info className="w-4 h-4 text-[#1D4ED8]" />
+                    <span>Scientific Guidance &amp; Methodological Disclosures</span>
+                  </div>
+                  <pre className="text-[11px] text-[#334155] whitespace-pre-wrap font-sans leading-relaxed">
+                    {robustResult.scientific_guidance}
+                  </pre>
+                  <p className="text-[11px] text-[#64748B] pt-2 border-t border-[#F1F5F9]">
+                    Memory Profiler Disclosure: {robustResult.execution_platform.resource_profiler_metadata?.memory_metric_distinction}
+                  </p>
                 </div>
               </div>
             </div>

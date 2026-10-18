@@ -491,6 +491,9 @@ export interface MetricStatisticalSummary {
   mean: number;
   std?: number | null;
   median: number;
+  q25?: number | null;
+  q75?: number | null;
+  iqr?: number | null;
   min: number;
   max: number;
   ci_95_t?: [number, number] | null;
@@ -856,5 +859,127 @@ export interface MultiObjectiveExperimentResponse {
   profiling_methodology_disclaimer: string;
   csv_export_url: string;
 }
+
+// ==========================================
+// Phase 11: Robust AutoML Benchmarking & Statistical Reliability
+// ==========================================
+
+export interface DatasetCatalogEntry {
+  dataset_id: string;
+  name: string;
+  source: "local_fixture" | "openml" | "pmlb" | "custom";
+  provenance: string;
+  license: string;
+  task_type: "binary_classification" | "multiclass_classification" | "regression";
+  target_column: string;
+  n_rows: number;
+  n_features: number;
+  numeric_features_count: number;
+  categorical_features_count: number;
+  has_missing_values: boolean;
+  missing_cells_count: number;
+  dataset_fingerprint: string;
+  is_cached: boolean;
+  description: string;
+}
+
+export interface PairedSeedDifferenceRecord {
+  seed: number;
+  score_a: number;
+  score_b: number;
+  delta: number;
+}
+
+export interface PairedComparisonResult {
+  method_a: string;
+  method_b: string;
+  metric_name: string;
+  greater_is_better: boolean;
+  n_matched_seeds: number;
+  mean_difference: number;
+  std_difference?: number | null;
+  ci_95_difference?: [number, number] | null;
+  cohens_dz?: number | null;
+  cohens_dz_magnitude: "negligible" | "small" | "medium" | "large" | "zero";
+  t_statistic?: number | null;
+  t_test_p_value?: number | null;
+  wilcoxon_statistic?: number | null;
+  wilcoxon_p_value?: number | null;
+  bonferroni_adjusted_p_value?: number | null;
+  verdict:
+    | "statistically_superior"
+    | "statistically_inferior"
+    | "inconclusive_high_variance"
+    | "statistically_equivalent"
+    | "insufficient_sample_size";
+  per_seed_differences: PairedSeedDifferenceRecord[];
+  interpretation: string;
+}
+
+export interface SeedRunRecord {
+  run_id: string;
+  seed: number;
+  method_name: string;
+  status: "completed" | "failed";
+  validation_score?: number | null;
+  holdout_test_score?: number | null;
+  training_duration_seconds: number;
+  inference_latency_ms: number;
+  inference_throughput_sec: number;
+  model_artifact_size_bytes: number;
+  peak_heap_bytes?: number | null;
+  peak_process_rss_bytes?: number | null;
+  rss_delta_bytes?: number | null;
+  complexity_score: number;
+  complexity_unit: string;
+  error_message?: string | null;
+}
+
+export interface MethodAggregateStatistics {
+  method_name: string;
+  n_seeds_requested: number;
+  n_seeds_successful: number;
+  n_seeds_failed: number;
+  validation_score: MetricStatisticalSummary;
+  holdout_test_score?: MetricStatisticalSummary | null;
+  training_duration_seconds: MetricStatisticalSummary;
+  inference_latency_ms: MetricStatisticalSummary;
+  model_artifact_size_bytes: MetricStatisticalSummary;
+  peak_heap_bytes: MetricStatisticalSummary;
+  peak_process_rss_bytes?: MetricStatisticalSummary | null;
+  rss_delta_bytes?: MetricStatisticalSummary | null;
+}
+
+export interface RobustBenchmarkRequest {
+  dataset_id: string;
+  target_column?: string | null;
+  task_type?: string | null;
+  seeds?: number[];
+  candidate_strategies?: string[] | null;
+  baseline_strategy?: string | null;
+  evaluation_strategy?: "cross_validation" | "holdout";
+  cv_folds?: number;
+  test_size?: number;
+  primary_metric?: string | null;
+  alpha?: number;
+  bootstrap_resamples?: number;
+}
+
+export interface RobustBenchmarkResponse {
+  robust_benchmark_id: string;
+  created_at: string;
+  dataset: DatasetCatalogEntry;
+  seeds_evaluated: number[];
+  primary_metric: string;
+  greater_is_better: boolean;
+  baseline_strategy: string;
+  method_summaries: Record<string, MethodAggregateStatistics>;
+  paired_comparisons: PairedComparisonResult[];
+  raw_seed_runs: SeedRunRecord[];
+  execution_platform: Record<string, any>;
+  scientific_guidance: string;
+  csv_export_url: string;
+}
+
 
 
