@@ -154,6 +154,16 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("EXPLAINABILITY_N_PERMUTATIONS"),
         description="Number of shuffle iterations for permutation feature importance",
     )
+    max_repeated_seeds: int = Field(
+        default=10,
+        validation_alias=AliasChoices("MAX_REPEATED_SEEDS"),
+        description="Maximum permitted random seeds in a single repeated-run benchmark series (default 10)",
+    )
+    default_bootstrap_resamples: int = Field(
+        default=1000,
+        validation_alias=AliasChoices("DEFAULT_BOOTSTRAP_RESAMPLES"),
+        description="Default number of resamples for statistical bootstrap confidence intervals",
+    )
 
     @property
     def resolved_upload_dir(self) -> Path:

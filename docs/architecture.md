@@ -203,8 +203,22 @@ flowchart TD
     - **Comparability Classification**: Flags runs as `strictly_comparable`, `conditionally_comparable`, or `non_comparable`, preventing invalid claims of model superiority when evaluation conditions differ.
     - **Normalized Leaderboard**: Synthesizes a ranked leaderboard sorted by primary metric, computing absolute deltas and relative percentages against an optional designated baseline experiment.
     - **Reproducibility Manifest**: Generates machine-readable records of dataset fingerprints, software package versions, random seeds, and execution durations.
+  - **Phase 10A: Controlled Hyperparameter Optimization (Random Search vs. Bayesian Optuna)**:
+    - **Matched Search Spaces**: Defines identical search spaces across classification and regression estimators (Random Forest, Decision Tree, HistGradientBoosting, Logistic Regression, Ridge).
+    - **Cross-Seed Replication**: Replicates trial sequences across matched seeds (2 to 10), fitting `build_preprocessor` strictly inside folds.
+    - **Inferential Statistics**: Computes paired Student-t tests, p-values, empirical win/loss/tie ratios, and convergence curves across optimization trials.
+    - **Endpoints**: `GET /api/v1/benchmarks/hpo-spaces`, `POST /api/v1/benchmarks/hpo-experiment`, `GET /api/v1/benchmarks/hpo-experiment/{id}`, `GET /api/v1/benchmarks/hpo-experiment/{id}/export-csv`.
+  - **Phase 10B: Multi-Objective Optimization & Resource-Aware Model Selection**:
+    - **Multi-Dimensional Objective Engine**: Evaluates predictive generalization, repeated warm-up inference latency ($ms/\text{sample}$), throughput ($\text{samples}/\text{sec}$), wall-clock training time, serialized joblib compressed size, and estimator structural complexity.
+    - **Strict Pareto Dominance**: Implements mathematically rigorous non-dominated ranking for mixed maximization and minimization directions with machine epsilon tolerance ($\epsilon = 10^{-7}$).
+    - **Resource Budget Enforcement**: Validates user constraints (max latency, max training duration, max disk size, min predictive score, max complexity). Disqualifies infeasible candidates from the primary feasible Pareto frontier while retaining transparent failure records.
+    - **Deterministic Selection Policies**: Implements `best_performance_constrained`, `lowest_latency_constrained`, `lowest_size_constrained`, and `balanced_compromise` (Euclidean distance to ideal Utopia point).
+    - **Zero-Leakage Post-Selection Validation**: The 20% holdout test partition is strictly stashed and never touched during cross-validation, candidate profiling, or Pareto ranking. Only the selected champion model is evaluated on holdout data post-selection.
+    - **Dynamic Re-Selection Without Retraining**: Persists candidate profiles to allow operators to adjust resource constraints or selection policies dynamically via `POST /api/v1/benchmarks/multi-objective/{id}/select` in $< 5\text{ ms}$.
+    - **Endpoints**: `POST /api/v1/benchmarks/multi-objective`, `GET /api/v1/benchmarks/multi-objective/{id}`, `GET /api/v1/benchmarks/multi-objective/{id}/pareto`, `POST /api/v1/benchmarks/multi-objective/{id}/select`, `GET /api/v1/benchmarks/multi-objective/{id}/export-csv`.
 
 ---
+
 
 ## 4. Architectural Principles
 

@@ -17,6 +17,19 @@ import {
   PredictionResponse,
   TrainingRequest,
   TrainingResponse,
+  BaselineComparisonRequest,
+  BaselineComparisonResult,
+  LaTeXExportResponse,
+  RepeatedRunGroupResponse,
+  RepeatedRunRequest,
+  HPOExperimentRequest,
+  HPOExperimentResponse,
+  HyperparameterSpace,
+  MultiObjectiveExperimentRequest,
+  MultiObjectiveExperimentResponse,
+  MultiObjectiveSelectionRequest,
+  MultiObjectiveSelectionResult,
+  ParetoCandidateResult,
 } from "@/types/api";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -242,4 +255,156 @@ export const api = {
     });
     return handleResponse<BenchmarkComparisonResponse>(res);
   },
+
+  // ==========================================
+  // Phase 9: Research Experimental Benchmarking
+  // ==========================================
+
+  /** Execute repeated-seed experimental series across 2 to 10 random seeds */
+  async runRepeatedRuns(request: RepeatedRunRequest): Promise<RepeatedRunGroupResponse> {
+    const url = getEffectiveUrl(`/api/v1/benchmarks/repeated-runs`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    return handleResponse<RepeatedRunGroupResponse>(res);
+  },
+
+  /** Retrieve stored repeated experiment series and statistical summaries */
+  async getRepeatedRunGroup(runGroupId: string): Promise<RepeatedRunGroupResponse> {
+    const url = getEffectiveUrl(`/api/v1/benchmarks/repeated-runs/${encodeURIComponent(runGroupId)}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<RepeatedRunGroupResponse>(res);
+  },
+
+  /** Compare an existing experiment against canonical dummy and linear baselines */
+  async compareBaselines(request: BaselineComparisonRequest): Promise<BaselineComparisonResult[]> {
+    const url = getEffectiveUrl(`/api/v1/benchmarks/baseline-comparison`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    return handleResponse<BaselineComparisonResult[]>(res);
+  },
+
+  /** Generate publication-grade academic LaTeX table for repeated experiment series */
+  async getRepeatedRunsLatex(runGroupId: string): Promise<LaTeXExportResponse> {
+    const url = getEffectiveUrl(`/api/v1/benchmarks/repeated-runs/${encodeURIComponent(runGroupId)}/latex`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<LaTeXExportResponse>(res);
+  },
+
+  /** Generate download URL for repeated runs CSV */
+  getRepeatedRunsCsvUrl(runGroupId: string): string {
+    return getEffectiveUrl(`/api/v1/benchmarks/repeated-runs/${encodeURIComponent(runGroupId)}/export-csv`);
+  },
+
+  // ==========================================
+  // Phase 10A: Controlled HPO Benchmark (Random Search vs Bayesian Optuna)
+  // ==========================================
+
+  /** Retrieve available hyperparameter search spaces */
+  async getHpoSearchSpaces(): Promise<HyperparameterSpace[]> {
+    const url = getEffectiveUrl(`/api/v1/benchmarks/hpo-spaces`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<HyperparameterSpace[]>(res);
+  },
+
+  /** Run controlled Random Search vs Bayesian Optimization experiment */
+  async runHpoExperiment(request: HPOExperimentRequest): Promise<HPOExperimentResponse> {
+    const url = getEffectiveUrl(`/api/v1/benchmarks/hpo-experiment`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    return handleResponse<HPOExperimentResponse>(res);
+  },
+
+  /** Retrieve stored HPO experiment report */
+  async getHpoExperiment(experimentId: string): Promise<HPOExperimentResponse> {
+    const url = getEffectiveUrl(`/api/v1/benchmarks/hpo-experiment/${encodeURIComponent(experimentId)}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<HPOExperimentResponse>(res);
+  },
+
+  /** Get CSV download URL for HPO trial records */
+  getHpoCsvUrl(experimentId: string): string {
+    return getEffectiveUrl(`/api/v1/benchmarks/hpo-experiment/${encodeURIComponent(experimentId)}/export-csv`);
+  },
+
+  // ==========================================
+  // Phase 10B: Multi-Objective & Resource-Aware Selection
+  // ==========================================
+
+  /** Run multi-objective optimization across candidate models with resource profiling */
+  async runMultiObjectiveExperiment(request: MultiObjectiveExperimentRequest): Promise<MultiObjectiveExperimentResponse> {
+    const url = getEffectiveUrl(`/api/v1/benchmarks/multi-objective`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    return handleResponse<MultiObjectiveExperimentResponse>(res);
+  },
+
+  /** Retrieve stored multi-objective experiment report */
+  async getMultiObjectiveExperiment(experimentId: string): Promise<MultiObjectiveExperimentResponse> {
+    const url = getEffectiveUrl(`/api/v1/benchmarks/multi-objective/${encodeURIComponent(experimentId)}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<MultiObjectiveExperimentResponse>(res);
+  },
+
+  /** Retrieve only non-dominated Pareto-optimal models */
+  async getMultiObjectiveParetoFrontier(experimentId: string): Promise<ParetoCandidateResult[]> {
+    const url = getEffectiveUrl(`/api/v1/benchmarks/multi-objective/${encodeURIComponent(experimentId)}/pareto`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<ParetoCandidateResult[]>(res);
+  },
+
+  /** Apply updated resource constraints and select winning candidate */
+  async selectMultiObjectiveModel(
+    experimentId: string,
+    request: MultiObjectiveSelectionRequest
+  ): Promise<MultiObjectiveSelectionResult> {
+    const url = getEffectiveUrl(`/api/v1/benchmarks/multi-objective/${encodeURIComponent(experimentId)}/select`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    return handleResponse<MultiObjectiveSelectionResult>(res);
+  },
+
+  /** Get CSV download URL for multi-objective candidates */
+  getMultiObjectiveCsvUrl(experimentId: string): string {
+    return getEffectiveUrl(`/api/v1/benchmarks/multi-objective/${encodeURIComponent(experimentId)}/export-csv`);
+  },
 };
+
