@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import uuid
 
 from fastapi import HTTPException, status
+import joblib
 import numpy as np
 import pandas as pd
 import sklearn
@@ -515,7 +516,7 @@ class MultiObjectiveService:
             "cpu_architecture": platform.machine(),
             "processor": platform.processor(),
             "monotonic_clock": "time.perf_counter()",
-            "memory_profiler": "tracemalloc",
+            "memory_profiler": "tracemalloc (Python-heap allocation tracking; excludes external C/C++ library buffers)",
         }
 
         # 12. Create Full Response
@@ -534,8 +535,9 @@ class MultiObjectiveService:
             execution_platform=exec_platform,
             profiling_methodology_disclaimer=(
                 "Measurements recorded using a dedicated warm-up inference pass followed by repeated timing. "
-                "Training time measured with a monotonic high-resolution clock. Preprocessing fitted strictly within folds. "
-                "Test set held out and evaluated only post-selection."
+                "Training time measured with a monotonic high-resolution clock (time.perf_counter). "
+                "Memory profiled via tracemalloc (tracking Python heap allocations only; excludes external C-level BLAS/OpenMP buffers). "
+                "Preprocessing fitted strictly within folds. Test set held out and evaluated only post-selection."
             ),
             csv_export_url=f"/api/v1/benchmarks/multi-objective/{experiment_id}/export-csv",
         )
@@ -556,6 +558,23 @@ class MultiObjectiveService:
         exp_path = self.multi_objective_experiments_dir / f"{response.experiment_id}.json"
         with open(exp_path, "w", encoding="utf-8") as f:
             f.write(response.model_dump_json(indent=2))
+
+        if X_test is not None and y_test is not None and fitted_pipelines is not None:
+            cache_path = self.multi_objective_experiments_dir / f"{response.experiment_id}_holdout.joblib"
+            try:
+                joblib.dump(
+                    {
+                        "X_test": X_test,
+                        "y_test": y_test,
+                        "fitted_pipelines": fitted_pipelines,
+                        "primary_metric": response.primary_metric,
+                        "task_type": response.task_type,
+                    },
+                    cache_path,
+                    compress=3,
+                )
+            except Exception as exc:
+                logger.warning("Could not cache holdout test data for dynamic re-selection: %s", exc)
 
     def get_multi_objective_experiment(self, experiment_id: str) -> MultiObjectiveExperimentResponse:
         """Load a stored multi-objective experiment report."""
@@ -602,6 +621,52 @@ class MultiObjectiveService:
             policy=request.policy,
             custom_weights=request.custom_weights,
         )
+
+        # Ensure selected model has untouched holdout test metrics evaluated
+        if result.selected_candidate_id:
+            # First check if the original manifest already holds test metrics for this candidate
+            for c in exp.candidates:
+                if c.measurement.candidate_id == result.selected_candidate_id and c.measurement.test_score is not None:
+                    result.untouched_test_evaluation = c.measurement.test_metrics
+                    if result.selected_candidate:
+                        result.selected_candidate.measurement.test_score = c.measurement.test_score
+                        result.selected_candidate.measurement.test_metrics = c.measurement.test_metrics
+                    break
+
+            # If not yet evaluated, evaluate on cached untouched holdout partition
+            if result.untouched_test_evaluation is None:
+                cache_path = self.multi_objective_experiments_dir / f"{experiment_id}_holdout.joblib"
+                if cache_path.exists():
+                    try:
+                        cached = joblib.load(cache_path)
+                        pipelines = cached.get("fitted_pipelines", {})
+                        if result.selected_candidate_id in pipelines:
+                            pipe = pipelines[result.selected_candidate_id]
+                            X_t = cached["X_test"]
+                            y_t = cached["y_test"]
+                            task_t = cached.get("task_type", exp.task_type)
+                            if "regression" in str(task_t).lower():
+                                test_eval = ModelEvaluator.evaluate_regression(pipe, X_t, y_t)
+                            else:
+                                test_eval = ModelEvaluator.evaluate_classification(pipe, X_t, y_t)
+
+                            test_score = test_eval.get(exp.primary_metric)
+                            result.untouched_test_evaluation = test_eval
+                            if result.selected_candidate:
+                                result.selected_candidate.measurement.test_score = test_score
+                                result.selected_candidate.measurement.test_metrics = test_eval
+
+                            # Update the persisted experiment JSON so this candidate's test metrics are recorded
+                            for c in exp.candidates:
+                                if c.measurement.candidate_id == result.selected_candidate_id:
+                                    c.measurement.test_score = test_score
+                                    c.measurement.test_metrics = test_eval
+                                    break
+                            exp_path = self.multi_objective_experiments_dir / f"{experiment_id}.json"
+                            with open(exp_path, "w", encoding="utf-8") as f:
+                                f.write(exp.model_dump_json(indent=2))
+                    except Exception as exc:
+                        logger.warning("Could not evaluate holdout on re-selected model: %s", exc)
 
         return result
 

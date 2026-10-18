@@ -2,17 +2,17 @@
   "metadata": {
     "phase": "10B",
     "title": "Multi-Objective AutoML Optimization & Resource-Aware Model Selection",
-    "timestamp": "2026-10-18T18:02:48Z",
+    "timestamp": "2026-10-18T18:20:30Z",
     "evaluation_engine": "ParetoFrontierCalculator",
     "profiler": "ResourceProfiler",
     "holdout_isolation": "Strict 20% untouched holdout test partition evaluated strictly post-selection"
   },
   "experiments": {
     "classification": {
-      "experiment_id": "1a228d46-de45-4795-8b0a-7758b053ed49",
-      "created_at": "2026-10-18T18:02:42.708288+00:00",
-      "dataset_id": "mo_churn_f8241f48",
-      "dataset_name": "mo_churn_f8241f48.csv",
+      "experiment_id": "9bcdd740-1611-44cf-a523-79200aec3a7f",
+      "created_at": "2026-10-18T18:20:25.537901+00:00",
+      "dataset_id": "mo_churn_4f1c2220",
+      "dataset_name": "mo_churn_4f1c2220.csv",
       "dataset_fingerprint": "a66aff59da0429d500e566dae53d9b6269135688d0029ac2f0264ba084fa1a8d",
       "task_type": "binary_classification",
       "primary_metric": "f1_weighted",
@@ -69,11 +69,11 @@
             "predictive_direction": "maximize",
             "validation_score": 0.7985,
             "cv_std": 0.04,
-            "training_duration_seconds": 0.0548,
-            "inference_latency_ms_per_sample": 0.0565,
-            "inference_throughput_samples_per_sec": 17684.59,
+            "training_duration_seconds": 0.0517,
+            "inference_latency_ms_per_sample": 0.0519,
+            "inference_throughput_samples_per_sec": 19268.79,
             "model_artifact_size_bytes": 2007,
-            "peak_memory_bytes": 136916,
+            "peak_memory_bytes": 136431,
             "complexity": {
               "estimator_type": "LogisticRegression",
               "tree_count": null,
@@ -121,12 +121,12 @@
           "status_explanation": "Pareto-optimal: no competing feasible candidate strictly dominates this model across all objectives.",
           "normalized_scores": {
             "predictive_metric": 1.0,
-            "inference_latency_ms": 1.0,
-            "training_duration_seconds": 0.9878,
+            "inference_latency_ms": 0.9974,
+            "training_duration_seconds": 0.9836,
             "artifact_size_bytes": 0.9999,
             "model_complexity": 1.0
           },
-          "distance_to_utopia": 0.0055
+          "distance_to_utopia": 0.0074
         },
         {
           "measurement": {
@@ -142,11 +142,11 @@
             "predictive_direction": "maximize",
             "validation_score": 0.7244,
             "cv_std": 0.0426,
-            "training_duration_seconds": 0.0446,
-            "inference_latency_ms_per_sample": 0.0612,
-            "inference_throughput_samples_per_sec": 16336.19,
+            "training_duration_seconds": 0.047,
+            "inference_latency_ms_per_sample": 0.0586,
+            "inference_throughput_samples_per_sec": 17057.45,
             "model_artifact_size_bytes": 3402,
-            "peak_memory_bytes": 131153,
+            "peak_memory_bytes": 132997,
             "complexity": {
               "estimator_type": "DecisionTreeClassifier",
               "tree_count": 1,
@@ -170,12 +170,12 @@
           "status_explanation": "Pareto-optimal: no competing feasible candidate strictly dominates this model across all objectives.",
           "normalized_scores": {
             "predictive_metric": 0.0027,
-            "inference_latency_ms": 0.944,
-            "training_duration_seconds": 1.0,
+            "inference_latency_ms": 0.9395,
+            "training_duration_seconds": 0.9921,
             "artifact_size_bytes": 0.9815,
             "model_complexity": 0.9895
           },
-          "distance_to_utopia": 0.4468
+          "distance_to_utopia": 0.4469
         },
         {
           "measurement": {
@@ -192,11 +192,11 @@
             "predictive_direction": "maximize",
             "validation_score": 0.7685,
             "cv_std": 0.0679,
-            "training_duration_seconds": 0.539,
-            "inference_latency_ms_per_sample": 0.1012,
-            "inference_throughput_samples_per_sec": 9882.13,
+            "training_duration_seconds": 0.4203,
+            "inference_latency_ms_per_sample": 0.1091,
+            "inference_throughput_samples_per_sec": 9169.53,
             "model_artifact_size_bytes": 49947,
-            "peak_memory_bytes": 138872,
+            "peak_memory_bytes": 141301,
             "complexity": {
               "estimator_type": "RandomForestClassifier",
               "tree_count": 50,
@@ -226,12 +226,12 @@
           "status_explanation": "Dominated by 3 feasible candidate(s): hgb_fast, logistic_regression_baseline, lr_light_regularization.",
           "normalized_scores": {
             "predictive_metric": 0.5962,
-            "inference_latency_ms": 0.4679,
-            "training_duration_seconds": 0.4094,
+            "inference_latency_ms": 0.503,
+            "training_duration_seconds": 0.3106,
             "artifact_size_bytes": 0.3652,
             "model_complexity": 0.3773
           },
-          "distance_to_utopia": 0.5632
+          "distance_to_utopia": 0.579
         },
         {
           "measurement": {
@@ -247,11 +247,11 @@
             "predictive_direction": "maximize",
             "validation_score": 0.7672,
             "cv_std": 0.0413,
-            "training_duration_seconds": 0.1714,
-            "inference_latency_ms_per_sample": 0.0858,
-            "inference_throughput_samples_per_sec": 11658.44,
+            "training_duration_seconds": 0.255,
+            "inference_latency_ms_per_sample": 0.1673,
+            "inference_throughput_samples_per_sec": 5975.57,
             "model_artifact_size_bytes": 16275,
-            "peak_memory_bytes": 334362,
+            "peak_memory_bytes": 334658,
             "complexity": {
               "estimator_type": "HistGradientBoostingClassifier",
               "tree_count": 50,
@@ -275,18 +275,16 @@
             "logistic_regression_baseline",
             "lr_light_regularization"
           ],
-          "dominates": [
-            "rf_deep_accurate"
-          ],
+          "dominates": [],
           "status_explanation": "Dominated by 3 feasible candidate(s): hgb_fast, logistic_regression_baseline, lr_light_regularization.",
           "normalized_scores": {
             "predictive_metric": 0.5787,
-            "inference_latency_ms": 0.6512,
-            "training_duration_seconds": 0.8485,
+            "inference_latency_ms": 0.0,
+            "training_duration_seconds": 0.6124,
             "artifact_size_bytes": 0.811,
             "model_complexity": 0.7205
           },
-          "distance_to_utopia": 0.2953
+          "distance_to_utopia": 0.5369
         },
         {
           "measurement": {
@@ -302,11 +300,11 @@
             "predictive_direction": "maximize",
             "validation_score": 0.7242,
             "cv_std": 0.0413,
-            "training_duration_seconds": 0.0512,
-            "inference_latency_ms_per_sample": 0.0779,
-            "inference_throughput_samples_per_sec": 12842.54,
+            "training_duration_seconds": 0.0427,
+            "inference_latency_ms_per_sample": 0.0565,
+            "inference_throughput_samples_per_sec": 17705.38,
             "model_artifact_size_bytes": 2876,
-            "peak_memory_bytes": 131056,
+            "peak_memory_bytes": 131325,
             "complexity": {
               "estimator_type": "DecisionTreeClassifier",
               "tree_count": 1,
@@ -330,12 +328,12 @@
           "status_explanation": "Pareto-optimal: no competing feasible candidate strictly dominates this model across all objectives.",
           "normalized_scores": {
             "predictive_metric": 0.0,
-            "inference_latency_ms": 0.7452,
-            "training_duration_seconds": 0.9921,
+            "inference_latency_ms": 0.9576,
+            "training_duration_seconds": 1.0,
             "artifact_size_bytes": 0.9884,
             "model_complexity": 0.9971
           },
-          "distance_to_utopia": 0.4615
+          "distance_to_utopia": 0.4476
         },
         {
           "measurement": {
@@ -352,11 +350,11 @@
             "predictive_direction": "maximize",
             "validation_score": 0.7646,
             "cv_std": 0.0802,
-            "training_duration_seconds": 0.1662,
-            "inference_latency_ms_per_sample": 0.0717,
-            "inference_throughput_samples_per_sec": 13950.46,
+            "training_duration_seconds": 0.1666,
+            "inference_latency_ms_per_sample": 0.0731,
+            "inference_throughput_samples_per_sec": 13688.5,
             "model_artifact_size_bytes": 14925,
-            "peak_memory_bytes": 133901,
+            "peak_memory_bytes": 134064,
             "complexity": {
               "estimator_type": "RandomForestClassifier",
               "tree_count": 15,
@@ -376,21 +374,23 @@
           "constraint_violations": [],
           "is_pareto_optimal": false,
           "dominated_by": [
-            "logistic_regression_baseline"
+            "hgb_fast",
+            "logistic_regression_baseline",
+            "lr_light_regularization"
           ],
           "dominates": [
             "hgb_deep_accurate",
             "rf_deep_accurate"
           ],
-          "status_explanation": "Dominated by 1 feasible candidate(s): logistic_regression_baseline.",
+          "status_explanation": "Dominated by 3 feasible candidate(s): hgb_fast, logistic_regression_baseline, lr_light_regularization.",
           "normalized_scores": {
             "predictive_metric": 0.5437,
-            "inference_latency_ms": 0.819,
-            "training_duration_seconds": 0.8547,
+            "inference_latency_ms": 0.8142,
+            "training_duration_seconds": 0.7738,
             "artifact_size_bytes": 0.8289,
             "model_complexity": 0.8602
           },
-          "distance_to_utopia": 0.2494
+          "distance_to_utopia": 0.2618
         },
         {
           "measurement": {
@@ -407,11 +407,11 @@
             "predictive_direction": "maximize",
             "validation_score": 0.7493,
             "cv_std": 0.0296,
-            "training_duration_seconds": 0.8817,
-            "inference_latency_ms_per_sample": 0.1405,
-            "inference_throughput_samples_per_sec": 7119.4,
+            "training_duration_seconds": 0.5904,
+            "inference_latency_ms_per_sample": 0.1091,
+            "inference_throughput_samples_per_sec": 9163.35,
             "model_artifact_size_bytes": 77529,
-            "peak_memory_bytes": 162145,
+            "peak_memory_bytes": 156031,
             "complexity": {
               "estimator_type": "RandomForestClassifier",
               "tree_count": 80,
@@ -433,22 +433,21 @@
           "dominated_by": [
             "hgb_deep_accurate",
             "hgb_fast",
-            "hist_gradient_boosting_default",
             "logistic_regression_baseline",
             "lr_light_regularization",
             "random_forest_default",
             "rf_compact_fast"
           ],
           "dominates": [],
-          "status_explanation": "Dominated by 7 feasible candidate(s): hgb_deep_accurate, hgb_fast, hist_gradient_boosting_default.",
+          "status_explanation": "Dominated by 6 feasible candidate(s): hgb_deep_accurate, hgb_fast, logistic_regression_baseline.",
           "normalized_scores": {
             "predictive_metric": 0.3378,
-            "inference_latency_ms": 0.0,
+            "inference_latency_ms": 0.503,
             "training_duration_seconds": 0.0,
             "artifact_size_bytes": 0.0,
             "model_complexity": 0.0
           },
-          "distance_to_utopia": 0.9422
+          "distance_to_utopia": 0.8585
         },
         {
           "measurement": {
@@ -465,11 +464,11 @@
             "predictive_direction": "maximize",
             "validation_score": 0.7863,
             "cv_std": 0.0637,
-            "training_duration_seconds": 0.1396,
-            "inference_latency_ms_per_sample": 0.0753,
-            "inference_throughput_samples_per_sec": 13275.84,
+            "training_duration_seconds": 0.1099,
+            "inference_latency_ms_per_sample": 0.0708,
+            "inference_throughput_samples_per_sec": 14132.52,
             "model_artifact_size_bytes": 11237,
-            "peak_memory_bytes": 298880,
+            "peak_memory_bytes": 298516,
             "complexity": {
               "estimator_type": "HistGradientBoostingClassifier",
               "tree_count": 25,
@@ -495,17 +494,18 @@
             "hgb_deep_accurate",
             "hist_gradient_boosting_default",
             "random_forest_default",
+            "rf_compact_fast",
             "rf_deep_accurate"
           ],
           "status_explanation": "Dominated by 1 feasible candidate(s): logistic_regression_baseline.",
           "normalized_scores": {
             "predictive_metric": 0.8358,
-            "inference_latency_ms": 0.7762,
-            "training_duration_seconds": 0.8865,
+            "inference_latency_ms": 0.8341,
+            "training_duration_seconds": 0.8773,
             "artifact_size_bytes": 0.8777,
             "model_complexity": 0.9339
           },
-          "distance_to_utopia": 0.1478
+          "distance_to_utopia": 0.1333
         },
         {
           "measurement": {
@@ -522,11 +522,11 @@
             "predictive_direction": "maximize",
             "validation_score": 0.7619,
             "cv_std": 0.0481,
-            "training_duration_seconds": 0.308,
-            "inference_latency_ms_per_sample": 0.076,
-            "inference_throughput_samples_per_sec": 13156.89,
+            "training_duration_seconds": 0.2546,
+            "inference_latency_ms_per_sample": 0.0922,
+            "inference_throughput_samples_per_sec": 10850.65,
             "model_artifact_size_bytes": 25899,
-            "peak_memory_bytes": 391180,
+            "peak_memory_bytes": 391548,
             "complexity": {
               "estimator_type": "HistGradientBoostingClassifier",
               "tree_count": 100,
@@ -548,20 +548,21 @@
           "dominated_by": [
             "hgb_fast",
             "logistic_regression_baseline",
+            "lr_light_regularization",
             "rf_compact_fast"
           ],
           "dominates": [
             "rf_deep_accurate"
           ],
-          "status_explanation": "Dominated by 3 feasible candidate(s): hgb_fast, logistic_regression_baseline, rf_compact_fast.",
+          "status_explanation": "Dominated by 4 feasible candidate(s): hgb_fast, logistic_regression_baseline, lr_light_regularization.",
           "normalized_scores": {
             "predictive_metric": 0.5074,
-            "inference_latency_ms": 0.7679,
-            "training_duration_seconds": 0.6853,
+            "inference_latency_ms": 0.6491,
+            "training_duration_seconds": 0.6131,
             "artifact_size_bytes": 0.6836,
             "model_complexity": 0.4391
           },
-          "distance_to_utopia": 0.4026
+          "distance_to_utopia": 0.4313
         },
         {
           "measurement": {
@@ -578,11 +579,11 @@
             "predictive_direction": "maximize",
             "validation_score": 0.7733,
             "cv_std": 0.0339,
-            "training_duration_seconds": 0.0653,
-            "inference_latency_ms_per_sample": 0.0793,
-            "inference_throughput_samples_per_sec": 12602.52,
+            "training_duration_seconds": 0.0541,
+            "inference_latency_ms_per_sample": 0.0516,
+            "inference_throughput_samples_per_sec": 19395.63,
             "model_artifact_size_bytes": 2003,
-            "peak_memory_bytes": 131026,
+            "peak_memory_bytes": 130758,
             "complexity": {
               "estimator_type": "LogisticRegression",
               "tree_count": null,
@@ -603,19 +604,21 @@
           "is_pareto_optimal": true,
           "dominated_by": [],
           "dominates": [
+            "hgb_deep_accurate",
             "hist_gradient_boosting_default",
             "random_forest_default",
+            "rf_compact_fast",
             "rf_deep_accurate"
           ],
           "status_explanation": "Pareto-optimal: no competing feasible candidate strictly dominates this model across all objectives.",
           "normalized_scores": {
             "predictive_metric": 0.6608,
-            "inference_latency_ms": 0.7286,
-            "training_duration_seconds": 0.9753,
+            "inference_latency_ms": 1.0,
+            "training_duration_seconds": 0.9792,
             "artifact_size_bytes": 1.0,
             "model_complexity": 1.0
           },
-          "distance_to_utopia": 0.1946
+          "distance_to_utopia": 0.152
         }
       ],
       "pareto_frontier_candidate_ids": [
@@ -630,7 +633,7 @@
         "satisfies_all_constraints": true,
         "feasible_candidates_count": 10,
         "infeasible_candidates_count": 0,
-        "selection_explanation": "Selected 'Logistic Regression' (logistic_regression_baseline) as the balanced compromise on the Pareto frontier (distance to Utopia: 0.0055).",
+        "selection_explanation": "Selected 'Logistic Regression' (logistic_regression_baseline) as the balanced compromise on the Pareto frontier (distance to Utopia: 0.0074).",
         "selected_candidate": {
           "measurement": {
             "candidate_id": "logistic_regression_baseline",
@@ -646,11 +649,11 @@
             "predictive_direction": "maximize",
             "validation_score": 0.7985,
             "cv_std": 0.04,
-            "training_duration_seconds": 0.0548,
-            "inference_latency_ms_per_sample": 0.0565,
-            "inference_throughput_samples_per_sec": 17684.59,
+            "training_duration_seconds": 0.0517,
+            "inference_latency_ms_per_sample": 0.0519,
+            "inference_throughput_samples_per_sec": 19268.79,
             "model_artifact_size_bytes": 2007,
-            "peak_memory_bytes": 136916,
+            "peak_memory_bytes": 136431,
             "complexity": {
               "estimator_type": "LogisticRegression",
               "tree_count": null,
@@ -698,12 +701,12 @@
           "status_explanation": "Pareto-optimal: no competing feasible candidate strictly dominates this model across all objectives.",
           "normalized_scores": {
             "predictive_metric": 1.0,
-            "inference_latency_ms": 1.0,
-            "training_duration_seconds": 0.9878,
+            "inference_latency_ms": 0.9974,
+            "training_duration_seconds": 0.9836,
             "artifact_size_bytes": 0.9999,
             "model_complexity": 1.0
           },
-          "distance_to_utopia": 0.0055
+          "distance_to_utopia": 0.0074
         },
         "tied_candidate_ids": [],
         "untouched_test_evaluation": {
@@ -733,16 +736,16 @@
         "cpu_architecture": "AMD64",
         "processor": "AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD",
         "monotonic_clock": "time.perf_counter()",
-        "memory_profiler": "tracemalloc"
+        "memory_profiler": "tracemalloc (Python-heap allocation tracking; excludes external C/C++ library buffers)"
       },
-      "profiling_methodology_disclaimer": "Measurements recorded using a dedicated warm-up inference pass followed by repeated timing. Training time measured with a monotonic high-resolution clock. Preprocessing fitted strictly within folds. Test set held out and evaluated only post-selection.",
-      "csv_export_url": "/api/v1/benchmarks/multi-objective/1a228d46-de45-4795-8b0a-7758b053ed49/export-csv"
+      "profiling_methodology_disclaimer": "Measurements recorded using a dedicated warm-up inference pass followed by repeated timing. Training time measured with a monotonic high-resolution clock (time.perf_counter). Memory profiled via tracemalloc (tracking Python heap allocations only; excludes external C-level BLAS/OpenMP buffers). Preprocessing fitted strictly within folds. Test set held out and evaluated only post-selection.",
+      "csv_export_url": "/api/v1/benchmarks/multi-objective/9bcdd740-1611-44cf-a523-79200aec3a7f/export-csv"
     },
     "regression": {
-      "experiment_id": "2d0d2fb2-ce07-443c-822f-8a46bfcb20fb",
-      "created_at": "2026-10-18T18:02:47.190116+00:00",
-      "dataset_id": "mo_housing_afa1fadb",
-      "dataset_name": "mo_housing_afa1fadb.csv",
+      "experiment_id": "46e6d61b-9eb7-4b59-8881-c8d9a9204696",
+      "created_at": "2026-10-18T18:20:29.477399+00:00",
+      "dataset_id": "mo_housing_a35ace01",
+      "dataset_name": "mo_housing_a35ace01.csv",
       "dataset_fingerprint": "78dd9802807748d7a13d6b87137d4cd970a014cc6cdf67bf1e153aa8ee1a8536",
       "task_type": "regression",
       "primary_metric": "rmse",
@@ -798,9 +801,9 @@
             "predictive_direction": "minimize",
             "validation_score": 25586.0359,
             "cv_std": 2072.9937,
-            "training_duration_seconds": 0.04,
-            "inference_latency_ms_per_sample": 0.0532,
-            "inference_throughput_samples_per_sec": 18783.79,
+            "training_duration_seconds": 0.032,
+            "inference_latency_ms_per_sample": 0.0482,
+            "inference_throughput_samples_per_sec": 20751.88,
             "model_artifact_size_bytes": 1886,
             "peak_memory_bytes": 92092,
             "complexity": {
@@ -827,8 +830,6 @@
           "is_pareto_optimal": true,
           "dominated_by": [],
           "dominates": [
-            "decision_tree_default",
-            "dt_shallow_fast",
             "hgb_deep_accurate",
             "hgb_fast",
             "hist_gradient_boosting_default",
@@ -839,12 +840,12 @@
           "status_explanation": "Pareto-optimal: no competing feasible candidate strictly dominates this model across all objectives.",
           "normalized_scores": {
             "predictive_metric": 1.0,
-            "inference_latency_ms": 0.9852,
-            "training_duration_seconds": 0.9994,
+            "inference_latency_ms": 0.9617,
+            "training_duration_seconds": 1.0,
             "artifact_size_bytes": 1.0,
             "model_complexity": 1.0
           },
-          "distance_to_utopia": 0.0066
+          "distance_to_utopia": 0.0171
         },
         {
           "measurement": {
@@ -860,9 +861,9 @@
             "predictive_direction": "minimize",
             "validation_score": 51328.8691,
             "cv_std": 2364.3509,
-            "training_duration_seconds": 0.0411,
-            "inference_latency_ms_per_sample": 0.0606,
-            "inference_throughput_samples_per_sec": 16507.75,
+            "training_duration_seconds": 0.0351,
+            "inference_latency_ms_per_sample": 0.0463,
+            "inference_throughput_samples_per_sec": 21578.88,
             "model_artifact_size_bytes": 7694,
             "peak_memory_bytes": 92598,
             "complexity": {
@@ -884,21 +885,20 @@
           "constraint_violations": [],
           "is_pareto_optimal": false,
           "dominated_by": [
-            "linear_regression_baseline",
             "ridge_strong_regularization"
           ],
           "dominates": [
             "hgb_fast"
           ],
-          "status_explanation": "Dominated by 2 feasible candidate(s): linear_regression_baseline, ridge_strong_regularization.",
+          "status_explanation": "Dominated by 1 feasible candidate(s): ridge_strong_regularization.",
           "normalized_scores": {
             "predictive_metric": 0.0508,
-            "inference_latency_ms": 0.9165,
-            "training_duration_seconds": 0.9978,
+            "inference_latency_ms": 0.992,
+            "training_duration_seconds": 0.9953,
             "artifact_size_bytes": 0.978,
             "model_complexity": 0.981
           },
-          "distance_to_utopia": 0.4263
+          "distance_to_utopia": 0.4247
         },
         {
           "measurement": {
@@ -915,11 +915,11 @@
             "predictive_direction": "minimize",
             "validation_score": 43848.7375,
             "cv_std": 1586.886,
-            "training_duration_seconds": 0.421,
-            "inference_latency_ms_per_sample": 0.1029,
-            "inference_throughput_samples_per_sec": 9722.56,
+            "training_duration_seconds": 0.3385,
+            "inference_latency_ms_per_sample": 0.087,
+            "inference_throughput_samples_per_sec": 11497.79,
             "model_artifact_size_bytes": 165246,
-            "peak_memory_bytes": 115698,
+            "peak_memory_bytes": 115862,
             "complexity": {
               "estimator_type": "RandomForestRegressor",
               "tree_count": 50,
@@ -949,12 +949,12 @@
           "status_explanation": "Dominated by 3 feasible candidate(s): hgb_deep_accurate, linear_regression_baseline, ridge_strong_regularization.",
           "normalized_scores": {
             "predictive_metric": 0.3266,
-            "inference_latency_ms": 0.5241,
-            "training_duration_seconds": 0.4393,
+            "inference_latency_ms": 0.3419,
+            "training_duration_seconds": 0.539,
             "artifact_size_bytes": 0.3807,
             "model_complexity": 0.3907
           },
-          "distance_to_utopia": 0.5915
+          "distance_to_utopia": 0.6089
         },
         {
           "measurement": {
@@ -970,11 +970,11 @@
             "predictive_direction": "minimize",
             "validation_score": 44054.8489,
             "cv_std": 7543.3855,
-            "training_duration_seconds": 0.2028,
-            "inference_latency_ms_per_sample": 0.0905,
-            "inference_throughput_samples_per_sec": 11044.94,
+            "training_duration_seconds": 0.1436,
+            "inference_latency_ms_per_sample": 0.0679,
+            "inference_throughput_samples_per_sec": 14722.08,
             "model_artifact_size_bytes": 15304,
-            "peak_memory_bytes": 303587,
+            "peak_memory_bytes": 303795,
             "complexity": {
               "estimator_type": "HistGradientBoostingRegressor",
               "tree_count": 50,
@@ -1001,12 +1001,12 @@
           "status_explanation": "Dominated by 2 feasible candidate(s): linear_regression_baseline, ridge_strong_regularization.",
           "normalized_scores": {
             "predictive_metric": 0.319,
-            "inference_latency_ms": 0.6391,
-            "training_duration_seconds": 0.7601,
+            "inference_latency_ms": 0.647,
+            "training_duration_seconds": 0.8321,
             "artifact_size_bytes": 0.9491,
             "model_complexity": 0.9049
           },
-          "distance_to_utopia": 0.3642
+          "distance_to_utopia": 0.3545
         },
         {
           "measurement": {
@@ -1022,9 +1022,9 @@
             "predictive_direction": "minimize",
             "validation_score": 52705.9205,
             "cv_std": 5647.2116,
-            "training_duration_seconds": 0.0442,
-            "inference_latency_ms_per_sample": 0.0957,
-            "inference_throughput_samples_per_sec": 10451.33,
+            "training_duration_seconds": 0.0384,
+            "inference_latency_ms_per_sample": 0.0469,
+            "inference_throughput_samples_per_sec": 21318.33,
             "model_artifact_size_bytes": 2997,
             "peak_memory_bytes": 91332,
             "complexity": {
@@ -1046,19 +1046,18 @@
           "constraint_violations": [],
           "is_pareto_optimal": false,
           "dominated_by": [
-            "linear_regression_baseline",
             "ridge_strong_regularization"
           ],
           "dominates": [],
-          "status_explanation": "Dominated by 2 feasible candidate(s): linear_regression_baseline, ridge_strong_regularization.",
+          "status_explanation": "Dominated by 1 feasible candidate(s): ridge_strong_regularization.",
           "normalized_scores": {
             "predictive_metric": 0.0,
-            "inference_latency_ms": 0.5909,
-            "training_duration_seconds": 0.9932,
+            "inference_latency_ms": 0.9824,
+            "training_duration_seconds": 0.9904,
             "artifact_size_bytes": 0.9958,
             "model_complexity": 0.9986
           },
-          "distance_to_utopia": 0.4832
+          "distance_to_utopia": 0.4473
         },
         {
           "measurement": {
@@ -1075,11 +1074,11 @@
             "predictive_direction": "minimize",
             "validation_score": 44161.1925,
             "cv_std": 101.5874,
-            "training_duration_seconds": 0.2452,
-            "inference_latency_ms_per_sample": 0.0922,
-            "inference_throughput_samples_per_sec": 10848.01,
+            "training_duration_seconds": 0.1539,
+            "inference_latency_ms_per_sample": 0.0642,
+            "inference_throughput_samples_per_sec": 15581.47,
             "model_artifact_size_bytes": 31596,
-            "peak_memory_bytes": 99294,
+            "peak_memory_bytes": 98374,
             "complexity": {
               "estimator_type": "RandomForestRegressor",
               "tree_count": 15,
@@ -1106,12 +1105,12 @@
           "status_explanation": "Dominated by 2 feasible candidate(s): linear_regression_baseline, ridge_strong_regularization.",
           "normalized_scores": {
             "predictive_metric": 0.3151,
-            "inference_latency_ms": 0.6234,
-            "training_duration_seconds": 0.6977,
+            "inference_latency_ms": 0.7061,
+            "training_duration_seconds": 0.8166,
             "artifact_size_bytes": 0.8874,
             "model_complexity": 0.909
           },
-          "distance_to_utopia": 0.3803
+          "distance_to_utopia": 0.3493
         },
         {
           "measurement": {
@@ -1128,11 +1127,11 @@
             "predictive_direction": "minimize",
             "validation_score": 43894.4452,
             "cv_std": 1315.1926,
-            "training_duration_seconds": 0.7198,
-            "inference_latency_ms_per_sample": 0.1594,
-            "inference_throughput_samples_per_sec": 6271.75,
+            "training_duration_seconds": 0.6968,
+            "inference_latency_ms_per_sample": 0.1084,
+            "inference_throughput_samples_per_sec": 9223.17,
             "model_artifact_size_bytes": 265656,
-            "peak_memory_bytes": 133129,
+            "peak_memory_bytes": 133664,
             "complexity": {
               "estimator_type": "RandomForestRegressor",
               "tree_count": 80,
@@ -1183,11 +1182,11 @@
             "predictive_direction": "minimize",
             "validation_score": 51768.9146,
             "cv_std": 6828.4078,
-            "training_duration_seconds": 0.1299,
-            "inference_latency_ms_per_sample": 0.0695,
-            "inference_throughput_samples_per_sec": 14379.22,
+            "training_duration_seconds": 0.2029,
+            "inference_latency_ms_per_sample": 0.0677,
+            "inference_throughput_samples_per_sec": 14764.72,
             "model_artifact_size_bytes": 10219,
-            "peak_memory_bytes": 300961,
+            "peak_memory_bytes": 300985,
             "complexity": {
               "estimator_type": "HistGradientBoostingRegressor",
               "tree_count": 25,
@@ -1215,12 +1214,12 @@
           "status_explanation": "Dominated by 3 feasible candidate(s): decision_tree_default, linear_regression_baseline, ridge_strong_regularization.",
           "normalized_scores": {
             "predictive_metric": 0.0346,
-            "inference_latency_ms": 0.834,
-            "training_duration_seconds": 0.8672,
+            "inference_latency_ms": 0.6502,
+            "training_duration_seconds": 0.7429,
             "artifact_size_bytes": 0.9684,
             "model_complexity": 0.9774
           },
-          "distance_to_utopia": 0.4424
+          "distance_to_utopia": 0.4737
         },
         {
           "measurement": {
@@ -1237,11 +1236,11 @@
             "predictive_direction": "minimize",
             "validation_score": 41494.8456,
             "cv_std": 7781.3035,
-            "training_duration_seconds": 0.288,
-            "inference_latency_ms_per_sample": 0.0749,
-            "inference_throughput_samples_per_sec": 13350.35,
+            "training_duration_seconds": 0.264,
+            "inference_latency_ms_per_sample": 0.0707,
+            "inference_throughput_samples_per_sec": 14134.84,
             "model_artifact_size_bytes": 25269,
-            "peak_memory_bytes": 348164,
+            "peak_memory_bytes": 347674,
             "complexity": {
               "estimator_type": "HistGradientBoostingRegressor",
               "tree_count": 100,
@@ -1271,12 +1270,12 @@
           "status_explanation": "Dominated by 2 feasible candidate(s): linear_regression_baseline, ridge_strong_regularization.",
           "normalized_scores": {
             "predictive_metric": 0.4134,
-            "inference_latency_ms": 0.7839,
-            "training_duration_seconds": 0.6348,
+            "inference_latency_ms": 0.6022,
+            "training_duration_seconds": 0.651,
             "artifact_size_bytes": 0.9114,
             "model_complexity": 0.8092
           },
-          "distance_to_utopia": 0.3372
+          "distance_to_utopia": 0.3656
         },
         {
           "measurement": {
@@ -1292,9 +1291,9 @@
             "predictive_direction": "minimize",
             "validation_score": 30519.8652,
             "cv_std": 1272.4508,
-            "training_duration_seconds": 0.0396,
-            "inference_latency_ms_per_sample": 0.0516,
-            "inference_throughput_samples_per_sec": 19380.37,
+            "training_duration_seconds": 0.0351,
+            "inference_latency_ms_per_sample": 0.0458,
+            "inference_throughput_samples_per_sec": 21851.91,
             "model_artifact_size_bytes": 1890,
             "peak_memory_bytes": 91332,
             "complexity": {
@@ -1330,11 +1329,11 @@
           "normalized_scores": {
             "predictive_metric": 0.8181,
             "inference_latency_ms": 1.0,
-            "training_duration_seconds": 1.0,
+            "training_duration_seconds": 0.9953,
             "artifact_size_bytes": 1.0,
             "model_complexity": 1.0
           },
-          "distance_to_utopia": 0.0813
+          "distance_to_utopia": 0.0814
         }
       ],
       "pareto_frontier_candidate_ids": [
@@ -1362,9 +1361,9 @@
             "predictive_direction": "minimize",
             "validation_score": 25586.0359,
             "cv_std": 2072.9937,
-            "training_duration_seconds": 0.04,
-            "inference_latency_ms_per_sample": 0.0532,
-            "inference_throughput_samples_per_sec": 18783.79,
+            "training_duration_seconds": 0.032,
+            "inference_latency_ms_per_sample": 0.0482,
+            "inference_throughput_samples_per_sec": 20751.88,
             "model_artifact_size_bytes": 1886,
             "peak_memory_bytes": 92092,
             "complexity": {
@@ -1391,8 +1390,6 @@
           "is_pareto_optimal": true,
           "dominated_by": [],
           "dominates": [
-            "decision_tree_default",
-            "dt_shallow_fast",
             "hgb_deep_accurate",
             "hgb_fast",
             "hist_gradient_boosting_default",
@@ -1403,12 +1400,12 @@
           "status_explanation": "Pareto-optimal: no competing feasible candidate strictly dominates this model across all objectives.",
           "normalized_scores": {
             "predictive_metric": 1.0,
-            "inference_latency_ms": 0.9852,
-            "training_duration_seconds": 0.9994,
+            "inference_latency_ms": 0.9617,
+            "training_duration_seconds": 1.0,
             "artifact_size_bytes": 1.0,
             "model_complexity": 1.0
           },
-          "distance_to_utopia": 0.0066
+          "distance_to_utopia": 0.0171
         },
         "tied_candidate_ids": [],
         "untouched_test_evaluation": {
@@ -1425,10 +1422,10 @@
         "cpu_architecture": "AMD64",
         "processor": "AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD",
         "monotonic_clock": "time.perf_counter()",
-        "memory_profiler": "tracemalloc"
+        "memory_profiler": "tracemalloc (Python-heap allocation tracking; excludes external C/C++ library buffers)"
       },
-      "profiling_methodology_disclaimer": "Measurements recorded using a dedicated warm-up inference pass followed by repeated timing. Training time measured with a monotonic high-resolution clock. Preprocessing fitted strictly within folds. Test set held out and evaluated only post-selection.",
-      "csv_export_url": "/api/v1/benchmarks/multi-objective/2d0d2fb2-ce07-443c-822f-8a46bfcb20fb/export-csv"
+      "profiling_methodology_disclaimer": "Measurements recorded using a dedicated warm-up inference pass followed by repeated timing. Training time measured with a monotonic high-resolution clock (time.perf_counter). Memory profiled via tracemalloc (tracking Python heap allocations only; excludes external C-level BLAS/OpenMP buffers). Preprocessing fitted strictly within folds. Test set held out and evaluated only post-selection.",
+      "csv_export_url": "/api/v1/benchmarks/multi-objective/46e6d61b-9eb7-4b59-8881-c8d9a9204696/export-csv"
     }
   }
 }

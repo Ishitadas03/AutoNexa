@@ -109,7 +109,8 @@ class CandidateMeasurement(BaseModel):
         ..., description="Serialized pipeline disk size in bytes (joblib)"
     )
     peak_memory_bytes: Optional[int] = Field(
-        default=None, description="Peak memory allocated during training in bytes (tracemalloc)"
+        default=None,
+        description="Peak memory allocated during training in bytes on the Python heap via tracemalloc (excludes external native C/C++ library buffers)",
     )
 
     # Complexity

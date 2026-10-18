@@ -180,6 +180,8 @@ def test_select_model_dynamic_constraints(temp_dataset_env):
     assert sel_res.satisfies_all_constraints is True
     assert sel_res.selected_candidate_id is not None
     assert sel_res.policy_used == "lowest_latency_constrained"
+    assert sel_res.untouched_test_evaluation is not None
+    assert sel_res.selected_candidate.measurement.test_score is not None
 
 
 def test_csv_export(temp_dataset_env):

@@ -243,3 +243,105 @@ def test_selection_zero_feasible_candidates():
     assert sel.feasible_candidates_count == 0
     assert sel.infeasible_candidates_count == 1
     assert "No candidate model satisfied" in sel.selection_explanation
+
+
+def test_missing_objective_values_utopia_distance():
+    """Verify missing objective measurements are omitted from normalization and do not distort distance."""
+    objectives = [
+        ObjectiveDefinition(name="Score", key="predictive_metric", direction="maximize", unit="score", description=""),
+        ObjectiveDefinition(name="Latency", key="inference_latency_ms", direction="minimize", unit="ms", description=""),
+        ObjectiveDefinition(name="Memory", key="peak_memory_bytes", direction="minimize", unit="bytes", description=""),
+    ]
+    # M1 has memory tracked
+    cand_1 = _make_candidate("M1", validation_score=0.90, inference_latency_ms=1.0)
+    cand_1.peak_memory_bytes = 1000000
+
+    # M2 has NO memory tracked (None)
+    cand_2 = _make_candidate("M2", validation_score=0.85, inference_latency_ms=0.5)
+    cand_2.peak_memory_bytes = None
+
+    results, pareto_ids = ParetoFrontierCalculator.compute_pareto_frontier(
+        measurements=[cand_1, cand_2],
+        objectives=objectives,
+    )
+
+    r1 = next(r for r in results if r.measurement.candidate_id == "M1")
+    r2 = next(r for r in results if r.measurement.candidate_id == "M2")
+
+    # M2 should NOT have 'peak_memory_bytes' in its normalized_scores
+    assert "peak_memory_bytes" not in r2.normalized_scores
+    assert "peak_memory_bytes" in r1.normalized_scores
+
+    # Distance to Utopia should be a valid float computed over available objectives
+    assert r2.distance_to_utopia is not None
+    assert isinstance(r2.distance_to_utopia, float)
+
+
+def test_custom_weights_balanced_compromise():
+    """Verify custom_weights prioritize designated objectives during balanced_compromise selection."""
+    objectives = [
+        ObjectiveDefinition(name="Score", key="predictive_metric", direction="maximize", unit="score", description=""),
+        ObjectiveDefinition(name="Latency", key="inference_latency_ms", direction="minimize", unit="ms", description=""),
+    ]
+    # Fast: low score, ultra low latency
+    cand_fast = _make_candidate("Fast", validation_score=0.70, inference_latency_ms=0.1)
+    # Accurate: high score, high latency
+    cand_acc = _make_candidate("Accurate", validation_score=0.99, inference_latency_ms=10.0)
+
+    results, _ = ParetoFrontierCalculator.compute_pareto_frontier(
+        measurements=[cand_fast, cand_acc],
+        objectives=objectives,
+    )
+
+    # With heavy latency weight, Fast must win
+    sel_fast = ParetoFrontierCalculator.select_model(
+        candidates=results,
+        policy="balanced_compromise",
+        custom_weights={"inference_latency_ms": 10.0, "predictive_metric": 0.1},
+    )
+    assert sel_fast.selected_candidate_id == "Fast"
+
+    # With heavy accuracy weight, Accurate must win
+    sel_acc = ParetoFrontierCalculator.select_model(
+        candidates=results,
+        policy="balanced_compromise",
+        custom_weights={"inference_latency_ms": 0.1, "predictive_metric": 10.0},
+    )
+    assert sel_acc.selected_candidate_id == "Accurate"
+
+
+def test_constant_valued_objectives_normalization():
+    """Verify constant-valued objectives receive utility 1.0 without division by zero."""
+    objectives = [
+        ObjectiveDefinition(name="Score", key="predictive_metric", direction="maximize", unit="score", description=""),
+        ObjectiveDefinition(name="Complexity", key="model_complexity", direction="minimize", unit="nodes", description=""),
+    ]
+    # Both candidates have identical complexity score (10.0)
+    cand_a = _make_candidate("A", validation_score=0.85)
+    cand_b = _make_candidate("B", validation_score=0.75)
+
+    results, _ = ParetoFrontierCalculator.compute_pareto_frontier(
+        measurements=[cand_a, cand_b],
+        objectives=objectives,
+    )
+
+    r_a = next(r for r in results if r.measurement.candidate_id == "A")
+    r_b = next(r for r in results if r.measurement.candidate_id == "B")
+
+    # Constant column should be normalized to 1.0 for both candidates
+    assert r_a.normalized_scores["model_complexity"] == 1.0
+    assert r_b.normalized_scores["model_complexity"] == 1.0
+
+
+def test_empty_validation_scores_fallback():
+    """Verify best_performance_constrained falls back safely if all validation scores are None."""
+    cand = _make_candidate("NoScore", validation_score=None)
+
+    results, _ = ParetoFrontierCalculator.compute_pareto_frontier(
+        measurements=[cand],
+        objectives=[ObjectiveDefinition(name="Latency", key="inference_latency_ms", direction="minimize", unit="ms", description="")],
+    )
+
+    sel = ParetoFrontierCalculator.select_model(results, policy="best_performance_constrained")
+    assert sel.selected_candidate_id == "NoScore"
+    assert "validation scores were unavailable" in sel.selection_explanation

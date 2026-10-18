@@ -294,7 +294,7 @@ Operational constraints configured:
 
 #### Visualizing the Regression Pareto Frontier:
 
-![Regression Pareto Frontier (Model Size vs RMSE)](file:///c:/Users/ishit\docs\research\plots\regression_pareto_frontier.png)
+![Regression Pareto Frontier (Model Size vs RMSE)](file:///c:/Users/ishit/AutoNexa/docs/research/plots/regression_pareto_frontier.png)
 
 #### Key Regression Findings:
 1. **Clear Linear Super-Dominance:** Ridge Regression achieved both the lowest validation error ($\text{RMSE}=\$25,586.04$) and the smallest disk footprint ($1.9\text{ KB}$), rendering tree-based models entirely dominated.

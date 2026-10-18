@@ -279,7 +279,8 @@ class ParetoFrontierCalculator:
                 for m in feasible_measurements:
                     val = cls.extract_objective_value(m, obj.key)
                     if val is None:
-                        normalized_scores_map[m.candidate_id][obj.key] = 0.0
+                        # Omit missing objectives from normalized utility map
+                        continue
                     elif span <= FLOAT_TOLERANCE:
                         normalized_scores_map[m.candidate_id][obj.key] = 1.0
                     else:
@@ -289,12 +290,16 @@ class ParetoFrontierCalculator:
                             u = (max_v - val) / span
                         normalized_scores_map[m.candidate_id][obj.key] = round(float(u), 4)
 
-        # 4. Calculate Euclidean distance to Utopia point (1.0, 1.0, ..., 1.0)
-        utopia_dist_map: Dict[str, float] = {}
+        # 4. Calculate Euclidean distance to Utopia point (1.0 across valid measured objectives)
+        utopia_dist_map: Dict[str, Optional[float]] = {}
         for m in feasible_measurements:
             scores = normalized_scores_map.get(m.candidate_id, {})
-            sq_diffs = sum((1.0 - scores.get(obj.key, 0.0)) ** 2 for obj in objectives)
-            utopia_dist_map[m.candidate_id] = round(math.sqrt(sq_diffs / max(1, len(objectives))), 4)
+            valid_objs = [obj for obj in objectives if obj.key in scores]
+            if valid_objs:
+                sq_diffs = sum((1.0 - scores[obj.key]) ** 2 for obj in valid_objs)
+                utopia_dist_map[m.candidate_id] = round(math.sqrt(sq_diffs / len(valid_objs)), 4)
+            else:
+                utopia_dist_map[m.candidate_id] = None
 
         # 5. Assemble ParetoCandidateResult objects
         results: List[ParetoCandidateResult] = []
@@ -370,28 +375,33 @@ class ParetoFrontierCalculator:
 
         if policy == "best_performance_constrained":
             pred_dir = selection_pool[0].measurement.predictive_direction
-            if pred_dir == "maximize":
-                best_score = max(c.measurement.validation_score for c in selection_pool if c.measurement.validation_score is not None)
-                matches = [
-                    c for c in selection_pool
-                    if c.measurement.validation_score is not None and abs(c.measurement.validation_score - best_score) <= FLOAT_TOLERANCE
-                ]
+            valid_perf = [c for c in selection_pool if c.measurement.validation_score is not None]
+            if not valid_perf:
+                selected = selection_pool[0]
+                tied_ids = [c.measurement.candidate_id for c in selection_pool[1:]]
+                explanation = (
+                    f"Selected '{selected.measurement.model_name}' ({selected.measurement.candidate_id}) "
+                    "as default candidate because validation scores were unavailable."
+                )
             else:
-                best_score = min(c.measurement.validation_score for c in selection_pool if c.measurement.validation_score is not None)
-                matches = [
-                    c for c in selection_pool
-                    if c.measurement.validation_score is not None and abs(c.measurement.validation_score - best_score) <= FLOAT_TOLERANCE
-                ]
+                if pred_dir == "maximize":
+                    best_score = max(c.measurement.validation_score for c in valid_perf)
+                else:
+                    best_score = min(c.measurement.validation_score for c in valid_perf)
 
-            selected = matches[0]
-            tied_ids = [c.measurement.candidate_id for c in matches[1:]]
-            metric_name = selected.measurement.predictive_metric
-            explanation = (
-                f"Selected '{selected.measurement.model_name}' ({selected.measurement.candidate_id}) "
-                f"achieving peak validation {metric_name} of {best_score:.4f} while satisfying all operational constraints."
-            )
-            if tied_ids:
-                explanation += f" Note: {len(tied_ids)} candidate(s) tied within numerical tolerance ({', '.join(tied_ids)})."
+                matches = [
+                    c for c in valid_perf
+                    if abs(c.measurement.validation_score - best_score) <= FLOAT_TOLERANCE
+                ]
+                selected = matches[0]
+                tied_ids = [c.measurement.candidate_id for c in matches[1:]]
+                metric_name = selected.measurement.predictive_metric
+                explanation = (
+                    f"Selected '{selected.measurement.model_name}' ({selected.measurement.candidate_id}) "
+                    f"achieving peak validation {metric_name} of {best_score:.4f} while satisfying all operational constraints."
+                )
+                if tied_ids:
+                    explanation += f" Note: {len(tied_ids)} candidate(s) tied within numerical tolerance ({', '.join(tied_ids)})."
 
         elif policy == "lowest_latency_constrained":
             min_lat = min(c.measurement.inference_latency_ms_per_sample for c in selection_pool)
@@ -420,22 +430,45 @@ class ParetoFrontierCalculator:
             )
 
         elif policy == "balanced_compromise":
-            # Select candidate with minimal Euclidean distance to ideal Utopia point (1.0 across all normalized metrics)
-            valid_utopia = [c for c in selection_pool if c.distance_to_utopia is not None]
-            if not valid_utopia:
-                valid_utopia = selection_pool
+            # If custom_weights are provided, compute weighted Euclidean distance to Utopia point
+            candidate_distances: List[Tuple[ParetoCandidateResult, float]] = []
 
-            min_dist = min(c.distance_to_utopia if c.distance_to_utopia is not None else float("inf") for c in valid_utopia)
+            for c in selection_pool:
+                scores = c.normalized_scores or {}
+                if custom_weights:
+                    valid_keys = [k for k in custom_weights if k in scores and scores[k] is not None]
+                    if valid_keys:
+                        w_sum = sum(custom_weights[k] for k in valid_keys if custom_weights[k] > 0)
+                        if w_sum > 0:
+                            w_sq_diffs = sum(
+                                custom_weights[k] * ((1.0 - scores[k]) ** 2)
+                                for k in valid_keys
+                                if custom_weights[k] > 0
+                            )
+                            dist = round(math.sqrt(w_sq_diffs / w_sum), 4)
+                        else:
+                            dist = c.distance_to_utopia if c.distance_to_utopia is not None else float("inf")
+                    else:
+                        dist = c.distance_to_utopia if c.distance_to_utopia is not None else float("inf")
+                else:
+                    dist = c.distance_to_utopia if c.distance_to_utopia is not None else float("inf")
+
+                candidate_distances.append((c, dist))
+
+            min_dist = min(d for _, d in candidate_distances) if candidate_distances else float("inf")
             matches = [
-                c for c in valid_utopia
-                if c.distance_to_utopia is not None and abs(c.distance_to_utopia - min_dist) <= FLOAT_TOLERANCE
+                c for c, d in candidate_distances
+                if abs(d - min_dist) <= FLOAT_TOLERANCE
             ]
-            selected = matches[0]
+            selected = matches[0] if matches else selection_pool[0]
             tied_ids = [c.measurement.candidate_id for c in matches[1:]]
+            weight_note = f" (custom weights: {custom_weights})" if custom_weights else ""
             explanation = (
                 f"Selected '{selected.measurement.model_name}' ({selected.measurement.candidate_id}) "
-                f"as the balanced compromise on the Pareto frontier (distance to Utopia: {min_dist:.4f})."
+                f"as the balanced compromise on the Pareto frontier (distance to Utopia: {min_dist:.4f}){weight_note}."
             )
+            if tied_ids:
+                explanation += f" Note: {len(tied_ids)} candidate(s) tied within numerical tolerance ({', '.join(tied_ids)})."
 
         return MultiObjectiveSelectionResult(
             selected_candidate_id=selected.measurement.candidate_id if selected else None,
