@@ -623,6 +623,20 @@ export default function ModelRegistryTab({
                             <td className="py-3 px-3 text-right">
                               <div className="flex items-center justify-end gap-1.5">
                                 <button
+                                  onClick={() => {
+                                    if (typeof window !== "undefined") {
+                                      sessionStorage.setItem("autonexa_active_serving_model", ver.model_name);
+                                      sessionStorage.setItem("autonexa_active_serving_version", String(ver.version));
+                                    }
+                                    onNavigateTab("prediction");
+                                  }}
+                                  className="px-2.5 py-1 rounded bg-[#1D4ED8] border border-[#1E40AF] text-white hover:bg-[#1E40AF] text-[10.5px] font-semibold flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
+                                  title="Serve and run real-time inference"
+                                >
+                                  <Zap className="w-3 h-3 text-amber-300" />
+                                  <span>Serve</span>
+                                </button>
+                                <button
                                   onClick={() => handleVerifyVersion(ver.model_name, ver.version)}
                                   disabled={verifyingVersion === ver.version}
                                   className="px-2.5 py-1 rounded bg-white border border-[#CBD5E1] text-[#0F172A] hover:border-emerald-600 hover:text-emerald-700 text-[10.5px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"

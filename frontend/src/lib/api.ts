@@ -43,6 +43,13 @@ import {
   ModelVersionRecord,
   ReproducibilityManifest,
   StageTransitionRequest,
+  ServingModelSummary,
+  ServingModelDetailResponse,
+  ServingHealthResponse,
+  ServingPredictionRequest,
+  ServingPredictionResponse,
+  ServingMetricsResponse,
+  CacheInvalidationResponse,
 } from "@/types/api";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -91,6 +98,18 @@ async function handleResponse<T>(res: Response): Promise<T> {
     throw new ApiError(res.status, errorDetail);
   }
   return res.json() as Promise<T>;
+}
+
+function getServingHeaders(apiKey?: string, extraHeaders?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    ...extraHeaders,
+  };
+  const key = apiKey || (typeof window !== "undefined" ? localStorage.getItem("autonexa_serving_api_key") || "" : "");
+  if (key) {
+    headers["X-API-Key"] = key;
+  }
+  return headers;
 }
 
 export const api = {
@@ -667,6 +686,102 @@ export const api = {
       headers: { Accept: "application/json" },
     });
     return handleResponse<Record<string, any>>(res);
+  },
+
+  // ---------------------------------------------------------------------------
+  // Phase 13: Secure Model Serving & Deployment
+  // ---------------------------------------------------------------------------
+
+  /** List models and eligible serving versions */
+  async listServingModels(apiKey?: string): Promise<ServingModelSummary[]> {
+    const url = getEffectiveUrl("/api/v1/serving/models");
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<ServingModelSummary[]>(res);
+  },
+
+  /** Get detailed schema and capabilities for a specific serving version */
+  async getServingModelDetail(modelName: string, version: number, apiKey?: string): Promise<ServingModelDetailResponse> {
+    const url = getEffectiveUrl(`/api/v1/serving/models/${encodeURIComponent(modelName)}/versions/${version}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<ServingModelDetailResponse>(res);
+  },
+
+  /** Check live health and artifact integrity of a specific serving version */
+  async checkServingModelHealth(modelName: string, version: number, apiKey?: string): Promise<ServingHealthResponse> {
+    const url = getEffectiveUrl(`/api/v1/serving/models/${encodeURIComponent(modelName)}/versions/${version}/health`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<ServingHealthResponse>(res);
+  },
+
+  /** Execute prediction against a specific model version */
+  async predictServingVersion(
+    modelName: string,
+    version: number,
+    request: ServingPredictionRequest,
+    apiKey?: string
+  ): Promise<ServingPredictionResponse> {
+    const url = getEffectiveUrl(`/api/v1/serving/models/${encodeURIComponent(modelName)}/versions/${version}/predict`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getServingHeaders(apiKey, { "Content-Type": "application/json" }),
+      body: JSON.stringify(request),
+    });
+    return handleResponse<ServingPredictionResponse>(res);
+  },
+
+  /** Execute prediction against active production/staging version */
+  async predictServingActive(
+    modelName: string,
+    request: ServingPredictionRequest,
+    apiKey?: string
+  ): Promise<ServingPredictionResponse> {
+    const url = getEffectiveUrl(`/api/v1/serving/models/${encodeURIComponent(modelName)}/predict`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getServingHeaders(apiKey, { "Content-Type": "application/json" }),
+      body: JSON.stringify(request),
+    });
+    return handleResponse<ServingPredictionResponse>(res);
+  },
+
+  /** Get operational serving metrics (request counts, latency stats, error counters) */
+  async getServingMetrics(apiKey?: string): Promise<ServingMetricsResponse> {
+    const url = getEffectiveUrl("/api/v1/serving/metrics");
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<ServingMetricsResponse>(res);
+  },
+
+  /** Invalidate in-memory cached model instances (requires admin key if auth enabled) */
+  async invalidateServingCache(
+    modelName?: string,
+    version?: number,
+    apiKey?: string
+  ): Promise<CacheInvalidationResponse> {
+    const path = modelName && version !== undefined
+      ? `/api/v1/serving/models/${encodeURIComponent(modelName)}/versions/${version}/cache/invalidate`
+      : "/api/v1/serving/cache/invalidate";
+    const url = getEffectiveUrl(path);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getServingHeaders(apiKey),
+    });
+    return handleResponse<CacheInvalidationResponse>(res);
   },
 };
 

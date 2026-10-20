@@ -1176,6 +1176,106 @@ export interface ArtifactVerificationResponse {
   message: string;
 }
 
+// ==========================================
+// Phase 13: Secure Model Serving & Deployment
+// ==========================================
+
+export interface ServingModelSummary {
+  model_name: string;
+  active_version?: number | null;
+  active_stage?: string | null;
+  task_type: string;
+  model_family: string;
+  primary_metric: string;
+  score?: number | null;
+  serving_status: "active" | "ineligible";
+  available_versions: number[];
+  production_version?: number | null;
+  staging_version?: number | null;
+}
+
+export interface ServingModelDetailResponse {
+  model_name: string;
+  version: number;
+  version_tag: string;
+  stage: string;
+  task_type: string;
+  model_family: string;
+  score?: number | null;
+  primary_metric: string;
+  feature_names: string[];
+  numeric_features?: string[] | null;
+  categorical_features?: string[] | null;
+  supports_probabilities: boolean;
+  classes?: any[] | null;
+  artifact_sha256: string;
+  artifact_size_bytes: number;
+  created_at: string;
+  is_cached: boolean;
+}
+
+export interface ServingHealthResponse {
+  status: "healthy" | "degraded";
+  model_name: string;
+  version: number;
+  stage: string;
+  artifact_verified: boolean;
+  loaded_in_cache: boolean;
+  message: string;
+}
+
+export interface ServingPredictionRequest {
+  records: Record<string, any>[];
+}
+
+export interface ServingPredictionResponse {
+  model_name: string;
+  version: number;
+  version_tag: string;
+  stage: string;
+  task_type: string;
+  records_count: number;
+  predictions: any[];
+  probabilities?: Record<string, number>[] | null;
+  latency_ms: number;
+  timestamp: string;
+}
+
+export interface ServingMetricsResponse {
+  total_requests: number;
+  successful_requests: number;
+  failed_requests: number;
+  validation_errors: number;
+  integrity_errors: number;
+  average_latency_ms: number;
+  p50_latency_ms: number;
+  p95_latency_ms: number;
+  min_latency_ms: number;
+  max_latency_ms: number;
+  models_served: Record<
+    string,
+    {
+      model_name: string;
+      version: number;
+      total_requests: number;
+      successful_requests: number;
+      failed_requests: number;
+      avg_latency_ms: number;
+      min_latency_ms: number;
+      max_latency_ms: number;
+      last_request_at?: string | null;
+    }
+  >;
+}
+
+export interface CacheInvalidationResponse {
+  model_name: string;
+  version?: number | null;
+  evicted: boolean;
+  message: string;
+}
+
+
 
 
 

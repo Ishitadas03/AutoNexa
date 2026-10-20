@@ -165,6 +165,33 @@ class Settings(BaseSettings):
         description="Default number of resamples for statistical bootstrap confidence intervals",
     )
 
+    # Phase 13: Model Serving & Security Configuration
+    serving_auth_enabled: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("SERVING_AUTH_ENABLED"),
+        description="Whether to enforce API key authentication on model serving endpoints",
+    )
+    serving_api_key_read: str = Field(
+        default="autonexa-read-key-secret",
+        validation_alias=AliasChoices("SERVING_API_KEY_READ", "SERVING_API_KEY"),
+        description="Read-only API key for querying endpoints and running predictions",
+    )
+    serving_api_key_admin: str = Field(
+        default="autonexa-admin-key-secret",
+        validation_alias=AliasChoices("SERVING_API_KEY_ADMIN"),
+        description="Admin API key for cache invalidation and privileged serving operations",
+    )
+    serving_eligible_stages: List[str] = Field(
+        default=["production", "staging"],
+        validation_alias=AliasChoices("SERVING_ELIGIBLE_STAGES"),
+        description="List of model lifecycle stages eligible for serving (default: production, staging)",
+    )
+    serving_cache_max_models: int = Field(
+        default=20,
+        validation_alias=AliasChoices("SERVING_CACHE_MAX_MODELS"),
+        description="Maximum number of loaded model pipelines cached in memory simultaneously",
+    )
+
     @property
     def resolved_upload_dir(self) -> Path:
         """Return absolute Path for uploads directory, creating it if needed."""

@@ -410,7 +410,10 @@ export default function Home() {
           )}
 
           {activeTab === "prediction" && (
-            <PredictionTab activeExperiment={activeExperiment} />
+            <PredictionTab
+              activeExperiment={activeExperiment}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+            />
           )}
 
           {activeTab === "explainability" && (

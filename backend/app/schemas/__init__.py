@@ -89,6 +89,15 @@ from app.schemas.training import (
     TrainingRequest,
     TrainingResponse,
 )
+from app.schemas.serving import (
+    CacheInvalidationResponse,
+    ServingHealthResponse,
+    ServingMetricsResponse,
+    ServingModelDetailResponse,
+    ServingModelSummary,
+    ServingPredictionRequest,
+    ServingPredictionResponse,
+)
 from app.schemas.tracking import (
     ArtifactVerificationResponse,
     ExperimentCompareRequest,
@@ -117,6 +126,7 @@ __all__ = [
     "BaselineComparisonResult",
     "BenchmarkCompareRequest",
     "BenchmarkComparisonResponse",
+    "CacheInvalidationResponse",
     "CandidateMeasurement",
     "CategoryErrorSlice",
     "ClassErrorSummary",
@@ -188,6 +198,12 @@ __all__ = [
     "ResourceConstraints",
     "ResourceEfficiencyReport",
     "SelectionPolicy",
+    "ServingHealthResponse",
+    "ServingMetricsResponse",
+    "ServingModelDetailResponse",
+    "ServingModelSummary",
+    "ServingPredictionRequest",
+    "ServingPredictionResponse",
     "StageTransitionRequest",
     "TargetCandidate",
     "TaskRecommendation",
