@@ -18,6 +18,10 @@ from app.services.automl.model_serving_service import (
     ModelServingService,
     get_model_serving_service,
 )
+from app.services.automl.pipeline_service import (
+    PipelineService,
+    get_pipeline_service,
+)
 from app.services.automl.preprocessor import build_preprocessor
 from app.services.automl.registry import ModelRegistry
 from app.services.automl.training_service import TrainingService, get_training_service
@@ -32,6 +36,7 @@ __all__ = [
     "ModelRegistry",
     "ModelRegistryService",
     "ModelServingService",
+    "PipelineService",
     "TrainingService",
     "build_preprocessor",
     "get_analysis_service",
@@ -40,5 +45,6 @@ __all__ = [
     "get_model_monitoring_service",
     "get_model_registry_service",
     "get_model_serving_service",
+    "get_pipeline_service",
     "get_training_service",
 ]

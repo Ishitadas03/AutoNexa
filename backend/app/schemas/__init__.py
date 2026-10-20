@@ -147,6 +147,17 @@ from app.schemas.tracking import (
     ReproducibilityManifest,
     StageTransitionRequest,
 )
+from app.schemas.pipeline import (
+    PipelineCreateRequest,
+    PipelineEvent,
+    PipelineListResponse,
+    PipelineProvenance,
+    PipelineResponse,
+    PipelineStage,
+    PipelineStatus,
+    PromotionPolicy,
+    StageRecord,
+)
 
 __all__ = [
     "AlertAcknowledgeRequest",
@@ -235,10 +246,18 @@ __all__ = [
     "ParameterDomain",
     "ParetoCandidateResult",
     "PerformanceMetricReport",
+    "PipelineCreateRequest",
+    "PipelineEvent",
+    "PipelineListResponse",
+    "PipelineProvenance",
+    "PipelineResponse",
+    "PipelineStage",
+    "PipelineStatus",
     "PredictionExplanationRequest",
     "PredictionExplanationResponse",
     "PredictionRequest",
     "PredictionResponse",
+    "PromotionPolicy",
     "QualityWarning",
     "ReferenceProfileCreate",
     "ReferenceProfileResponse",

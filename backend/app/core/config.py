@@ -239,6 +239,18 @@ class Settings(BaseSettings):
         description="Maximum number of concurrent retraining jobs permitted simultaneously (default 1)",
     )
 
+    # Phase 15 Pipeline Orchestration Settings
+    pipeline_max_concurrency: int = Field(
+        default=2,
+        validation_alias=AliasChoices("PIPELINE_MAX_CONCURRENCY"),
+        description="Maximum number of simultaneous active pipeline executions (default 2)",
+    )
+    pipeline_timeout_seconds: int = Field(
+        default=600,
+        validation_alias=AliasChoices("PIPELINE_TIMEOUT_SECONDS"),
+        description="Maximum execution timeout for an entire pipeline run in seconds (default 600)",
+    )
+
     @property
     def resolved_upload_dir(self) -> Path:
         """Return absolute Path for uploads directory, creating it if needed."""
@@ -268,6 +280,13 @@ class Settings(BaseSettings):
     def resolved_monitoring_dir(self) -> Path:
         """Return absolute Path for model monitoring storage directory."""
         path = (self.resolved_experiments_dir / "monitoring").resolve()
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def resolved_pipelines_dir(self) -> Path:
+        """Return absolute Path for pipeline orchestration storage directory."""
+        path = (self.resolved_experiments_dir / "pipelines").resolve()
         path.mkdir(parents=True, exist_ok=True)
         return path
 

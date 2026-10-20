@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   GitCompare,
   Gauge,
+  GitBranch,
 } from "lucide-react";
 import { WorkspaceTab } from "@/lib/store";
 
@@ -49,6 +50,7 @@ const NAV_GROUPS: NavGroup[] = [
     title: "AutoML Engine",
     items: [
       { id: "training", label: "AutoML Studio", icon: SlidersHorizontal },
+      { id: "pipelines", label: "Pipeline Orchestration", icon: GitBranch },
       { id: "leaderboard", label: "Model Evaluation", icon: Trophy },
       { id: "experiments", label: "Experiments", icon: History },
       { id: "prediction", label: "Prediction Playground", icon: Activity },

@@ -1,7 +1,7 @@
 """API route definitions and aggregated router."""
 
 from fastapi import APIRouter
-from app.api.routes import benchmarks, datasets, experiments, health, model_registry, monitoring, serving
+from app.api.routes import benchmarks, datasets, experiments, health, model_registry, monitoring, pipelines, serving
 
 api_router = APIRouter()
 api_router.include_router(health.router)
@@ -11,5 +11,6 @@ api_router.include_router(model_registry.router)
 api_router.include_router(serving.router)
 api_router.include_router(monitoring.router)
 api_router.include_router(benchmarks.router)
+api_router.include_router(pipelines.router)
 
 __all__ = ["api_router"]

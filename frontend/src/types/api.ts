@@ -1557,8 +1557,115 @@ export interface MonitoringOverviewResponse {
   recent_retraining_jobs: RetrainingJobRecord[];
 }
 
+// ==========================================
+// Phase 15: Pipeline Orchestration Types
+// ==========================================
 
+export type PipelineStatus = "pending" | "running" | "succeeded" | "failed" | "cancelled";
 
+export type PipelineStage =
+  | "dataset_validation"
+  | "provenance_init"
+  | "training"
+  | "evaluation"
+  | "experiment_manifest"
+  | "registry_registration"
+  | "promotion_gate"
+  | "monitoring_initialization"
+  | "completed";
 
+export type PromotionPolicy = "manual" | "auto_staging" | "auto_production";
 
+export interface StageRecord {
+  stage: PipelineStage;
+  status: "pending" | "running" | "succeeded" | "failed" | "skipped";
+  started_at?: string | null;
+  completed_at?: string | null;
+  duration_seconds?: number | null;
+  message?: string | null;
+  details?: Record<string, any> | null;
+}
 
+export interface PipelineProvenance {
+  pipeline_id: string;
+  config_fingerprint: string;
+  dataset_id: string;
+  dataset_fingerprint?: string | null;
+  task_type: string;
+  target_column: string;
+  evaluation_strategy?: string | null;
+  primary_metric?: string | null;
+  random_state?: number | null;
+  experiment_id?: string | null;
+  model_name: string;
+  model_version?: number | null;
+  artifact_checksum?: string | null;
+  reference_profile_id?: string | null;
+  environment_info: Record<string, any>;
+  package_versions: Record<string, string>;
+  created_at: string;
+}
+
+export interface PipelineEvent {
+  event_id: string;
+  pipeline_id: string;
+  stage: PipelineStage;
+  event_type: "info" | "warning" | "error" | "state_change";
+  message: string;
+  timestamp: string;
+  metadata?: Record<string, any> | null;
+}
+
+export interface PipelineCreateRequest {
+  dataset_id: string;
+  target_column: string;
+  task_type?: "classification" | "regression" | null;
+  model_name: string;
+  description?: string | null;
+  training_config?: TrainingRequest | Record<string, any> | null;
+  auto_register?: boolean;
+  initial_registry_stage?: "development" | "staging";
+  promotion_policy?: PromotionPolicy;
+  candidate_tolerance_pct?: number;
+  create_reference_profile?: boolean;
+  monitoring_split_source?: string;
+  random_seed?: number;
+}
+
+export interface PipelineResponse {
+  pipeline_id: string;
+  status: PipelineStatus;
+  current_stage: PipelineStage;
+  dataset_id: string;
+  dataset_fingerprint?: string | null;
+  target_column: string;
+  task_type: string;
+  model_name: string;
+  model_version?: number | null;
+  model_stage?: string | null;
+  experiment_id?: string | null;
+  primary_metric?: string | null;
+  metric_value?: number | null;
+  artifact_checksum?: string | null;
+  reference_profile_id?: string | null;
+  promotion_policy: PromotionPolicy;
+  auto_register: boolean;
+  create_reference_profile: boolean;
+  created_at: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+  duration_seconds?: number | null;
+  retry_count: number;
+  failure_reason?: string | null;
+  description?: string | null;
+  stages: StageRecord[];
+  provenance?: PipelineProvenance | null;
+}
+
+export interface PipelineListResponse {
+  items: PipelineResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}

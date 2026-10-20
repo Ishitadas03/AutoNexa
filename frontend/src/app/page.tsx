@@ -18,6 +18,7 @@ import LeaderboardTab from "@/components/workspace/LeaderboardTab";
 import ExperimentsTab from "@/components/workspace/ExperimentsTab";
 import PredictionTab from "@/components/workspace/PredictionTab";
 import ModelRegistryTab from "@/components/workspace/ModelRegistryTab";
+import PipelinesTab from "@/components/workspace/PipelinesTab";
 import MonitoringTab from "@/components/workspace/MonitoringTab";
 import ExplainabilityTab from "@/components/workspace/ExplainabilityTab";
 import ErrorAnalysisTab from "@/components/workspace/ErrorAnalysisTab";
@@ -391,6 +392,13 @@ export default function Home() {
               onRunTraining={handleRunTraining}
               isTraining={isTraining}
               trainingDuration={trainingDuration}
+            />
+          )}
+
+          {activeTab === "pipelines" && (
+            <PipelinesTab
+              datasets={datasets}
+              onNavigateTab={(tab) => setActiveTab(tab)}
             />
           )}
 

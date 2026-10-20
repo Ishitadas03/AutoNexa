@@ -13,6 +13,7 @@ export type WorkspaceTab =
   | "datasets"
   | "analysis"
   | "training"
+  | "pipelines"
   | "leaderboard"
   | "experiments"
   | "details"

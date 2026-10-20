@@ -65,6 +65,10 @@ import {
   RetrainingJobRecord,
   RetrainingJobTriggerRequest,
   RetrainingPromotionRequest,
+  PipelineCreateRequest,
+  PipelineEvent,
+  PipelineListResponse,
+  PipelineResponse,
 } from "@/types/api";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -1046,5 +1050,91 @@ export const api = {
     });
     return handleResponse<RetrainingJobRecord>(res);
   },
-};
 
+  // ==========================================
+  // Phase 15: Pipeline Orchestration API
+  // ==========================================
+
+  /** Create and launch an asynchronous pipeline run (Admin role) */
+  async createPipeline(
+    request: PipelineCreateRequest,
+    apiKey?: string
+  ): Promise<PipelineResponse> {
+    const url = getEffectiveUrl("/api/v1/pipelines");
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getServingHeaders(apiKey, { "Content-Type": "application/json" }),
+      body: JSON.stringify(request),
+    });
+    return handleResponse<PipelineResponse>(res);
+  },
+
+  /** List pipeline executions with pagination and optional filtering */
+  async listPipelines(
+    params?: { status?: string; model_name?: string; page?: number; page_size?: number },
+    apiKey?: string
+  ): Promise<PipelineListResponse> {
+    const searchParams = new URLSearchParams();
+    if (params?.status) searchParams.set("status", params.status);
+    if (params?.model_name) searchParams.set("model_name", params.model_name);
+    if (params?.page) searchParams.set("page", String(params.page));
+    if (params?.page_size) searchParams.set("page_size", String(params.page_size));
+    const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
+
+    const url = getEffectiveUrl(`/api/v1/pipelines${qs}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<PipelineListResponse>(res);
+  },
+
+  /** Get pipeline execution status and full stage timeline */
+  async getPipeline(pipelineId: string, apiKey?: string): Promise<PipelineResponse> {
+    const url = getEffectiveUrl(`/api/v1/pipelines/${encodeURIComponent(pipelineId)}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<PipelineResponse>(res);
+  },
+
+  /** Request cancellation of an active pipeline execution (Admin role) */
+  async cancelPipeline(pipelineId: string, apiKey?: string): Promise<PipelineResponse> {
+    const url = getEffectiveUrl(`/api/v1/pipelines/${encodeURIComponent(pipelineId)}/cancel`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getServingHeaders(apiKey, { "Content-Type": "application/json" }),
+    });
+    return handleResponse<PipelineResponse>(res);
+  },
+
+  /** Retry a failed or cancelled pipeline execution (Admin role) */
+  async retryPipeline(pipelineId: string, apiKey?: string): Promise<PipelineResponse> {
+    const url = getEffectiveUrl(`/api/v1/pipelines/${encodeURIComponent(pipelineId)}/retry`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getServingHeaders(apiKey, { "Content-Type": "application/json" }),
+    });
+    return handleResponse<PipelineResponse>(res);
+  },
+
+  /** Retrieve ordered audit and lifecycle events for a pipeline execution */
+  async getPipelineEvents(
+    pipelineId: string,
+    limit: number = 100,
+    apiKey?: string
+  ): Promise<PipelineEvent[]> {
+    const url = getEffectiveUrl(
+      `/api/v1/pipelines/${encodeURIComponent(pipelineId)}/events?limit=${encodeURIComponent(limit)}`
+    );
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<PipelineEvent[]>(res);
+  },
+};

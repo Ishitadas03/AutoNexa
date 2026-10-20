@@ -37,6 +37,10 @@ from app.services.automl.model_serving_service import (
 )
 from app.services.automl.resource_profiler import ResourceProfiler
 from app.services.automl.statistical_engine import StatisticalEngine
+from app.services.automl.pipeline_service import (
+    PipelineService,
+    get_pipeline_service,
+)
 from app.services.automl.tracker import MLflowTracker, compute_dataset_fingerprint
 from app.services.automl.training_service import TrainingService, get_training_service
 
@@ -55,6 +59,7 @@ __all__ = [
     "ModelServingService",
     "MultiObjectiveService",
     "ParetoFrontierCalculator",
+    "PipelineService",
     "RandomSearchOptimizer",
     "ResearchBenchmarkingService",
     "ResourceProfiler",
@@ -70,6 +75,7 @@ __all__ = [
     "get_model_monitoring_service",
     "get_model_serving_service",
     "get_multi_objective_service",
+    "get_pipeline_service",
     "get_research_benchmark_service",
     "get_robust_benchmark_service",
     "get_training_service",
