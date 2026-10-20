@@ -1275,6 +1275,289 @@ export interface CacheInvalidationResponse {
   message: string;
 }
 
+// ==========================================
+// Phase 14: Model Monitoring, Drift Detection & Retraining Interfaces
+// ==========================================
+
+export type DriftMethodType =
+  | "psi"
+  | "ks_2samp"
+  | "categorical_psi"
+  | "unseen_categories"
+  | "missing_rate_delta";
+
+export type DriftStatusType =
+  | "no_drift"
+  | "warning"
+  | "drift_detected"
+  | "insufficient_data";
+
+export type AlertSeverityType = "info" | "warning" | "critical";
+
+export type AlertStatusType = "active" | "acknowledged" | "resolved";
+
+export type RetrainingPolicyType =
+  | "performance_degradation"
+  | "sustained_drift"
+  | "manual";
+
+export type RetrainingJobStatusType =
+  | "queued"
+  | "running"
+  | "completed"
+  | "failed"
+  | "cancelled";
+
+export type CandidateValidationStatusType =
+  | "pending"
+  | "passed"
+  | "rejected"
+  | "failed";
+
+export interface NumericalFeatureSummary {
+  feature_name: string;
+  count: number;
+  mean: number;
+  std: number;
+  min: number;
+  max: number;
+  p25: number;
+  p50: number;
+  p75: number;
+  missing_count: number;
+  missing_rate: number;
+  bin_edges: number[];
+  bin_counts: number[];
+}
+
+export interface CategoricalFeatureSummary {
+  feature_name: string;
+  total_count: number;
+  distinct_categories: number;
+  category_frequencies: Record<string, number>;
+  category_counts: Record<string, number>;
+  missing_count: number;
+  missing_rate: number;
+}
+
+export interface ReferenceProfileCreate {
+  model_name: string;
+  version?: number | null;
+  dataset_id: string;
+  split_source?: string;
+  description?: string | null;
+}
+
+export interface ReferenceProfileResponse {
+  profile_id: string;
+  model_name: string;
+  version: number;
+  dataset_id: string;
+  dataset_fingerprint: string;
+  split_source: string;
+  sample_count: number;
+  numerical_features: Record<string, NumericalFeatureSummary>;
+  categorical_features: Record<string, CategoricalFeatureSummary>;
+  feature_names: string[];
+  created_at: string;
+  is_active: boolean;
+}
+
+export interface MonitoringWindowCreate {
+  model_name: string;
+  version?: number | null;
+  window_id?: string | null;
+  records: Record<string, any>[];
+  prediction_ids?: string[] | null;
+}
+
+export interface MonitoringWindowResponse {
+  window_id: string;
+  model_name: string;
+  version: number;
+  record_count: number;
+  created_at: string;
+  feature_names: string[];
+  status: string;
+}
+
+export interface FeatureDriftResult {
+  feature_name: string;
+  feature_type: "numerical" | "categorical";
+  drift_method: DriftMethodType;
+  statistic: number;
+  p_value?: number | null;
+  threshold: number;
+  drift_status: DriftStatusType;
+  ref_sample_count: number;
+  cur_sample_count: number;
+  ref_missing_rate: number;
+  cur_missing_rate: number;
+  missing_rate_delta: number;
+  unseen_categories_count?: number | null;
+  unseen_categories_rate?: number | null;
+  warnings: string[];
+  distribution_summary?: Record<string, any> | null;
+}
+
+export interface MultivariateDriftResult {
+  method: string;
+  statistic: number;
+  threshold: number;
+  drift_detected: boolean;
+  explanation: string;
+}
+
+export interface DriftAnalysisRequest {
+  model_name: string;
+  version?: number | null;
+  reference_profile_id?: string | null;
+  window_id?: string | null;
+  records?: Record<string, any>[] | null;
+  psi_warning_threshold?: number | null;
+  psi_critical_threshold?: number | null;
+  ks_pvalue_threshold?: number | null;
+}
+
+export interface DriftAnalysisResponse {
+  report_id: string;
+  model_name: string;
+  version: number;
+  reference_profile_id: string;
+  window_id?: string | null;
+  sample_count: number;
+  features_evaluated_count: number;
+  drifted_features_count: number;
+  warning_features_count: number;
+  drift_share: number;
+  overall_status: DriftStatusType;
+  feature_results: FeatureDriftResult[];
+  multivariate_result?: MultivariateDriftResult | null;
+  data_quality_warnings: string[];
+  timestamp: string;
+}
+
+export interface GroundTruthRecord {
+  prediction_id?: string | null;
+  record_index?: number | null;
+  true_label: any;
+}
+
+export interface GroundTruthIngestRequest {
+  model_name: string;
+  version?: number | null;
+  window_id?: string | null;
+  labels: GroundTruthRecord[];
+}
+
+export interface GroundTruthIngestResponse {
+  ingested_count: number;
+  duplicate_count: number;
+  matched_count: number;
+  unmatched_count: number;
+  message: string;
+}
+
+export interface PerformanceMetricReport {
+  report_id: string;
+  model_name: string;
+  version: number;
+  task_type: string;
+  evaluation_window_id?: string | null;
+  sample_size: number;
+  baseline_metric_name: string;
+  baseline_metric_score?: number | null;
+  current_metric_score?: number | null;
+  metric_delta?: number | null;
+  metric_delta_percentage?: number | null;
+  metrics: Record<string, any>;
+  degradation_detected: boolean;
+  degradation_percentage?: number | null;
+  warnings: string[];
+  evaluated_at: string;
+}
+
+export interface MonitoringAlertRecord {
+  alert_id: string;
+  model_name: string;
+  version: number;
+  alert_type: string;
+  severity: AlertSeverityType;
+  status: AlertStatusType;
+  message: string;
+  evidence: Record<string, any>;
+  created_at: string;
+  acknowledged_at?: string | null;
+  acknowledged_by?: string | null;
+}
+
+export interface AlertAcknowledgeRequest {
+  acknowledged_by?: string | null;
+  note?: string | null;
+}
+
+export interface CandidateValidationResult {
+  status: CandidateValidationStatusType;
+  candidate_model_id: string;
+  candidate_score: number;
+  baseline_score: number;
+  metric_name: string;
+  regression_percentage: number;
+  tolerance_percentage: number;
+  passed: boolean;
+  details: Record<string, any>;
+  reasons: string[];
+}
+
+export interface RetrainingJobTriggerRequest {
+  model_name: string;
+  version?: number | null;
+  dataset_id: string;
+  trigger_policy?: RetrainingPolicyType;
+  trigger_evidence?: Record<string, any> | null;
+  target_column?: string | null;
+  time_budget_seconds?: number | null;
+  tolerance_percentage?: number | null;
+}
+
+export interface RetrainingJobRecord {
+  job_id: string;
+  model_name: string;
+  source_version: number;
+  dataset_id: string;
+  dataset_fingerprint: string;
+  trigger_policy: RetrainingPolicyType;
+  trigger_reason: string;
+  status: RetrainingJobStatusType;
+  created_at: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+  experiment_id?: string | null;
+  candidate_model_id?: string | null;
+  candidate_version?: number | null;
+  candidate_validation?: CandidateValidationResult | null;
+  promoted_to_stage?: string | null;
+  promotion_timestamp?: string | null;
+  error_message?: string | null;
+}
+
+export interface RetrainingPromotionRequest {
+  target_stage?: string;
+  operator?: string | null;
+  reason?: string | null;
+}
+
+export interface MonitoringOverviewResponse {
+  total_telemetry_events: number;
+  models_monitored_count: number;
+  active_alerts_count: number;
+  drift_detected_models_count: number;
+  recent_alerts: MonitoringAlertRecord[];
+  recent_drift_reports: DriftAnalysisResponse[];
+  recent_retraining_jobs: RetrainingJobRecord[];
+}
+
+
 
 
 

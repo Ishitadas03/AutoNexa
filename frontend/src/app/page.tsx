@@ -18,6 +18,7 @@ import LeaderboardTab from "@/components/workspace/LeaderboardTab";
 import ExperimentsTab from "@/components/workspace/ExperimentsTab";
 import PredictionTab from "@/components/workspace/PredictionTab";
 import ModelRegistryTab from "@/components/workspace/ModelRegistryTab";
+import MonitoringTab from "@/components/workspace/MonitoringTab";
 import ExplainabilityTab from "@/components/workspace/ExplainabilityTab";
 import ErrorAnalysisTab from "@/components/workspace/ErrorAnalysisTab";
 import BenchmarkingTab from "@/components/workspace/BenchmarkingTab";
@@ -448,6 +449,13 @@ export default function Home() {
               experiments={experiments}
               activeExperiment={activeExperiment}
               onNavigateTab={(tab) => setActiveTab(tab)}
+            />
+          )}
+
+          {activeTab === "monitoring" && (
+            <MonitoringTab
+              onNavigateTab={(tab) => setActiveTab(tab)}
+              datasets={datasets}
             />
           )}
 

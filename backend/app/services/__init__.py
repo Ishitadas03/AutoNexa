@@ -10,6 +10,10 @@ from app.services.automl.model_registry_service import (
     ModelRegistryService,
     get_model_registry_service,
 )
+from app.services.automl.model_monitoring_service import (
+    ModelMonitoringService,
+    get_model_monitoring_service,
+)
 from app.services.automl.model_serving_service import (
     ModelServingService,
     get_model_serving_service,
@@ -24,6 +28,7 @@ __all__ = [
     "DatasetService",
     "ExperimentTrackerService",
     "ModelEvaluator",
+    "ModelMonitoringService",
     "ModelRegistry",
     "ModelRegistryService",
     "ModelServingService",
@@ -32,6 +37,7 @@ __all__ = [
     "get_analysis_service",
     "get_dataset_service",
     "get_experiment_tracker_service",
+    "get_model_monitoring_service",
     "get_model_registry_service",
     "get_model_serving_service",
     "get_training_service",

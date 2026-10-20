@@ -330,6 +330,36 @@ class ModelRegistryService:
             summaries.sort(key=lambda s: s.model_name.lower())
             return ModelRegistryListResponse(models=summaries, total=len(summaries))
 
+    def get_model_summary(self, model_name: str) -> RegisteredModelSummary:
+        """Retrieve aggregated summary for a specific registered model family."""
+        with _REGISTRY_LOCK:
+            self._safe_resolve_model_dir(model_name)
+            versions = self._get_version_numbers(model_name)
+            if not versions:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Model family '{model_name}' has no registered versions.",
+                )
+
+            records = [self._load_version_record(model_name, v) for v in versions]
+            latest = max(records, key=lambda r: r.version)
+
+            prod_ver = next((r.version for r in records if r.stage == LifecycleStage.PRODUCTION), None)
+            staging_ver = next((r.version for r in records if r.stage == LifecycleStage.STAGING), None)
+
+            return RegisteredModelSummary(
+                model_name=model_name,
+                latest_version=latest.version,
+                production_version=prod_ver,
+                staging_version=staging_ver,
+                versions_count=len(versions),
+                task_type=latest.task_type,
+                latest_primary_metric=latest.primary_metric,
+                latest_score=latest.score,
+                created_at=records[0].created_at,
+                updated_at=latest.updated_at,
+            )
+
     def get_model_versions(self, model_name: str) -> List[ModelVersionRecord]:
         """List all version records for a specified model family."""
         with _REGISTRY_LOCK:
@@ -345,6 +375,10 @@ class ModelRegistryService:
         """Retrieve full details of a specific model version."""
         with _REGISTRY_LOCK:
             return self._load_version_record(model_name, version)
+
+    def get_model_version(self, model_name: str, version: int) -> ModelVersionRecord:
+        """Retrieve details of a specific model version (alias for get_version_details)."""
+        return self.get_version_details(model_name=model_name, version=version)
 
     def transition_stage(
         self,

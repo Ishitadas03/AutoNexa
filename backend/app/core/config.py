@@ -192,6 +192,53 @@ class Settings(BaseSettings):
         description="Maximum number of loaded model pipelines cached in memory simultaneously",
     )
 
+    # Phase 14: Model Monitoring, Drift Detection & Automated Retraining Configuration
+    monitoring_max_records_per_window: int = Field(
+        default=5000,
+        validation_alias=AliasChoices("MONITORING_MAX_RECORDS_PER_WINDOW"),
+        description="Maximum number of records accepted per monitoring window or batch",
+    )
+    monitoring_min_samples_drift: int = Field(
+        default=30,
+        validation_alias=AliasChoices("MONITORING_MIN_SAMPLES_DRIFT"),
+        description="Minimum sample count required to compute statistically defensible drift metrics without warnings",
+    )
+    monitoring_psi_warning_threshold: float = Field(
+        default=0.1,
+        validation_alias=AliasChoices("MONITORING_PSI_WARNING_THRESHOLD"),
+        description="Population Stability Index (PSI) threshold for moderate drift warning (default 0.1)",
+    )
+    monitoring_psi_critical_threshold: float = Field(
+        default=0.2,
+        validation_alias=AliasChoices("MONITORING_PSI_CRITICAL_THRESHOLD"),
+        description="Population Stability Index (PSI) threshold for significant drift alert (default 0.2)",
+    )
+    monitoring_ks_pvalue_threshold: float = Field(
+        default=0.05,
+        validation_alias=AliasChoices("MONITORING_KS_PVALUE_THRESHOLD"),
+        description="Two-sample Kolmogorov-Smirnov p-value significance threshold for distributional drift (default 0.05)",
+    )
+    monitoring_unseen_category_rate_threshold: float = Field(
+        default=0.05,
+        validation_alias=AliasChoices("MONITORING_UNSEEN_CATEGORY_RATE_THRESHOLD"),
+        description="Threshold fraction of newly observed categories in categorical features triggering drift alert (default 0.05)",
+    )
+    monitoring_missing_rate_delta_threshold: float = Field(
+        default=0.1,
+        validation_alias=AliasChoices("MONITORING_MISSING_RATE_DELTA_THRESHOLD"),
+        description="Maximum acceptable increase in missing value rate before flagging data quality degradation (default 0.1)",
+    )
+    monitoring_retraining_regression_tolerance: float = Field(
+        default=0.02,
+        validation_alias=AliasChoices("MONITORING_RETRAINING_REGRESSION_TOLERANCE"),
+        description="Maximum permissible relative regression for a retrained candidate model vs current production (default 0.02 = 2%)",
+    )
+    monitoring_max_retraining_concurrency: int = Field(
+        default=1,
+        validation_alias=AliasChoices("MONITORING_MAX_RETRAINING_CONCURRENCY"),
+        description="Maximum number of concurrent retraining jobs permitted simultaneously (default 1)",
+    )
+
     @property
     def resolved_upload_dir(self) -> Path:
         """Return absolute Path for uploads directory, creating it if needed."""
@@ -214,6 +261,13 @@ class Settings(BaseSettings):
                 path = (base_dir.parent / self.experiments_dir).resolve()
             else:
                 path = (base_dir / self.experiments_dir).resolve()
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def resolved_monitoring_dir(self) -> Path:
+        """Return absolute Path for model monitoring storage directory."""
+        path = (self.resolved_experiments_dir / "monitoring").resolve()
         path.mkdir(parents=True, exist_ok=True)
         return path
 

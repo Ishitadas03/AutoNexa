@@ -19,6 +19,7 @@ import {
   Sparkles,
   AlertTriangle,
   GitCompare,
+  Gauge,
 } from "lucide-react";
 import { WorkspaceTab } from "@/lib/store";
 
@@ -52,6 +53,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id: "experiments", label: "Experiments", icon: History },
       { id: "prediction", label: "Prediction Playground", icon: Activity },
       { id: "models", label: "Model Registry", icon: Layers },
+      { id: "monitoring", label: "Model Monitoring", icon: Gauge },
     ],
   },
   {

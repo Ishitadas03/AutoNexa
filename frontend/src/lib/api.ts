@@ -50,6 +50,21 @@ import {
   ServingPredictionResponse,
   ServingMetricsResponse,
   CacheInvalidationResponse,
+  AlertAcknowledgeRequest,
+  DriftAnalysisRequest,
+  DriftAnalysisResponse,
+  GroundTruthIngestRequest,
+  GroundTruthIngestResponse,
+  MonitoringAlertRecord,
+  MonitoringOverviewResponse,
+  MonitoringWindowCreate,
+  MonitoringWindowResponse,
+  PerformanceMetricReport,
+  ReferenceProfileCreate,
+  ReferenceProfileResponse,
+  RetrainingJobRecord,
+  RetrainingJobTriggerRequest,
+  RetrainingPromotionRequest,
 } from "@/types/api";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -782,6 +797,254 @@ export const api = {
       headers: getServingHeaders(apiKey),
     });
     return handleResponse<CacheInvalidationResponse>(res);
+  },
+
+  // ---------------------------------------------------------------------------
+  // Phase 14: Model Monitoring, Drift Detection & Automated Retraining
+  // ---------------------------------------------------------------------------
+
+  /** Retrieve consolidated operational overview for monitoring */
+  async getMonitoringOverview(apiKey?: string): Promise<MonitoringOverviewResponse> {
+    const url = getEffectiveUrl("/api/v1/monitoring/overview");
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<MonitoringOverviewResponse>(res);
+  },
+
+  /** Retrieve recent runtime inference telemetry events */
+  async getMonitoringTelemetry(limit: number = 50, apiKey?: string): Promise<Record<string, any>[]> {
+    const url = getEffectiveUrl(`/api/v1/monitoring/telemetry?limit=${limit}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<Record<string, any>[]>(res);
+  },
+
+  /** Establish a new baseline reference profile from a training/validation dataset (Admin role) */
+  async createReferenceProfile(
+    request: ReferenceProfileCreate,
+    apiKey?: string
+  ): Promise<ReferenceProfileResponse> {
+    const url = getEffectiveUrl("/api/v1/monitoring/reference-profiles");
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getServingHeaders(apiKey, { "Content-Type": "application/json" }),
+      body: JSON.stringify(request),
+    });
+    return handleResponse<ReferenceProfileResponse>(res);
+  },
+
+  /** List baseline reference profiles */
+  async listReferenceProfiles(modelName?: string, apiKey?: string): Promise<ReferenceProfileResponse[]> {
+    const qs = modelName ? `?model_name=${encodeURIComponent(modelName)}` : "";
+    const url = getEffectiveUrl(`/api/v1/monitoring/reference-profiles${qs}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<ReferenceProfileResponse[]>(res);
+  },
+
+  /** Get specific reference profile details */
+  async getReferenceProfile(profileId: string, apiKey?: string): Promise<ReferenceProfileResponse> {
+    const url = getEffectiveUrl(`/api/v1/monitoring/reference-profiles/${encodeURIComponent(profileId)}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<ReferenceProfileResponse>(res);
+  },
+
+  /** Record a monitoring window batch */
+  async recordMonitoringWindow(
+    request: MonitoringWindowCreate,
+    apiKey?: string
+  ): Promise<MonitoringWindowResponse> {
+    const url = getEffectiveUrl("/api/v1/monitoring/windows");
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getServingHeaders(apiKey, { "Content-Type": "application/json" }),
+      body: JSON.stringify(request),
+    });
+    return handleResponse<MonitoringWindowResponse>(res);
+  },
+
+  /** List recorded monitoring windows */
+  async listMonitoringWindows(modelName?: string, apiKey?: string): Promise<MonitoringWindowResponse[]> {
+    const qs = modelName ? `?model_name=${encodeURIComponent(modelName)}` : "";
+    const url = getEffectiveUrl(`/api/v1/monitoring/windows${qs}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<MonitoringWindowResponse[]>(res);
+  },
+
+  /** Get contents of a monitoring window */
+  async getMonitoringWindow(windowId: string, apiKey?: string): Promise<Record<string, any>> {
+    const url = getEffectiveUrl(`/api/v1/monitoring/windows/${encodeURIComponent(windowId)}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<Record<string, any>>(res);
+  },
+
+  /** Run statistical drift analysis on a window or records */
+  async runDriftAnalysis(
+    request: DriftAnalysisRequest,
+    apiKey?: string
+  ): Promise<DriftAnalysisResponse> {
+    const url = getEffectiveUrl("/api/v1/monitoring/drift-analysis");
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getServingHeaders(apiKey, { "Content-Type": "application/json" }),
+      body: JSON.stringify(request),
+    });
+    return handleResponse<DriftAnalysisResponse>(res);
+  },
+
+  /** List historical drift reports */
+  async listDriftReports(modelName?: string, apiKey?: string): Promise<DriftAnalysisResponse[]> {
+    const qs = modelName ? `?model_name=${encodeURIComponent(modelName)}` : "";
+    const url = getEffectiveUrl(`/api/v1/monitoring/drift-reports${qs}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<DriftAnalysisResponse[]>(res);
+  },
+
+  /** Ingest delayed ground-truth labels */
+  async ingestGroundTruth(
+    request: GroundTruthIngestRequest,
+    apiKey?: string
+  ): Promise<GroundTruthIngestResponse> {
+    const url = getEffectiveUrl("/api/v1/monitoring/ground-truth");
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getServingHeaders(apiKey, { "Content-Type": "application/json" }),
+      body: JSON.stringify(request),
+    });
+    return handleResponse<GroundTruthIngestResponse>(res);
+  },
+
+  /** Evaluate ground-truth performance against model training baseline */
+  async evaluateGroundTruthPerformance(
+    modelName: string,
+    version?: number,
+    windowId?: string,
+    apiKey?: string
+  ): Promise<PerformanceMetricReport> {
+    const params = new URLSearchParams();
+    params.set("model_name", modelName);
+    if (version !== undefined) params.set("version", String(version));
+    if (windowId) params.set("window_id", windowId);
+
+    const url = getEffectiveUrl(`/api/v1/monitoring/ground-truth/evaluate?${params.toString()}`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getServingHeaders(apiKey),
+    });
+    return handleResponse<PerformanceMetricReport>(res);
+  },
+
+  /** List ground-truth performance evaluation reports */
+  async listPerformanceReports(modelName?: string, apiKey?: string): Promise<PerformanceMetricReport[]> {
+    const qs = modelName ? `?model_name=${encodeURIComponent(modelName)}` : "";
+    const url = getEffectiveUrl(`/api/v1/monitoring/performance-reports${qs}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<PerformanceMetricReport[]>(res);
+  },
+
+  /** List operational alerts */
+  async listMonitoringAlerts(
+    modelName?: string,
+    alertStatus?: string,
+    apiKey?: string
+  ): Promise<MonitoringAlertRecord[]> {
+    const params = new URLSearchParams();
+    if (modelName) params.set("model_name", modelName);
+    if (alertStatus) params.set("status", alertStatus);
+    const qs = params.toString() ? `?${params.toString()}` : "";
+
+    const url = getEffectiveUrl(`/api/v1/monitoring/alerts${qs}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<MonitoringAlertRecord[]>(res);
+  },
+
+  /** Acknowledge an operational alert (Admin role) */
+  async acknowledgeMonitoringAlert(
+    alertId: string,
+    request?: AlertAcknowledgeRequest,
+    apiKey?: string
+  ): Promise<MonitoringAlertRecord> {
+    const url = getEffectiveUrl(`/api/v1/monitoring/alerts/${encodeURIComponent(alertId)}/acknowledge`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getServingHeaders(apiKey, { "Content-Type": "application/json" }),
+      body: JSON.stringify(request || {}),
+    });
+    return handleResponse<MonitoringAlertRecord>(res);
+  },
+
+  /** Trigger automated retraining with candidate validation gate (Admin role) */
+  async triggerRetraining(
+    request: RetrainingJobTriggerRequest,
+    apiKey?: string
+  ): Promise<RetrainingJobRecord> {
+    const url = getEffectiveUrl("/api/v1/monitoring/retraining/trigger");
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getServingHeaders(apiKey, { "Content-Type": "application/json" }),
+      body: JSON.stringify(request),
+    });
+    return handleResponse<RetrainingJobRecord>(res);
+  },
+
+  /** List historical automated retraining jobs */
+  async listRetrainingJobs(modelName?: string, apiKey?: string): Promise<RetrainingJobRecord[]> {
+    const qs = modelName ? `?model_name=${encodeURIComponent(modelName)}` : "";
+    const url = getEffectiveUrl(`/api/v1/monitoring/retraining/jobs${qs}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getServingHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<RetrainingJobRecord[]>(res);
+  },
+
+  /** Promote a validated retrained candidate model to production or staging (Admin role) */
+  async promoteRetrainedCandidate(
+    jobId: string,
+    request?: RetrainingPromotionRequest,
+    apiKey?: string
+  ): Promise<RetrainingJobRecord> {
+    const url = getEffectiveUrl(`/api/v1/monitoring/retraining/jobs/${encodeURIComponent(jobId)}/promote`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getServingHeaders(apiKey, { "Content-Type": "application/json" }),
+      body: JSON.stringify(request || {}),
+    });
+    return handleResponse<RetrainingJobRecord>(res);
   },
 };
 

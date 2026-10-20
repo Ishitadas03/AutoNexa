@@ -604,6 +604,20 @@ class ModelServingService:
         duration_ms = round((time.perf_counter() - start_time) * 1000.0, 2)
         self.monitor.record_request(record.model_name, record.version, duration_ms, is_success=True)
 
+        try:
+            from app.services.automl.model_monitoring_service import get_model_monitoring_service
+            get_model_monitoring_service().record_telemetry_event(
+                model_name=record.model_name,
+                version=record.version,
+                stage=record.stage.value,
+                task_type=record.task_type,
+                record_count=len(records),
+                latency_ms=duration_ms,
+                outcome="success",
+            )
+        except Exception as _mon_exc:
+            logger.debug("Monitoring telemetry record skipped: %s", _mon_exc)
+
         return ServingPredictionResponse(
             model_name=record.model_name,
             version=record.version,

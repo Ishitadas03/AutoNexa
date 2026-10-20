@@ -21,6 +21,7 @@ export type WorkspaceTab =
   | "error_analysis"
   | "benchmarks"
   | "models"
+  | "monitoring"
   | "docs"
   | "settings";
 

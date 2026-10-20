@@ -399,19 +399,22 @@ class AnalysisService:
                     other_clean = pd.to_numeric(df[other_col], errors="coerce")
                     valid_mask = target_clean.notna() & other_clean.notna()
                     if valid_mask.sum() > 5:
-                        corr_matrix = np.corrcoef(other_clean[valid_mask], target_clean[valid_mask])
-                        corr = abs(corr_matrix[0, 1])
-                        if not np.isnan(corr) and corr >= 0.98:
-                            additional_warnings.append(QualityWarning(
-                                code="POTENTIAL_TARGET_LEAKAGE",
-                                category="leakage",
-                                severity=WarningSeverity.WARNING,
-                                column=str(other_col),
-                                message=(
-                                    f"Column '{other_col}' exhibits near-perfect linear correlation (|r|={corr:.3f}) "
-                                    f"with target '{target_column}'. This is a heuristic warning for potential target leakage or proxy variable."
-                                ),
-                            ))
+                        s_other = other_clean[valid_mask].std(ddof=1)
+                        s_target = target_clean[valid_mask].std(ddof=1)
+                        if s_other > 1e-4 and s_target > 1e-4:
+                            corr_matrix = np.corrcoef(other_clean[valid_mask], target_clean[valid_mask])
+                            corr = abs(corr_matrix[0, 1])
+                            if not np.isnan(corr) and corr >= 0.98:
+                                additional_warnings.append(QualityWarning(
+                                    code="POTENTIAL_TARGET_LEAKAGE",
+                                    category="leakage",
+                                    severity=WarningSeverity.WARNING,
+                                    column=str(other_col),
+                                    message=(
+                                        f"Column '{other_col}' exhibits near-perfect linear correlation (|r|={corr:.3f}) "
+                                        f"with target '{target_column}'. This is a heuristic warning for potential target leakage or proxy variable."
+                                    ),
+                                ))
 
         recommendation = TaskRecommendation(
             target_column=target_column,

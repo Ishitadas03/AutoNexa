@@ -27,6 +27,14 @@ from app.services.automl.robust_benchmarking_service import (
     RobustBenchmarkingService,
     get_robust_benchmark_service,
 )
+from app.services.automl.model_monitoring_service import (
+    ModelMonitoringService,
+    get_model_monitoring_service,
+)
+from app.services.automl.model_serving_service import (
+    ModelServingService,
+    get_model_serving_service,
+)
 from app.services.automl.resource_profiler import ResourceProfiler
 from app.services.automl.statistical_engine import StatisticalEngine
 from app.services.automl.tracker import MLflowTracker, compute_dataset_fingerprint
@@ -42,7 +50,9 @@ __all__ = [
     "HPOService",
     "MLflowTracker",
     "ModelEvaluator",
+    "ModelMonitoringService",
     "ModelRegistry",
+    "ModelServingService",
     "MultiObjectiveService",
     "ParetoFrontierCalculator",
     "RandomSearchOptimizer",
@@ -57,6 +67,8 @@ __all__ = [
     "get_error_analysis_service",
     "get_explainability_service",
     "get_hpo_service",
+    "get_model_monitoring_service",
+    "get_model_serving_service",
     "get_multi_objective_service",
     "get_research_benchmark_service",
     "get_robust_benchmark_service",
