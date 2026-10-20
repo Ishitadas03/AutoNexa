@@ -203,6 +203,11 @@ def download_experiment_artifact(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Model artifact for experiment '{experiment_id}' does not exist on disk.",
         )
+    if not verification.verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot download model artifact: {verification.message}",
+        )
     exp_dir = tracker.safe_resolve_experiment_dir(experiment_id)
     model_path = exp_dir / "best_model.joblib"
     return FileResponse(

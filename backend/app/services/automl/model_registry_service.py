@@ -144,8 +144,19 @@ class ModelRegistryService:
             model_dir = self._safe_resolve_model_dir(model_name)
             model_dir.mkdir(parents=True, exist_ok=True)
 
-            # 3. Determine next version number (monotonically increasing)
+            # 3. Determine next version number (monotonically increasing) or return existing for idempotency
             existing_versions = self._get_version_numbers(model_name)
+            for v in existing_versions:
+                existing_record = self._load_version_record(model_name, v)
+                if existing_record.experiment_id == request.experiment_id:
+                    logger.info(
+                        "Idempotent registration: experiment '%s' already registered as '%s' v%d",
+                        request.experiment_id,
+                        model_name,
+                        v,
+                    )
+                    return existing_record
+
             next_version = (max(existing_versions) + 1) if existing_versions else 1
 
             version_dir = model_dir / f"v{next_version}"
@@ -350,6 +361,15 @@ class ModelRegistryService:
                 # Idempotent stage transition
                 return record
 
+            # Safeguard: Never mark a model as production-ready when its artifact does not exist or cannot be validated
+            if request.new_stage == LifecycleStage.PRODUCTION:
+                verification = self.verify_version_artifact(model_name, version)
+                if not verification.verified or not verification.artifact_exists:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Cannot promote to Production: Artifact integrity verification failed ({verification.message}).",
+                    )
+
             now_iso = datetime.now(timezone.utc).isoformat()
             record.stage = request.new_stage
             record.updated_at = now_iso
@@ -461,7 +481,7 @@ class ModelRegistryService:
                 for r in records:
                     val = None
                     if m == r.primary_metric and r.score is not None:
-                        val = r.score
+                        val = sanitize_scalar(r.score)
                     elif r.test_metrics and m in r.test_metrics:
                         val = sanitize_scalar(r.test_metrics[m])
                     matrix[m][f"v{r.version}"] = val

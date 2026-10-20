@@ -346,3 +346,96 @@ def test_concurrent_model_registration(registry_env):
     # Ensure all 5 versions 1..5 were uniquely assigned with 0 collisions
     assert assigned_versions == {1, 2, 3, 4, 5}
 
+
+def test_duplicate_registration_is_idempotent(registry_env):
+    """Verify duplicate registration of the same experiment returns existing record without bumping version."""
+    client, exp_dir = registry_env
+    create_mock_experiment(exp_dir, "exp-idempotent-1")
+
+    # Initial registration -> v1
+    res1 = client.post(
+        "/api/v1/models/register",
+        json={"experiment_id": "exp-idempotent-1", "model_name": "idempotent_model"},
+    )
+    assert res1.status_code == 201
+    assert res1.json()["version"] == 1
+
+    # Duplicate registration of the exact same experiment
+    res2 = client.post(
+        "/api/v1/models/register",
+        json={"experiment_id": "exp-idempotent-1", "model_name": "idempotent_model"},
+    )
+    assert res2.status_code in [200, 201]
+    # Version must remain 1, NOT incremented to 2!
+    assert res2.json()["version"] == 1
+
+    # Catalog must reflect exactly 1 version
+    catalog = client.get("/api/v1/models").json()
+    model_entry = next(m for m in catalog["models"] if m["model_name"] == "idempotent_model")
+    assert model_entry["versions_count"] == 1
+
+
+def test_reject_production_promotion_for_corrupted_or_missing_artifact(registry_env):
+    """Verify safeguard: Never promote a model to Production if its artifact does not exist or fails verification."""
+    client, exp_dir = registry_env
+    create_mock_experiment(exp_dir, "exp-prod-guard")
+
+    client.post(
+        "/api/v1/models/register",
+        json={"experiment_id": "exp-prod-guard", "model_name": "tamper_prod_guard"},
+    )
+
+    # Corrupt the registered version artifact on disk
+    v1_file = exp_dir / "model_registry" / "tamper_prod_guard" / "v1" / "best_model.joblib"
+    v1_file.write_bytes(b"TAMPERED_MALICIOUS_BYTES")
+
+    # Attempt promotion to Production -> must be rejected with 400 Bad Request
+    res = client.post(
+        "/api/v1/models/tamper_prod_guard/versions/1/stage",
+        json={"new_stage": "production", "reason": "Attempting to release tampered build"},
+    )
+    assert res.status_code == 400
+    assert "Cannot promote to Production" in res.json()["detail"]
+    assert "integrity verification failed" in res.json()["detail"]
+
+    # Verify stage remained Development
+    v1_meta = client.get("/api/v1/models/tamper_prod_guard/versions/1").json()
+    assert v1_meta["stage"] == "development"
+
+
+def test_concurrent_production_stage_transitions(registry_env):
+    """Verify thread-safe stage transitions preserve single-production exclusivity under concurrent promotions."""
+    from concurrent.futures import ThreadPoolExecutor
+    client, exp_dir = registry_env
+
+    # Register 3 versions
+    for i in range(1, 4):
+        create_mock_experiment(exp_dir, f"exp-race-{i}", best_score=0.85 + i * 0.03)
+        client.post(
+            "/api/v1/models/register",
+            json={"experiment_id": f"exp-race-{i}", "model_name": "race_prod_model"},
+        )
+
+    def promote_worker(version_num: int):
+        return client.post(
+            f"/api/v1/models/race_prod_model/versions/{version_num}/stage",
+            json={"new_stage": "production", "reason": f"Concurrent promote v{version_num}"},
+        )
+
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        responses = list(executor.map(promote_worker, [1, 2, 3]))
+
+    assert all(r.status_code == 200 for r in responses)
+
+    # Check all version records: exactly 1 must be 'production', all others 'archived'
+    versions = client.get("/api/v1/models/race_prod_model").json()
+    stages = [v["stage"] for v in versions]
+    assert stages.count("production") == 1
+    assert stages.count("archived") == 2
+
+    # Check catalog summary
+    catalog = client.get("/api/v1/models").json()
+    model_entry = next(m for m in catalog["models"] if m["model_name"] == "race_prod_model")
+    assert model_entry["production_version"] is not None
+
+

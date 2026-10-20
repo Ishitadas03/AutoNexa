@@ -56,12 +56,14 @@ def create_synthetic_experiment(
 
     if create_artifact:
         content = b"FAKE_JOBLIB_MODEL_BINARY_DATA_FOR_TESTING"
-        if corrupt_artifact:
-            content = b"TAMPERED_DATA"
-        model_file.write_bytes(content)
-        model_size = len(content)
         import hashlib
         model_sha256 = hashlib.sha256(content).hexdigest()
+        if corrupt_artifact:
+            model_file.write_bytes(b"TAMPERED_DATA")
+            model_size = len(b"TAMPERED_DATA")
+        else:
+            model_file.write_bytes(content)
+            model_size = len(content)
 
     meta = {
         "experiment_id": exp_id,
@@ -371,3 +373,45 @@ def test_download_experiment_artifact(tracking_env):
     assert res.content == b"FAKE_JOBLIB_MODEL_BINARY_DATA_FOR_TESTING"
     assert res.headers["content-type"] == "application/octet-stream"
     assert "X-Artifact-SHA256" in res.headers
+
+
+def test_download_experiment_artifact_rejects_corrupted_binary(tracking_env):
+    """Verify download endpoint rejects corrupted or tampered model artifacts with 400 Bad Request."""
+    client, exp_dir = tracking_env
+    create_synthetic_experiment(exp_dir, "exp-download-corrupt", corrupt_artifact=True)
+
+    res = client.get("/api/v1/experiments/exp-download-corrupt/artifact")
+    assert res.status_code == 400
+    assert "Cannot download model artifact" in res.json()["detail"]
+    assert "MISMATCH" in res.json()["detail"]
+
+
+def test_comparison_with_nan_metrics_and_exact_ties(tracking_env):
+    """Verify experiment comparison safely handles NaN/missing metrics and identifies exact ties."""
+    client, exp_dir = tracking_env
+    create_synthetic_experiment(exp_dir, "exp-tie-1", best_score=0.90)
+    create_synthetic_experiment(exp_dir, "exp-tie-2", best_score=0.90)
+
+    # Inject a NaN metric into exp-tie-1
+    meta_path = exp_dir / "exp-tie-1" / "metadata.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    meta["test_metrics"]["nan_metric"] = float("nan")
+    meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+
+    res = client.post(
+        "/api/v1/experiments/compare",
+        json={"experiment_ids": ["exp-tie-1", "exp-tie-2"]},
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["common_dataset"] is True
+    assert data["common_task"] is True
+
+    # Exact score tie should be marked as "tie"
+    stat = data["statistical_summary"]
+    assert stat is not None
+    diffs = stat["metric_differences"]
+    assert "accuracy" in diffs
+    assert diffs["accuracy"]["absolute_difference"] == 0.0
+    assert diffs["accuracy"]["superior_experiment"] == "tie"
+

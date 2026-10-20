@@ -673,16 +673,21 @@ class ExperimentTrackerService:
             for m_name, vals in metric_matrix.items():
                 va = vals.get(exp_a.experiment_id)
                 vb = vals.get(exp_b.experiment_id)
-                if va is not None and vb is not None:
+                if va is not None and vb is not None and not math.isnan(va) and not math.isnan(vb):
+                    greater_is_better = METRIC_DIRECTIONS.get(m_name.lower(), True)
+                    if va == vb:
+                        superior = "tie"
+                    elif (greater_is_better and va > vb) or (not greater_is_better and va < vb):
+                        superior = exp_a.experiment_id
+                    else:
+                        superior = exp_b.experiment_id
+
                     diffs[m_name] = {
                         f"{exp_a.experiment_id}_score": va,
                         f"{exp_b.experiment_id}_score": vb,
                         "absolute_difference": round(va - vb, 4),
                         "percentage_difference": round(((va - vb) / abs(vb)) * 100, 2) if vb != 0 else None,
-                        "superior_experiment": exp_a.experiment_id if (
-                            (METRIC_DIRECTIONS.get(m_name.lower(), True) and va > vb) or
-                            (not METRIC_DIRECTIONS.get(m_name.lower(), True) and va < vb)
-                        ) else exp_b.experiment_id,
+                        "superior_experiment": superior,
                     }
             stat_summary = {
                 "mode": "descriptive_pairwise_comparison",
