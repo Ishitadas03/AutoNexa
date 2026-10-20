@@ -44,7 +44,7 @@ interface PipelinesTabProps {
 
 const STAGE_LABELS: Record<PipelineStage, string> = {
   dataset_validation: "Dataset Validation",
-  provenance_init: "Provenance Init",
+  provenance_initialization: "Provenance Init",
   training: "AutoML Training",
   evaluation: "Model Evaluation",
   experiment_manifest: "Experiment Manifest",
@@ -111,9 +111,9 @@ export default function PipelinesTab({ datasets, onNavigateTab }: PipelinesTabPr
       const resp = await api.listPipelines({
         status: statusFilter !== "all" ? statusFilter : undefined,
         model_name: searchQuery.trim() || undefined,
-        page_size: 50,
+        limit: 50,
       });
-      setPipelines(resp.items || []);
+      setPipelines(resp.pipelines || []);
     } catch (err: any) {
       console.error("Failed to load pipelines:", err);
       setActionError(err.detail || err.message || "Failed to load pipelines.");
@@ -526,7 +526,7 @@ export default function PipelinesTab({ datasets, onNavigateTab }: PipelinesTabPr
                 <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
                   <span className="text-[#64748B] block text-[11px]">Promotion Policy</span>
                   <span className="font-medium text-[#0F172A] capitalize block mt-0.5">
-                    {selectedPipeline.promotion_policy?.replace("_", " ")}
+                    {(selectedPipeline.promotion_policy || "Standard").replace("_", " ")}
                   </span>
                 </div>
                 <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">

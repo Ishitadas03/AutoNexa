@@ -1565,7 +1565,7 @@ export type PipelineStatus = "pending" | "running" | "succeeded" | "failed" | "c
 
 export type PipelineStage =
   | "dataset_validation"
-  | "provenance_init"
+  | "provenance_initialization"
   | "training"
   | "evaluation"
   | "experiment_manifest"
@@ -1648,9 +1648,9 @@ export interface PipelineResponse {
   metric_value?: number | null;
   artifact_checksum?: string | null;
   reference_profile_id?: string | null;
-  promotion_policy: PromotionPolicy;
-  auto_register: boolean;
-  create_reference_profile: boolean;
+  promotion_policy?: PromotionPolicy | null;
+  auto_register?: boolean | null;
+  create_reference_profile?: boolean | null;
   created_at: string;
   started_at?: string | null;
   completed_at?: string | null;
@@ -1663,9 +1663,8 @@ export interface PipelineResponse {
 }
 
 export interface PipelineListResponse {
-  items: PipelineResponse[];
   total: number;
-  page: number;
-  page_size: number;
-  total_pages: number;
+  limit: number;
+  offset: number;
+  pipelines: PipelineResponse[];
 }

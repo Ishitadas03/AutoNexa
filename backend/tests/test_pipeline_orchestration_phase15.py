@@ -524,3 +524,57 @@ def test_process_restart_recovery(test_env):
     assert recovered.status == PipelineStatus.FAILED
     assert "Process interrupted or restarted" in recovered.failure_reason
     assert recovered.stages[1].status == "failed"
+
+
+# ==============================================================================
+# 10. Frontend Contract & Stage Label Alignment Verification
+# ==============================================================================
+
+def test_pipeline_frontend_contract_and_stage_labels(test_env):
+    """Verify that backend pipeline responses and stage names strictly match frontend expectations."""
+    client = test_env["client"]
+    admin_headers = test_env["admin_headers"]
+    read_headers = test_env["read_headers"]
+
+    # 1. Empty response contract
+    empty_resp = client.get("/api/v1/pipelines?limit=10&offset=0", headers=read_headers)
+    assert empty_resp.status_code == 200
+    empty_data = empty_resp.json()
+    assert "total" in empty_data
+    assert "limit" in empty_data
+    assert "offset" in empty_data
+    assert "pipelines" in empty_data
+    assert isinstance(empty_data["pipelines"], list)
+    assert empty_data["limit"] == 10
+    assert empty_data["offset"] == 0
+
+    # 2. Stage label schema alignment
+    all_stages = [s.value for s in PipelineStage]
+    assert "provenance_initialization" in all_stages
+    assert "provenance_init" not in all_stages  # Disallow obsolete alias
+    assert len(all_stages) == 9
+
+    # 3. Create pipeline and verify stage list in response contains provenance_initialization
+    _, dataset_id = _create_sample_dataset(test_env["upload_dir"], "contract_test_data")
+    created = client.post(
+        "/api/v1/pipelines",
+        json={
+            "dataset_id": dataset_id,
+            "target_column": "label",
+            "model_name": "contract_model",
+            "training_config": {"models": ["dummy"]},
+        },
+        headers=admin_headers,
+    ).json()
+
+    stage_names = [stg["stage"] for stg in created["stages"]]
+    assert "provenance_initialization" in stage_names
+    assert "provenance_init" not in stage_names
+
+    # 4. Populated listing response contract
+    pop_resp = client.get("/api/v1/pipelines?limit=5&offset=0", headers=read_headers)
+    assert pop_resp.status_code == 200
+    pop_data = pop_resp.json()
+    assert pop_data["total"] >= 1
+    assert len(pop_data["pipelines"]) >= 1
+    assert any(p["pipeline_id"] == created["pipeline_id"] for p in pop_data["pipelines"])

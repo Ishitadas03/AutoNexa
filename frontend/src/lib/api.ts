@@ -1071,14 +1071,38 @@ export const api = {
 
   /** List pipeline executions with pagination and optional filtering */
   async listPipelines(
-    params?: { status?: string; model_name?: string; page?: number; page_size?: number },
+    params?: {
+      status?: string;
+      model_name?: string;
+      dataset_id?: string;
+      limit?: number;
+      offset?: number;
+      page?: number;
+      page_size?: number;
+    },
     apiKey?: string
   ): Promise<PipelineListResponse> {
     const searchParams = new URLSearchParams();
     if (params?.status) searchParams.set("status", params.status);
     if (params?.model_name) searchParams.set("model_name", params.model_name);
-    if (params?.page) searchParams.set("page", String(params.page));
-    if (params?.page_size) searchParams.set("page_size", String(params.page_size));
+    if (params?.dataset_id) searchParams.set("dataset_id", params.dataset_id);
+
+    // Calculate effective limit clamped to backend constraints [1, 100] (default 50)
+    const effectiveLimit = Math.min(
+      100,
+      Math.max(1, params?.limit ?? params?.page_size ?? 50)
+    );
+    searchParams.set("limit", String(effectiveLimit));
+
+    // Calculate effective offset (offset takes precedence, else (page - 1) * limit)
+    let effectiveOffset = 0;
+    if (params?.offset !== undefined) {
+      effectiveOffset = Math.max(0, params.offset);
+    } else if (params?.page !== undefined) {
+      effectiveOffset = Math.max(0, (params.page - 1) * effectiveLimit);
+    }
+    searchParams.set("offset", String(effectiveOffset));
+
     const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
 
     const url = getEffectiveUrl(`/api/v1/pipelines${qs}`);
