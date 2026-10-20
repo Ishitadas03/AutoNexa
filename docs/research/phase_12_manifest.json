@@ -1,0 +1,163 @@
+{
+  "phase": 12,
+  "title": "Research-Grade Experiment Tracking & Model Registry",
+  "document_id": "ANX-PHASE-12-MANIFEST-2026",
+  "generated_at": "2026-10-20T19:15:00Z",
+  "verdict": "VERIFIED",
+  "backend_tests": {
+    "total_collected": 187,
+    "total_passed": 187,
+    "total_failed": 0,
+    "warnings": 12,
+    "elapsed_seconds": 64.67,
+    "dedicated_tracking_tests": 9,
+    "dedicated_model_registry_tests": 8,
+    "regression_tests": 170
+  },
+  "frontend_build": {
+    "framework": "Next.js 16.4.2 (Turbopack)",
+    "react_version": "19.3.0",
+    "exit_code": 0,
+    "typescript_errors": 0,
+    "static_pages_generated": 4
+  },
+  "subsystems": {
+    "experiment_tracking": {
+      "status": "implemented",
+      "storage_format": "json_and_joblib",
+      "storage_directory": "experiments/",
+      "capabilities": [
+        "paginated_listing",
+        "task_and_status_filtering",
+        "search_indexing",
+        "full_provenance_inspection",
+        "error_diagnostics_isolation",
+        "reproducibility_manifest_export",
+        "artifact_checksum_verification",
+        "safe_deletion_with_traversal_protection"
+      ]
+    },
+    "model_registry": {
+      "status": "implemented",
+      "storage_directory": "experiments/model_registry/",
+      "versioning_strategy": "monotonic_integer",
+      "lifecycle_stages": [
+        "development",
+        "staging",
+        "production",
+        "archived"
+      ],
+      "capabilities": [
+        "idempotent_registration_from_completed_runs",
+        "rejection_of_failed_or_missing_artifacts",
+        "single_production_exclusivity",
+        "auditable_stage_transitions",
+        "realtime_sha256_verification",
+        "verified_joblib_binary_streaming",
+        "version_comparisons",
+        "thread_safe_concurrency_locks"
+      ]
+    },
+    "reproducibility_manifest": {
+      "status": "implemented",
+      "version": "1.0.0",
+      "format": "json",
+      "fingerprint_algorithm": "SHA-256",
+      "disclaimer_level": "configuration_and_environment"
+    },
+    "multi_experiment_comparison": {
+      "status": "implemented",
+      "metric_direction_detection": true,
+      "non_zero_imputation": true,
+      "task_compatibility_enforcement": true,
+      "descriptive_vs_statistical_separation": true
+    }
+  },
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/experiments",
+      "description": "List experiments with pagination and filters"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/experiments/compare",
+      "description": "Compare selected experiments side-by-side"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/experiments/{id}",
+      "description": "Inspect experiment metadata"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/experiments/{id}/details",
+      "description": "Full experiment details and evaluated candidate models"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/experiments/{id}/metrics",
+      "description": "Experiment metrics dictionary"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/experiments/{id}/reproducibility-manifest",
+      "description": "Export cryptographic reproducibility manifest"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/experiments/{id}/reproducibility-manifest/verify",
+      "description": "Verify physical artifact integrity"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/experiments/{id}/artifact",
+      "description": "Download model artifact binary (.joblib)"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/experiments/{id}",
+      "description": "Delete experiment and artifacts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/models/register",
+      "description": "Register model version from experiment"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/models",
+      "description": "List registered model families"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/models/{model_name}",
+      "description": "List all versions of a model family"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/models/{model_name}/versions/{version}",
+      "description": "Retrieve model version details and audit trail"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/models/{model_name}/versions/{version}/stage",
+      "description": "Transition lifecycle stage"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/models/{model_name}/versions/{version}/verify",
+      "description": "Verify model version artifact integrity"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/models/{model_name}/versions/{version}/download",
+      "description": "Download model version artifact (.joblib)"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/models/{model_name}/compare-versions",
+      "description": "Compare versions of a model family"
+    }
+  ]
+}

@@ -3,6 +3,7 @@
 import hashlib
 import json
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 import tempfile
@@ -27,6 +28,7 @@ from app.schemas.training import (
 )
 from app.services.analysis_service import AnalysisService
 from app.services.automl.evaluator import ModelEvaluator
+from app.services.automl.experiment_tracker_service import get_system_environment_info
 from app.services.automl.preprocessor import build_preprocessor
 from app.services.automl.registry import ModelRegistry
 from app.services.automl.tracker import MLflowTracker, compute_dataset_fingerprint
@@ -578,6 +580,7 @@ class TrainingService:
             metadata_dict = {
                 "experiment_id": experiment_id,
                 "status": "completed" if artifacts_saved else "failed",
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "dataset_id": dataset_id,
                 "dataset_fingerprint": dataset_fingerprint,
                 "target_column": target_col,
@@ -618,6 +621,7 @@ class TrainingService:
                     "joblib": joblib.__version__,
                     "mlflow": getattr(tracker._mlflow, "__version__", "unknown") if tracker._mlflow else "not_installed",
                 },
+                "system_info": get_system_environment_info(),
             }
 
             # Atomic write to temporary file then replace
@@ -629,6 +633,29 @@ class TrainingService:
         except Exception as exc:
             logger.error("Failed to persist experiment artifacts for %s: %s", experiment_id, exc)
             artifacts_saved = False
+            # Safely record structured failure information without sensitive path disclosures
+            try:
+                failure_dict = {
+                    "experiment_id": experiment_id,
+                    "status": "failed",
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "dataset_id": dataset_id,
+                    "dataset_fingerprint": dataset_fingerprint,
+                    "target_column": target_col,
+                    "task_type": task_type.value,
+                    "evaluation_strategy": request.evaluation_strategy,
+                    "primary_metric": primary_metric,
+                    "error_info": {
+                        "error_type": type(exc).__name__,
+                        "error_message": "An error occurred during experiment model artifact persistence.",
+                    },
+                }
+                with tempfile.NamedTemporaryFile("w", dir=exp_dir, delete=False, encoding="utf-8") as tf:
+                    json.dump(failure_dict, tf, indent=2)
+                    temp_f_path = Path(tf.name)
+                temp_f_path.replace(metadata_file)
+            except Exception:
+                pass
 
         # 13. Finalize MLflow Parent Run
         tracker.finalize_parent_run(

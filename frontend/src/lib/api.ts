@@ -33,6 +33,16 @@ import {
   DatasetCatalogEntry,
   RobustBenchmarkRequest,
   RobustBenchmarkResponse,
+  ArtifactVerificationResponse,
+  ExperimentCompareRequest,
+  ExperimentComparisonResponse,
+  ExperimentDetailResponse,
+  ExperimentListResponse,
+  ModelRegistrationRequest,
+  ModelRegistryListResponse,
+  ModelVersionRecord,
+  ReproducibilityManifest,
+  StageTransitionRequest,
 } from "@/types/api";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -446,6 +456,217 @@ export const api = {
   /** Phase 11: Get CSV download URL for robust benchmark seed runs */
   getRobustBenchmarkCsvUrl(robustBenchmarkId: string): string {
     return getEffectiveUrl(`/api/v1/benchmarks/robust/${encodeURIComponent(robustBenchmarkId)}/export-csv`);
+  },
+
+  // ==========================================
+  // Phase 12: Experiment Tracking & Model Registry
+  // ==========================================
+
+  /** List persisted experiments with pagination and filtering */
+  async listExperiments(params?: {
+    page?: number;
+    page_size?: number;
+    task_type?: string;
+    status?: string;
+    dataset_id?: string;
+    search?: string;
+  }): Promise<ExperimentListResponse> {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.append("page", params.page.toString());
+    if (params?.page_size) qs.append("page_size", params.page_size.toString());
+    if (params?.task_type) qs.append("task_type", params.task_type);
+    if (params?.status) qs.append("status", params.status);
+    if (params?.dataset_id) qs.append("dataset_id", params.dataset_id);
+    if (params?.search) qs.append("search", params.search);
+
+    const qString = qs.toString() ? `?${qs.toString()}` : "";
+    const url = getEffectiveUrl(`/api/v1/experiments${qString}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<ExperimentListResponse>(res);
+  },
+
+  /** Retrieve full experiment detail */
+  async getExperimentDetails(experimentId: string): Promise<ExperimentDetailResponse> {
+    const url = getEffectiveUrl(`/api/v1/experiments/${encodeURIComponent(experimentId)}/details`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<ExperimentDetailResponse>(res);
+  },
+
+  /** Compare selected experiments side-by-side */
+  async compareExperiments(experimentIds: string[]): Promise<ExperimentComparisonResponse> {
+    const url = getEffectiveUrl("/api/v1/experiments/compare");
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ experiment_ids: experimentIds }),
+    });
+    return handleResponse<ExperimentComparisonResponse>(res);
+  },
+
+  /** Get cryptographic reproducibility manifest */
+  async getReproducibilityManifest(experimentId: string): Promise<ReproducibilityManifest> {
+    const url = getEffectiveUrl(`/api/v1/experiments/${encodeURIComponent(experimentId)}/reproducibility-manifest`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<ReproducibilityManifest>(res);
+  },
+
+  /** Verify experiment artifact presence and SHA-256 */
+  async verifyExperimentArtifact(experimentId: string): Promise<ArtifactVerificationResponse> {
+    const url = getEffectiveUrl(`/api/v1/experiments/${encodeURIComponent(experimentId)}/reproducibility-manifest/verify`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<ArtifactVerificationResponse>(res);
+  },
+
+  /** Download experiment model artifact .joblib */
+  async downloadExperimentArtifact(experimentId: string): Promise<{ blob: Blob; filename: string }> {
+    const url = getEffectiveUrl(`/api/v1/experiments/${encodeURIComponent(experimentId)}/artifact`);
+    const res = await fetch(url, { method: "GET" });
+    if (!res.ok) {
+      let detail = res.statusText;
+      try {
+        const errorData = await res.json();
+        detail = errorData.detail || detail;
+      } catch {
+        // ignore
+      }
+      throw new ApiError(res.status, detail);
+    }
+    const blob = await res.blob();
+    const disposition = res.headers.get("content-disposition");
+    let filename = `autonexa_model_${experimentId.slice(0, 8)}.joblib`;
+    if (disposition && disposition.includes("filename=")) {
+      const match = disposition.match(/filename="?([^"]+)"?/);
+      if (match && match[1]) filename = match[1];
+    }
+    return { blob, filename };
+  },
+
+  /** Delete an experiment */
+  async deleteExperiment(experimentId: string): Promise<{ success: boolean; message: string }> {
+    const url = getEffectiveUrl(`/api/v1/experiments/${encodeURIComponent(experimentId)}`);
+    const res = await fetch(url, { method: "DELETE" });
+    return handleResponse<{ success: boolean; message: string }>(res);
+  },
+
+  /** List registered models */
+  async listRegisteredModels(): Promise<ModelRegistryListResponse> {
+    const url = getEffectiveUrl("/api/v1/models");
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<ModelRegistryListResponse>(res);
+  },
+
+  /** Register model version from experiment */
+  async registerModel(request: ModelRegistrationRequest): Promise<ModelVersionRecord> {
+    const url = getEffectiveUrl("/api/v1/models/register");
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    return handleResponse<ModelVersionRecord>(res);
+  },
+
+  /** List versions for a model family */
+  async getModelVersions(modelName: string): Promise<ModelVersionRecord[]> {
+    const url = getEffectiveUrl(`/api/v1/models/${encodeURIComponent(modelName)}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<ModelVersionRecord[]>(res);
+  },
+
+  /** Retrieve version details */
+  async getVersionDetails(modelName: string, version: number): Promise<ModelVersionRecord> {
+    const url = getEffectiveUrl(`/api/v1/models/${encodeURIComponent(modelName)}/versions/${version}`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<ModelVersionRecord>(res);
+  },
+
+  /** Transition lifecycle stage of a model version */
+  async transitionModelStage(
+    modelName: string,
+    version: number,
+    request: StageTransitionRequest
+  ): Promise<ModelVersionRecord> {
+    const url = getEffectiveUrl(`/api/v1/models/${encodeURIComponent(modelName)}/versions/${version}/stage`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    return handleResponse<ModelVersionRecord>(res);
+  },
+
+  /** Verify registered model version artifact integrity */
+  async verifyVersionArtifact(modelName: string, version: number): Promise<ArtifactVerificationResponse> {
+    const url = getEffectiveUrl(`/api/v1/models/${encodeURIComponent(modelName)}/versions/${version}/verify`);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return handleResponse<ArtifactVerificationResponse>(res);
+  },
+
+  /** Download registered model version artifact */
+  async downloadVersionArtifact(modelName: string, version: number): Promise<{ blob: Blob; filename: string }> {
+    const url = getEffectiveUrl(`/api/v1/models/${encodeURIComponent(modelName)}/versions/${version}/download`);
+    const res = await fetch(url, { method: "GET" });
+    if (!res.ok) {
+      let detail = res.statusText;
+      try {
+        const errorData = await res.json();
+        detail = errorData.detail || detail;
+      } catch {
+        // ignore
+      }
+      throw new ApiError(res.status, detail);
+    }
+    const blob = await res.blob();
+    const disposition = res.headers.get("content-disposition");
+    let filename = `${modelName}_v${version}.joblib`;
+    if (disposition && disposition.includes("filename=")) {
+      const match = disposition.match(/filename="?([^"]+)"?/);
+      if (match && match[1]) filename = match[1];
+    }
+    return { blob, filename };
+  },
+
+  /** Compare versions of a model family */
+  async compareModelVersions(modelName: string, versions?: number[]): Promise<Record<string, any>> {
+    const qs = versions && versions.length ? `?${versions.map((v) => `versions=${v}`).join("&")}` : "";
+    const url = getEffectiveUrl(`/api/v1/models/${encodeURIComponent(modelName)}/compare-versions${qs}`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { Accept: "application/json" },
+    });
+    return handleResponse<Record<string, any>>(res);
   },
 };
 

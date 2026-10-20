@@ -1,7 +1,8 @@
 """Experiment metadata inspection, model artifact integrity, tabular inference, explainability, and error analysis endpoints."""
 
-from typing import Literal, Optional
-from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
+from typing import Any, Dict, Literal, Optional
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
+from fastapi.responses import FileResponse
 
 from app.schemas.error_analysis import (
     ErrorAnalysisRequest,
@@ -17,9 +18,21 @@ from app.schemas.prediction import (
     PredictionRequest,
     PredictionResponse,
 )
+from app.schemas.tracking import (
+    ArtifactVerificationResponse,
+    ExperimentCompareRequest,
+    ExperimentComparisonResponse,
+    ExperimentDetailResponse,
+    ExperimentListResponse,
+    ReproducibilityManifest,
+)
 from app.services.automl.error_analysis_service import (
     ErrorAnalysisService,
     get_error_analysis_service,
+)
+from app.services.automl.experiment_tracker_service import (
+    ExperimentTrackerService,
+    get_experiment_tracker_service,
 )
 from app.services.automl.explainability_service import (
     ExplainabilityService,
@@ -31,6 +44,54 @@ from app.services.automl.prediction_service import (
 )
 
 router = APIRouter(prefix="/experiments", tags=["Experiments"])
+
+
+@router.get(
+    "",
+    response_model=ExperimentListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="List Experiments with Pagination and Filters",
+    description=(
+        "Retrieves a paginated list of persisted AutoML experiments with filtering by task type, "
+        "execution status, dataset identifier, or search keywords. Excludes internal benchmarking suites."
+    ),
+)
+def list_experiments(
+    page: int = Query(default=1, ge=1, description="Page number (1-indexed)"),
+    page_size: int = Query(default=10, ge=1, le=100, description="Items per page"),
+    task_type: Optional[str] = Query(default=None, description="Filter by task type"),
+    status_filter: Optional[str] = Query(default=None, alias="status", description="Filter by status"),
+    dataset_id: Optional[str] = Query(default=None, description="Filter by dataset ID"),
+    search: Optional[str] = Query(default=None, description="Search keyword across ID, name, and columns"),
+    tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+) -> ExperimentListResponse:
+    """List persisted AutoML experiments with pagination and filtering."""
+    return tracker.list_experiments(
+        page=page,
+        page_size=page_size,
+        task_type=task_type,
+        status=status_filter,
+        dataset_id=dataset_id,
+        search=search,
+    )
+
+
+@router.post(
+    "/compare",
+    response_model=ExperimentComparisonResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Compare Selected Experiments",
+    description=(
+        "Evaluates side-by-side metric differences, task compatibility, configuration variations, "
+        "and execution runtimes across 2 to 10 selected AutoML experiments."
+    ),
+)
+def compare_experiments(
+    request: ExperimentCompareRequest,
+    tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+) -> ExperimentComparisonResponse:
+    """Compare multiple AutoML experiments side-by-side."""
+    return tracker.compare_experiments(request.experiment_ids)
 
 
 @router.get(
@@ -51,6 +112,120 @@ def inspect_experiment(
 ) -> ExperimentInspectionResponse:
     """Inspect an AutoML experiment's metadata and winning model state."""
     return service.inspect_experiment(experiment_id=experiment_id)
+
+
+@router.get(
+    "/{experiment_id}/details",
+    response_model=ExperimentDetailResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve Full Experiment Details and Diagnostics",
+    description=(
+        "Retrieves detailed experiment metadata, candidate model evaluations, CV metrics, "
+        "software environment versions, and diagnostic error reports if the experiment failed."
+    ),
+)
+def get_experiment_details(
+    experiment_id: str,
+    tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+) -> ExperimentDetailResponse:
+    """Retrieve full experiment details and candidate evaluations."""
+    return tracker.get_experiment_detail(experiment_id=experiment_id)
+
+
+@router.get(
+    "/{experiment_id}/metrics",
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve Experiment Metrics Summary",
+    description="Extracts validation, cross-validation, and holdout test metrics for an experiment.",
+)
+def get_experiment_metrics(
+    experiment_id: str,
+    tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+) -> Dict[str, Any]:
+    """Retrieve metrics dictionary for an experiment."""
+    return tracker.get_experiment_metrics(experiment_id=experiment_id)
+
+
+@router.get(
+    "/{experiment_id}/reproducibility-manifest",
+    response_model=ReproducibilityManifest,
+    status_code=status.HTTP_200_OK,
+    summary="Export Cryptographic Reproducibility Manifest",
+    description=(
+        "Generates a complete, machine-readable reproducibility manifest capturing dataset fingerprint, "
+        "random seeds, feature preprocessing pipeline, model configurations, library dependencies, "
+        "and SHA-256 artifact checksum."
+    ),
+)
+def get_reproducibility_manifest(
+    experiment_id: str,
+    tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+) -> ReproducibilityManifest:
+    """Generate and export the experiment's reproducibility manifest."""
+    return tracker.get_reproducibility_manifest(experiment_id=experiment_id)
+
+
+@router.get(
+    "/{experiment_id}/reproducibility-manifest/verify",
+    response_model=ArtifactVerificationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Verify Physical Artifact Integrity",
+    description="Performs real-time cryptographic verification of the experiment's stored model binary against recorded checksums.",
+)
+def verify_experiment_artifact(
+    experiment_id: str,
+    tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+) -> ArtifactVerificationResponse:
+    """Verify physical artifact presence and SHA-256 integrity."""
+    return tracker.verify_manifest_integrity(experiment_id=experiment_id)
+
+
+@router.get(
+    "/{experiment_id}/artifact",
+    status_code=status.HTTP_200_OK,
+    summary="Download Model Artifact Binary",
+    description="Streams the serialized .joblib model pipeline after verifying existence and integrity.",
+    responses={
+        200: {
+            "content": {"application/octet-stream": {}},
+            "description": "Serialized scikit-learn model pipeline binary (.joblib).",
+        }
+    },
+)
+def download_experiment_artifact(
+    experiment_id: str,
+    tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+):
+    """Download verified model artifact binary."""
+    verification = tracker.verify_manifest_integrity(experiment_id)
+    if not verification.artifact_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Model artifact for experiment '{experiment_id}' does not exist on disk.",
+        )
+    exp_dir = tracker.safe_resolve_experiment_dir(experiment_id)
+    model_path = exp_dir / "best_model.joblib"
+    return FileResponse(
+        path=str(model_path),
+        filename=f"autonexa_model_{experiment_id[:8]}.joblib",
+        media_type="application/octet-stream",
+        headers={"X-Artifact-SHA256": verification.actual_sha256 or ""},
+    )
+
+
+@router.delete(
+    "/{experiment_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Delete Experiment and Artifacts",
+    description="Permanently deletes an experiment directory and associated model artifacts from disk storage.",
+)
+def delete_experiment(
+    experiment_id: str,
+    tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+) -> Dict[str, Any]:
+    """Delete an experiment and its artifacts."""
+    success = tracker.delete_experiment(experiment_id)
+    return {"success": success, "message": f"Experiment '{experiment_id}' deleted successfully."}
 
 
 @router.post(

@@ -981,5 +981,201 @@ export interface RobustBenchmarkResponse {
   csv_export_url: string;
 }
 
+// ==========================================
+// Phase 12: Experiment Tracking & Model Registry
+// ==========================================
+
+export type LifecycleStage = "development" | "staging" | "production" | "archived";
+
+export interface ExperimentSummary {
+  experiment_id: string;
+  name?: string | null;
+  description?: string | null;
+  dataset_id: string;
+  dataset_fingerprint: string;
+  task_type: string;
+  target_column: string;
+  status: string;
+  best_model?: string | null;
+  best_score?: number | null;
+  primary_metric: string;
+  primary_metric_greater_is_better?: boolean | null;
+  evaluation_strategy?: string | null;
+  total_duration_seconds?: number | null;
+  created_at: string;
+  models_count: number;
+  has_artifact: boolean;
+}
+
+export interface ExperimentListResponse {
+  items: ExperimentSummary[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface ExperimentDetailResponse {
+  experiment_id: string;
+  name?: string | null;
+  description?: string | null;
+  status: string;
+  dataset_id: string;
+  dataset_fingerprint: string;
+  target_column: string;
+  task_type: string;
+  evaluation_strategy: string;
+  cv_folds?: number | null;
+  primary_metric: string;
+  primary_metric_greater_is_better?: boolean | null;
+  random_state?: number | null;
+  test_size?: number | null;
+  train_rows?: number | null;
+  test_rows?: number | null;
+  features_count?: number | null;
+  feature_names?: string[] | null;
+  numeric_features?: string[] | null;
+  categorical_features?: string[] | null;
+  ranked_models?: string[] | null;
+  best_model?: string | null;
+  best_score?: number | null;
+  test_metrics?: Record<string, any> | null;
+  evaluation_protocol?: string | null;
+  total_duration_seconds?: number | null;
+  models_evaluated?: Array<Record<string, any>> | null;
+  artifacts?: Record<string, any> | null;
+  package_versions?: Record<string, string> | null;
+  system_info?: Record<string, string> | null;
+  created_at?: string | null;
+  error_info?: Record<string, any> | null;
+}
+
+export interface ExperimentCompareRequest {
+  experiment_ids: string[];
+}
+
+export interface ExperimentComparisonItem {
+  experiment_id: string;
+  name?: string | null;
+  dataset_id: string;
+  dataset_fingerprint: string;
+  task_type: string;
+  target_column: string;
+  best_model?: string | null;
+  primary_metric: string;
+  best_score?: number | null;
+  test_metrics?: Record<string, any> | null;
+  metrics: Record<string, number | null>;
+  duration_seconds?: number | null;
+  features_count?: number | null;
+  train_rows?: number | null;
+  evaluation_strategy?: string | null;
+  cv_folds?: number | null;
+  random_state?: number | null;
+  package_versions?: Record<string, string> | null;
+  has_artifact: boolean;
+  registered_version?: string | null;
+}
+
+export interface ExperimentComparisonResponse {
+  experiments: ExperimentComparisonItem[];
+  common_dataset: boolean;
+  common_task: boolean;
+  metric_comparison: Record<string, Record<string, number | null>>;
+  metric_directions: Record<string, boolean>;
+  best_per_metric: Record<string, string>;
+  compatibility_warning?: string | null;
+  statistical_summary?: Record<string, any> | null;
+}
+
+export interface ReproducibilityManifest {
+  manifest_version: string;
+  experiment_id: string;
+  created_at: string;
+  dataset: Record<string, any>;
+  configuration: Record<string, any>;
+  preprocessing: Record<string, any>;
+  model: Record<string, any>;
+  environment: Record<string, any>;
+  metrics: Record<string, any>;
+  artifact: Record<string, any>;
+  reproducibility_level: string;
+  scientific_disclaimer: string;
+  manifest_sha256?: string | null;
+}
+
+export interface ModelRegistrationRequest {
+  experiment_id: string;
+  model_name: string;
+  description?: string | null;
+  tags?: string[];
+  initial_stage?: LifecycleStage;
+}
+
+export interface StageTransitionRequest {
+  new_stage: LifecycleStage;
+  reason?: string | null;
+}
+
+export interface LifecycleAuditEntry {
+  timestamp: string;
+  from_stage: string;
+  to_stage: string;
+  reason?: string | null;
+  operator: string;
+}
+
+export interface ModelVersionRecord {
+  model_name: string;
+  version: number;
+  version_tag: string;
+  experiment_id: string;
+  stage: LifecycleStage;
+  task_type: string;
+  model_family: string;
+  primary_metric: string;
+  score?: number | null;
+  test_metrics?: Record<string, any> | null;
+  dataset_id: string;
+  dataset_fingerprint: string;
+  artifact_filename: string;
+  artifact_sha256: string;
+  artifact_size_bytes: number;
+  status: string;
+  description?: string | null;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+  audit_history: LifecycleAuditEntry[];
+}
+
+export interface RegisteredModelSummary {
+  model_name: string;
+  latest_version: number;
+  production_version?: number | null;
+  staging_version?: number | null;
+  versions_count: number;
+  task_type: string;
+  latest_primary_metric: string;
+  latest_score?: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ModelRegistryListResponse {
+  models: RegisteredModelSummary[];
+  total: number;
+}
+
+export interface ArtifactVerificationResponse {
+  verified: boolean;
+  expected_sha256: string;
+  actual_sha256?: string | null;
+  size_bytes?: number | null;
+  artifact_exists: boolean;
+  message: string;
+}
+
+
 
 
