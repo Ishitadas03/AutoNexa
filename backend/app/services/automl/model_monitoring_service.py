@@ -172,6 +172,7 @@ class ModelMonitoringService:
 
         # Bounded in-memory telemetry queue
         self._telemetry_queue: deque = deque(maxlen=2000)
+        self._active_retraining_jobs: Dict[str, str] = {}
         self._load_recent_telemetry()
 
     # ==========================================================================
@@ -1447,15 +1448,23 @@ class ModelMonitoringService:
 
         and requires explicit authorization for promotion.
         """
+        model_name = request.model_name.strip()
+        if not MODEL_NAME_PATTERN.match(model_name):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid model name.",
+            )
+
+        # Phase 1: Hold _MONITORING_LOCK for request validation, trigger policy verification, and job creation
         with _MONITORING_LOCK:
-            model_name = request.model_name.strip()
-            if not MODEL_NAME_PATTERN.match(model_name):
+            # Prevent concurrent retraining jobs for the same model (in-memory and persisted checks)
+            if model_name in self._active_retraining_jobs:
+                active_jid = self._active_retraining_jobs[model_name]
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid model name.",
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"A retraining job ({active_jid}) is already currently running for model '{model_name}'.",
                 )
 
-            # Prevent concurrent retraining jobs for the same model
             for existing in self.list_retraining_jobs(model_name=model_name):
                 if existing.status in (RetrainingJobStatus.RUNNING, RetrainingJobStatus.QUEUED):
                     raise HTTPException(
@@ -1516,107 +1525,126 @@ class ModelMonitoringService:
                 started_at=datetime.now(timezone.utc).isoformat(),
             )
 
-            # Save initial job state
+            # Save initial job state and register active mutex
+            self._active_retraining_jobs[model_name] = job_id
             j_file = self.retraining_dir / f"{job_id}.json"
             with tempfile.NamedTemporaryFile("w", dir=self.retraining_dir, delete=False, encoding="utf-8") as tf:
                 json.dump(job.model_dump(), tf, indent=2)
                 t_path = Path(tf.name)
             t_path.replace(j_file)
 
-            # Execute real retraining via TrainingService
-            src_exp = self.registry.tracker.get_experiment_detail(source_record.experiment_id)
-            target_col = request.target_column or src_exp.target_column
-            budget_sec = request.time_budget_seconds or 30
-            tolerance_pct = (request.tolerance_percentage if request.tolerance_percentage is not None else self.settings.monitoring_retraining_regression_tolerance) * 100.0
+        # Phase 2: Execute training WITHOUT holding _MONITORING_LOCK
+        src_exp = self.registry.tracker.get_experiment_detail(source_record.experiment_id)
+        target_col = request.target_column or src_exp.target_column
+        budget_sec = request.time_budget_seconds or 30
+        tolerance_pct = (request.tolerance_percentage if request.tolerance_percentage is not None else self.settings.monitoring_retraining_regression_tolerance) * 100.0
 
+        train_resp = None
+        training_error = None
+
+        try:
+            task_override = "classification" if "classification" in source_record.task_type else "regression"
+            train_req = TrainingRequest(
+                target_column=target_col,
+                task_type=task_override,
+                evaluation_strategy="holdout",
+                time_budget_seconds=budget_sec,
+            )
+            # Long-running AutoML training executes while monitoring endpoints remain responsive
+            train_resp = self.training_service.train_experiment(dataset_id=request.dataset_id, request=train_req)
+        except Exception as exc:
+            logger.error("Retraining execution failed during training for %s: %s", model_name, exc)
+            training_error = exc
+
+        # Phase 3: Re-acquire _MONITORING_LOCK to evaluate gate, register model, update state, and clean active tracking
+        with _MONITORING_LOCK:
             try:
-                # Map task type for TrainingRequest
-                task_override = "classification" if "classification" in source_record.task_type else "regression"
-                train_req = TrainingRequest(
-                    target_column=target_col,
-                    task_type=task_override,
-                    evaluation_strategy="holdout",
-                    time_budget_seconds=budget_sec,
-                )
-
-                train_resp = self.training_service.train_experiment(dataset_id=request.dataset_id, request=train_req)
-                job.experiment_id = train_resp.experiment_id
-
-                best_model_id = train_resp.best_model
-                if not best_model_id:
-                    raise ValueError("No successful models produced in retrained AutoML run.")
-
-                job.candidate_model_id = best_model_id
-
-                # Candidate Validation Gate
-                best_eval = next((m for m in train_resp.models_evaluated if m.model_id == best_model_id), None)
-                if best_eval and hasattr(best_eval, "metrics") and best_eval.metrics:
-                    candidate_score = best_eval.metrics.get(train_resp.primary_metric, next(iter(best_eval.metrics.values())))
+                if training_error is not None:
+                    job.status = RetrainingJobStatus.FAILED
+                    job.error_message = str(training_error)
+                    job.completed_at = datetime.now(timezone.utc).isoformat()
                 else:
-                    candidate_score = 0.90
-                baseline_score = source_record.score if source_record.score is not None else candidate_score
-                primary_metric = train_resp.primary_metric
-                greater_is_better = train_resp.primary_metric_greater_is_better
+                    assert train_resp is not None
+                    job.experiment_id = train_resp.experiment_id
+                    best_model_id = train_resp.best_model
+                    if not best_model_id:
+                        raise ValueError("No successful models produced in retrained AutoML run.")
 
-                if greater_is_better:
-                    regression_pct = round(((baseline_score - candidate_score) / max(abs(baseline_score), 1e-4)) * 100.0, 2)
-                    passed = regression_pct <= tolerance_pct
-                else:  # Lower is better (RMSE/MAE)
-                    regression_pct = round(((candidate_score - baseline_score) / max(abs(baseline_score), 1e-4)) * 100.0, 2)
-                    passed = regression_pct <= tolerance_pct
+                    job.candidate_model_id = best_model_id
 
-                validation_reasons = []
-                if passed:
-                    validation_reasons.append(
-                        f"Candidate model '{best_model_id}' satisfied validation gate ({primary_metric}: {candidate_score} vs baseline: {baseline_score}, regression: {regression_pct}% within tolerance of {tolerance_pct}%)."
+                    # Candidate Validation Gate
+                    best_eval = next((m for m in train_resp.models_evaluated if m.model_id == best_model_id), None)
+                    if best_eval and hasattr(best_eval, "metrics") and best_eval.metrics:
+                        candidate_score = best_eval.metrics.get(train_resp.primary_metric, next(iter(best_eval.metrics.values())))
+                    else:
+                        candidate_score = 0.90
+                    baseline_score = source_record.score if source_record.score is not None else candidate_score
+                    primary_metric = train_resp.primary_metric
+                    greater_is_better = train_resp.primary_metric_greater_is_better
+
+                    if greater_is_better:
+                        regression_pct = round(((baseline_score - candidate_score) / max(abs(baseline_score), 1e-4)) * 100.0, 2)
+                        passed = regression_pct <= tolerance_pct
+                    else:  # Lower is better (RMSE/MAE)
+                        regression_pct = round(((candidate_score - baseline_score) / max(abs(baseline_score), 1e-4)) * 100.0, 2)
+                        passed = regression_pct <= tolerance_pct
+
+                    validation_reasons = []
+                    if passed:
+                        validation_reasons.append(
+                            f"Candidate model '{best_model_id}' satisfied validation gate ({primary_metric}: {candidate_score} vs baseline: {baseline_score}, regression: {regression_pct}% within tolerance of {tolerance_pct}%)."
+                        )
+                        gate_status = CandidateValidationStatus.PASSED
+                    else:
+                        validation_reasons.append(
+                            f"Candidate model '{best_model_id}' failed validation gate: regression of {regression_pct}% exceeds allowable threshold of {tolerance_pct}% ({primary_metric}: candidate {candidate_score} vs baseline {baseline_score}). Active production model preserved."
+                        )
+                        gate_status = CandidateValidationStatus.REJECTED
+
+                    job.candidate_validation = CandidateValidationResult(
+                        status=gate_status,
+                        candidate_model_id=best_model_id,
+                        candidate_score=candidate_score,
+                        baseline_score=baseline_score,
+                        metric_name=primary_metric,
+                        regression_percentage=regression_pct,
+                        tolerance_percentage=tolerance_pct,
+                        passed=passed,
+                        details={"models_evaluated_count": len(train_resp.models_evaluated)},
+                        reasons=validation_reasons,
                     )
-                    gate_status = CandidateValidationStatus.PASSED
-                else:
-                    validation_reasons.append(
-                        f"Candidate model '{best_model_id}' failed validation gate: regression of {regression_pct}% exceeds allowable threshold of {tolerance_pct}% ({primary_metric}: candidate {candidate_score} vs baseline {baseline_score}). Active production model preserved."
-                    )
-                    gate_status = CandidateValidationStatus.REJECTED
 
-                job.candidate_validation = CandidateValidationResult(
-                    status=gate_status,
-                    candidate_model_id=best_model_id,
-                    candidate_score=candidate_score,
-                    baseline_score=baseline_score,
-                    metric_name=primary_metric,
-                    regression_percentage=regression_pct,
-                    tolerance_percentage=tolerance_pct,
-                    passed=passed,
-                    details={"models_evaluated_count": len(train_resp.models_evaluated)},
-                    reasons=validation_reasons,
-                )
+                    # If passed validation gate, register candidate version in model registry under DEVELOPMENT stage
+                    if passed:
+                        reg_req = ModelRegistrationRequest(
+                            model_name=model_name,
+                            experiment_id=train_resp.experiment_id,
+                            model_id=best_model_id,
+                            description=f"Retrained candidate generated by job '{job_id}' ({trigger_reason})",
+                            tags=["retraining", f"job:{job_id}", f"policy:{policy.value}"],
+                        )
+                        registered_version = self.registry.register_model(reg_req)
+                        job.candidate_version = registered_version.version
+                        logger.info("Registered retrained candidate as %s v%d", model_name, registered_version.version)
 
-                # If passed validation gate, register candidate version in model registry under DEVELOPMENT stage
-                if passed:
-                    reg_req = ModelRegistrationRequest(
-                        model_name=model_name,
-                        experiment_id=train_resp.experiment_id,
-                        model_id=best_model_id,
-                        description=f"Retrained candidate generated by job '{job_id}' ({trigger_reason})",
-                        tags=["retraining", f"job:{job_id}", f"policy:{policy.value}"],
-                    )
-                    registered_version = self.registry.register_model(reg_req)
-                    job.candidate_version = registered_version.version
-                    logger.info("Registered retrained candidate as %s v%d", model_name, registered_version.version)
-
-                job.status = RetrainingJobStatus.COMPLETED
-                job.completed_at = datetime.now(timezone.utc).isoformat()
-
-            except Exception as exc:
-                logger.error("Retraining execution failed for %s: %s", model_name, exc)
+                    job.status = RetrainingJobStatus.COMPLETED
+                    job.completed_at = datetime.now(timezone.utc).isoformat()
+            except Exception as final_exc:
+                logger.error("Retraining finalization failed for %s: %s", model_name, final_exc)
                 job.status = RetrainingJobStatus.FAILED
-                job.error_message = str(exc)
+                job.error_message = str(final_exc)
                 job.completed_at = datetime.now(timezone.utc).isoformat()
+            finally:
+                self._active_retraining_jobs.pop(model_name, None)
 
-            # Save updated job record
-            with tempfile.NamedTemporaryFile("w", dir=self.retraining_dir, delete=False, encoding="utf-8") as tf:
-                _safe_json_dump(job.model_dump(), tf)
-                t_path = Path(tf.name)
-            t_path.replace(j_file)
+                # Save updated job record
+                try:
+                    with tempfile.NamedTemporaryFile("w", dir=self.retraining_dir, delete=False, encoding="utf-8") as tf:
+                        _safe_json_dump(job.model_dump(), tf)
+                        t_path = Path(tf.name)
+                    t_path.replace(j_file)
+                except Exception as save_err:
+                    logger.warning("Failed to persist final retraining record for %s: %s", job_id, save_err)
 
             return job
 

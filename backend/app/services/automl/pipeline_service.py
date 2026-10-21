@@ -138,32 +138,48 @@ class PipelineService:
         # In-memory execution registry
         self._active_jobs: Dict[str, str] = {}  # pipeline_id -> "model_name:dataset_id"
         self._cancel_flags: Dict[str, bool] = {} # pipeline_id -> bool
+        self._is_shutting_down: bool = False
         self._executor = ThreadPoolExecutor(
             max_workers=self.settings.pipeline_max_concurrency,
             thread_name_prefix="autonexa-pipeline-worker",
         )
 
         # Recover interrupted/orphaned pipelines from prior process instances
-        self._recover_interrupted_pipelines()
+        self.reconcile_orphaned_pipelines()
+
+    @property
+    def is_shutting_down(self) -> bool:
+        """Indicate whether graceful shutdown is in progress."""
+        return self._is_shutting_down
 
     # ==========================================================================
     # Process Restart & Recovery
     # ==========================================================================
 
-    def _recover_interrupted_pipelines(self) -> None:
-        """Scan persisted pipeline manifests on startup; mark any dangling RUNNING/PENDING jobs as FAILED."""
+    def reconcile_orphaned_pipelines(self) -> List[str]:
+        """Scan persisted pipeline manifests on startup; mark any dangling RUNNING/PENDING jobs as FAILED.
+
+        Returns the list of reconciled pipeline IDs.
+        """
+        reconciled: List[str] = []
         with _PIPELINE_LOCK:
-            for f in self.manifests_dir.glob("*.json"):
+            for f in sorted(self.manifests_dir.glob("*.json")):
                 try:
                     with open(f, "r", encoding="utf-8") as fp:
                         data = json.load(fp)
                     current_status = data.get("status")
+                    pid = data.get("pipeline_id", f.stem)
+
+                    # Only reconcile jobs that are NOT actively tracked in the current process
+                    if pid in self._active_jobs:
+                        continue
+
                     if current_status in (PipelineStatus.RUNNING.value, PipelineStatus.PENDING.value):
                         now_str = datetime.now(timezone.utc).isoformat()
                         data["status"] = PipelineStatus.FAILED.value
                         data["completed_at"] = now_str
                         data["failure_reason"] = "Process interrupted or restarted while pipeline was running."
-                        # Mark active stage as failed
+                        # Mark active or pending stages as failed
                         stages = data.get("stages", [])
                         for stg in stages:
                             if stg.get("status") in ("running", "pending"):
@@ -177,12 +193,95 @@ class PipelineService:
                         t_path.replace(f)
 
                         self._emit_event_internal(
-                            pipeline_id=data["pipeline_id"],
+                            pipeline_id=pid,
                             level="error",
                             message="Pipeline marked FAILED during startup recovery: Process was restarted.",
                         )
+                        reconciled.append(pid)
+                        logger.info("Reconciled dangling orphaned pipeline '%s' to FAILED.", pid)
                 except Exception as exc:
                     logger.warning("Failed to recover pipeline manifest '%s': %s", f.name, exc)
+        return reconciled
+
+    def _recover_interrupted_pipelines(self) -> None:
+        """Backward-compatible internal alias for reconcile_orphaned_pipelines."""
+        self.reconcile_orphaned_pipelines()
+
+    def shutdown(self, wait: bool = True, timeout: float = 10.0) -> None:
+        """Gracefully shut down pipeline orchestration, cancelling active jobs and stopping the worker pool."""
+        logger.info("Initiating graceful shutdown of PipelineService (timeout=%.1fs)...", timeout)
+        with _PIPELINE_LOCK:
+            self._is_shutting_down = True
+            active_pids = list(self._active_jobs.keys())
+            for pid in active_pids:
+                self._cancel_flags[pid] = True
+                try:
+                    pipeline = self._load_pipeline_record(pid)
+                    if pipeline.status == PipelineStatus.PENDING:
+                        now_iso = datetime.now(timezone.utc).isoformat()
+                        pipeline.status = PipelineStatus.CANCELLED
+                        pipeline.completed_at = now_iso
+                        pipeline.failure_reason = "Cancelled during application shutdown."
+                        for stg in pipeline.stages:
+                            if stg.status == "pending":
+                                stg.status = "cancelled"
+                                stg.completed_at = now_iso
+                                stg.message = "Cancelled before execution due to server shutdown."
+                        self._persist_pipeline(pipeline)
+                        self._active_jobs.pop(pid, None)
+                        self._emit_event_internal(
+                            pipeline_id=pid,
+                            level="warning",
+                            message="Pending pipeline cancelled due to server shutdown.",
+                        )
+                except Exception as exc:
+                    logger.warning("Error cancelling pending pipeline %s during shutdown: %s", pid, exc)
+
+        def _drain_executor() -> None:
+            try:
+                self._executor.shutdown(wait=wait, cancel_futures=True)
+            except Exception as drain_err:
+                logger.warning("Error draining executor during shutdown: %s", drain_err)
+
+        drain_thread = threading.Thread(target=_drain_executor, daemon=True, name="pipeline-shutdown-drain")
+        drain_thread.start()
+        drain_thread.join(timeout=timeout)
+
+        if drain_thread.is_alive():
+            logger.warning(
+                "PipelineService worker pool did not terminate within %.1fs timeout; continuing bounded shutdown.",
+                timeout,
+            )
+        else:
+            logger.info("PipelineService worker pool terminated cleanly.")
+
+        # Reconcile any remaining in-flight jobs that did not complete
+        with _PIPELINE_LOCK:
+            remaining_pids = list(self._active_jobs.keys())
+            now_iso = datetime.now(timezone.utc).isoformat()
+            for pid in remaining_pids:
+                try:
+                    pipeline = self._load_pipeline_record(pid)
+                    if pipeline.status in (PipelineStatus.RUNNING, PipelineStatus.PENDING):
+                        pipeline.status = PipelineStatus.CANCELLED
+                        pipeline.completed_at = now_iso
+                        pipeline.failure_reason = "Execution stopped due to application shutdown."
+                        for stg in pipeline.stages:
+                            if stg.status in ("running", "pending"):
+                                stg.status = "cancelled"
+                                stg.completed_at = now_iso
+                                stg.error_details = "Application shutdown while stage was active."
+                        self._persist_pipeline(pipeline)
+                        self._emit_event_internal(
+                            pipeline_id=pid,
+                            stage=pipeline.current_stage,
+                            level="warning",
+                            message="Pipeline cancelled due to application shutdown.",
+                        )
+                except Exception as exc:
+                    logger.warning("Error finalizing pipeline %s during shutdown: %s", pid, exc)
+                finally:
+                    self._active_jobs.pop(pid, None)
 
     # ==========================================================================
     # Event Logging
@@ -293,6 +392,12 @@ class PipelineService:
 
     def create_pipeline(self, request: PipelineCreateRequest) -> PipelineResponse:
         """Validate configuration, initialize pipeline state, and enqueue asynchronous execution."""
+        if self._is_shutting_down:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Server is shutting down; new pipeline submissions are rejected.",
+            )
+
         model_name = request.model_name.strip()
         if not MODEL_NAME_PATTERN.match(model_name):
             raise HTTPException(
@@ -799,9 +904,15 @@ class PipelineService:
             )
 
         except InterruptedError as int_exc:
+            now_iso = datetime.now(timezone.utc).isoformat()
             pipeline.status = PipelineStatus.CANCELLED
-            pipeline.completed_at = datetime.now(timezone.utc).isoformat()
+            pipeline.completed_at = now_iso
             pipeline.failure_reason = str(int_exc)
+            idx = _get_stage_idx(pipeline.current_stage)
+            if idx >= 0 and pipeline.stages[idx].status in ("running", "pending"):
+                pipeline.stages[idx].status = "cancelled"
+                pipeline.stages[idx].completed_at = now_iso
+                pipeline.stages[idx].message = f"Cancelled: {int_exc}"
             if pipeline.started_at:
                 start_dt = datetime.fromisoformat(pipeline.started_at)
                 pipeline.duration_seconds = round((datetime.now(timezone.utc) - start_dt).total_seconds(), 2)
@@ -855,6 +966,12 @@ class PipelineService:
     def retry_pipeline(self, pipeline_id: str) -> PipelineResponse:
         """Safely retry an eligible failed or cancelled pipeline execution."""
         with _PIPELINE_LOCK:
+            if self._is_shutting_down:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Server is shutting down; pipeline retries are rejected.",
+                )
+
             pipeline = self._load_pipeline_record(pipeline_id)
 
             if pipeline.status not in (PipelineStatus.FAILED, PipelineStatus.CANCELLED):
@@ -989,3 +1106,9 @@ def get_pipeline_service() -> PipelineService:
     if _PIPELINE_SERVICE_INSTANCE is None:
         _PIPELINE_SERVICE_INSTANCE = PipelineService()
     return _PIPELINE_SERVICE_INSTANCE
+
+
+def reset_pipeline_service() -> None:
+    """Reset the singleton PipelineService instance (used during shutdown or test teardown)."""
+    global _PIPELINE_SERVICE_INSTANCE
+    _PIPELINE_SERVICE_INSTANCE = None

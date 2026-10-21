@@ -1,9 +1,65 @@
 """AutoNexa - FastAPI Application Entry Point."""
 
+from contextlib import asynccontextmanager
+import logging
+import time
+from typing import AsyncGenerator
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import api_router
 from app.core.config import settings
+from app.services.automl.pipeline_service import (
+    get_pipeline_service,
+    reset_pipeline_service,
+)
+
+logger = logging.getLogger("autonexa.lifecycle")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """FastAPI application lifespan manager for deterministic startup and bounded graceful shutdown."""
+    startup_start = time.perf_counter()
+    logger.info(
+        "AutoNexa backend starting up | app=%s version=%s env=%s max_concurrency=%d",
+        settings.app_name,
+        settings.app_version,
+        settings.environment,
+        settings.pipeline_max_concurrency,
+    )
+
+    # 1. Startup initialization & orphan reconciliation
+    try:
+        pipeline_service_getter = app.dependency_overrides.get(get_pipeline_service, get_pipeline_service)
+        pipeline_service = pipeline_service_getter()
+        reconciled_ids = pipeline_service.reconcile_orphaned_pipelines()
+        if reconciled_ids:
+            logger.info("Startup recovery reconciled %d orphaned pipelines: %s", len(reconciled_ids), reconciled_ids)
+        else:
+            logger.info("Startup recovery verified: no dangling pipeline jobs detected.")
+    except Exception as exc:
+        logger.error("Startup reconciliation failed: %s", exc, exc_info=True)
+
+    startup_elapsed_ms = (time.perf_counter() - startup_start) * 1000.0
+    logger.info("AutoNexa backend startup completed in %.2fms.", startup_elapsed_ms)
+
+    yield
+
+    # 2. Bounded graceful shutdown
+    shutdown_start = time.perf_counter()
+    logger.info("AutoNexa backend shutting down: initiating graceful resource draining...")
+    try:
+        pipeline_service_getter = app.dependency_overrides.get(get_pipeline_service, get_pipeline_service)
+        pipeline_service = pipeline_service_getter()
+        pipeline_service.shutdown(wait=True, timeout=10.0)
+    except Exception as exc:
+        logger.error("Error during pipeline service shutdown: %s", exc, exc_info=True)
+    finally:
+        reset_pipeline_service()
+
+    shutdown_elapsed_ms = (time.perf_counter() - shutdown_start) * 1000.0
+    logger.info("AutoNexa backend graceful shutdown completed in %.2fms.", shutdown_elapsed_ms)
 
 
 def create_application() -> FastAPI:
@@ -15,6 +71,7 @@ def create_application() -> FastAPI:
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
+        lifespan=lifespan,
     )
 
     # Cross-Origin Resource Sharing (CORS) Middleware
@@ -34,3 +91,4 @@ def create_application() -> FastAPI:
 
 
 app: FastAPI = create_application()
+
