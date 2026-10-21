@@ -144,6 +144,36 @@ export const api = {
     return API_BASE_URL;
   },
 
+  /** Get currently configured API key from browser localStorage */
+  getStoredApiKey(): string {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("autonexa_api_key") || localStorage.getItem("autonexa_serving_api_key") || "";
+    }
+    return "";
+  },
+
+  /** Store API key in browser localStorage for authorized calls */
+  setStoredApiKey(key: string): void {
+    if (typeof window !== "undefined") {
+      const trimmed = key.trim();
+      if (trimmed) {
+        localStorage.setItem("autonexa_api_key", trimmed);
+        localStorage.setItem("autonexa_serving_api_key", trimmed);
+      } else {
+        localStorage.removeItem("autonexa_api_key");
+        localStorage.removeItem("autonexa_serving_api_key");
+      }
+    }
+  },
+
+  /** Clear stored API key from browser localStorage */
+  clearStoredApiKey(): void {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("autonexa_api_key");
+      localStorage.removeItem("autonexa_serving_api_key");
+    }
+  },
+
   /** Check backend health status */
   async checkHealth(overrideUrl?: string): Promise<HealthResponse> {
     const url = getEffectiveUrl("/api/v1/health", overrideUrl);
@@ -292,7 +322,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/experiments/${experimentId}/explainability/importance${qs}`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<GlobalFeatureImportanceResponse>(res);
@@ -306,7 +336,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/experiments/${experimentId}/explainability/prediction`);
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(undefined, { "Content-Type": "application/json" }),
       body: JSON.stringify(request),
     });
     return handleResponse<PredictionExplanationResponse>(res);
@@ -320,7 +350,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/experiments/${experimentId}/error-analysis`);
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(undefined, { "Content-Type": "application/json" }),
       body: JSON.stringify(request || {}),
     });
     return handleResponse<ErrorAnalysisResponse>(res);
@@ -331,7 +361,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/benchmarks/compare`);
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(undefined, { "Content-Type": "application/json" }),
       body: JSON.stringify(request),
     });
     return handleResponse<BenchmarkComparisonResponse>(res);
@@ -346,7 +376,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/benchmarks/repeated-runs`);
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(undefined, { "Content-Type": "application/json" }),
       body: JSON.stringify(request),
     });
     return handleResponse<RepeatedRunGroupResponse>(res);
@@ -357,7 +387,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/benchmarks/repeated-runs/${encodeURIComponent(runGroupId)}`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<RepeatedRunGroupResponse>(res);
@@ -368,7 +398,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/benchmarks/baseline-comparison`);
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(undefined, { "Content-Type": "application/json" }),
       body: JSON.stringify(request),
     });
     return handleResponse<BaselineComparisonResult[]>(res);
@@ -379,7 +409,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/benchmarks/repeated-runs/${encodeURIComponent(runGroupId)}/latex`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<LaTeXExportResponse>(res);
@@ -399,7 +429,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/benchmarks/hpo-spaces`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<HyperparameterSpace[]>(res);
@@ -410,7 +440,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/benchmarks/hpo-experiment`);
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(undefined, { "Content-Type": "application/json" }),
       body: JSON.stringify(request),
     });
     return handleResponse<HPOExperimentResponse>(res);
@@ -421,7 +451,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/benchmarks/hpo-experiment/${encodeURIComponent(experimentId)}`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<HPOExperimentResponse>(res);
@@ -441,7 +471,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/benchmarks/multi-objective`);
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(undefined, { "Content-Type": "application/json" }),
       body: JSON.stringify(request),
     });
     return handleResponse<MultiObjectiveExperimentResponse>(res);
@@ -452,7 +482,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/benchmarks/multi-objective/${encodeURIComponent(experimentId)}`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<MultiObjectiveExperimentResponse>(res);
@@ -477,7 +507,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/benchmarks/multi-objective/${encodeURIComponent(experimentId)}/select`);
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(undefined, { "Content-Type": "application/json" }),
       body: JSON.stringify(request),
     });
     return handleResponse<MultiObjectiveSelectionResult>(res);
@@ -493,7 +523,7 @@ export const api = {
     const url = getEffectiveUrl("/api/v1/benchmarks/dataset-catalog");
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<DatasetCatalogEntry[]>(res);
@@ -504,7 +534,7 @@ export const api = {
     const url = getEffectiveUrl("/api/v1/benchmarks/robust");
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(undefined, { "Content-Type": "application/json" }),
       body: JSON.stringify(request),
     });
     return handleResponse<RobustBenchmarkResponse>(res);
@@ -515,7 +545,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/benchmarks/robust/${encodeURIComponent(robustBenchmarkId)}`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<RobustBenchmarkResponse>(res);
@@ -551,7 +581,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/experiments${qString}`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<ExperimentListResponse>(res);
@@ -562,7 +592,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/experiments/${encodeURIComponent(experimentId)}/details`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<ExperimentDetailResponse>(res);
@@ -573,7 +603,7 @@ export const api = {
     const url = getEffectiveUrl("/api/v1/experiments/compare");
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(undefined, { "Content-Type": "application/json" }),
       body: JSON.stringify({ experiment_ids: experimentIds }),
     });
     return handleResponse<ExperimentComparisonResponse>(res);
@@ -584,7 +614,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/experiments/${encodeURIComponent(experimentId)}/reproducibility-manifest`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<ReproducibilityManifest>(res);
@@ -595,7 +625,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/experiments/${encodeURIComponent(experimentId)}/reproducibility-manifest/verify`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<ArtifactVerificationResponse>(res);
@@ -604,7 +634,7 @@ export const api = {
   /** Download experiment model artifact .joblib */
   async downloadExperimentArtifact(experimentId: string): Promise<{ blob: Blob; filename: string }> {
     const url = getEffectiveUrl(`/api/v1/experiments/${encodeURIComponent(experimentId)}/artifact`);
-    const res = await fetch(url, { method: "GET" });
+    const res = await fetch(url, { method: "GET", headers: getAuthHeaders() });
     if (!res.ok) {
       let detail = res.statusText;
       try {
@@ -628,7 +658,7 @@ export const api = {
   /** Delete an experiment */
   async deleteExperiment(experimentId: string): Promise<{ success: boolean; message: string }> {
     const url = getEffectiveUrl(`/api/v1/experiments/${encodeURIComponent(experimentId)}`);
-    const res = await fetch(url, { method: "DELETE" });
+    const res = await fetch(url, { method: "DELETE", headers: getAuthHeaders() });
     return handleResponse<{ success: boolean; message: string }>(res);
   },
 
@@ -637,7 +667,7 @@ export const api = {
     const url = getEffectiveUrl("/api/v1/models");
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<ModelRegistryListResponse>(res);
@@ -648,7 +678,7 @@ export const api = {
     const url = getEffectiveUrl("/api/v1/models/register");
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(undefined, { "Content-Type": "application/json" }),
       body: JSON.stringify(request),
     });
     return handleResponse<ModelVersionRecord>(res);
@@ -659,7 +689,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/models/${encodeURIComponent(modelName)}`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<ModelVersionRecord[]>(res);
@@ -670,7 +700,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/models/${encodeURIComponent(modelName)}/versions/${version}`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<ModelVersionRecord>(res);
@@ -685,7 +715,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/models/${encodeURIComponent(modelName)}/versions/${version}/stage`);
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(undefined, { "Content-Type": "application/json" }),
       body: JSON.stringify(request),
     });
     return handleResponse<ModelVersionRecord>(res);
@@ -696,7 +726,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/models/${encodeURIComponent(modelName)}/versions/${version}/verify`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(),
       cache: "no-store",
     });
     return handleResponse<ArtifactVerificationResponse>(res);
@@ -705,7 +735,7 @@ export const api = {
   /** Download registered model version artifact */
   async downloadVersionArtifact(modelName: string, version: number): Promise<{ blob: Blob; filename: string }> {
     const url = getEffectiveUrl(`/api/v1/models/${encodeURIComponent(modelName)}/versions/${version}/download`);
-    const res = await fetch(url, { method: "GET" });
+    const res = await fetch(url, { method: "GET", headers: getAuthHeaders() });
     if (!res.ok) {
       let detail = res.statusText;
       try {
@@ -732,7 +762,7 @@ export const api = {
     const url = getEffectiveUrl(`/api/v1/models/${encodeURIComponent(modelName)}/compare-versions${qs}`);
     const res = await fetch(url, {
       method: "POST",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(undefined, { Accept: "application/json" }),
     });
     return handleResponse<Record<string, any>>(res);
   },
