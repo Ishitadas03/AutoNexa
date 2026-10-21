@@ -51,7 +51,7 @@ def sci_env(tmp_path: Path):
     app.dependency_overrides[get_error_analysis_service] = lambda: error_service
     app.dependency_overrides[get_benchmark_service] = lambda: bench_service
 
-    client = TestClient(app)
+    client = TestClient(app, headers={"X-API-Key": "autonexa-admin-key-secret"})
     yield client, upload_dir, experiments_dir
 
     app.dependency_overrides.clear()

@@ -118,6 +118,7 @@ def _create_trained_registered_model(client, experiments_dir: Path, admin_key: s
     reg_res = client.post(
         "/api/v1/models/register",
         json={"experiment_id": exp_id, "model_name": model_name, "initial_stage": stage},
+        headers={"X-API-Key": admin_key},
     )
     assert reg_res.status_code in (200, 201), f"Registration failed: {reg_res.text}"
     return reg_res.json()

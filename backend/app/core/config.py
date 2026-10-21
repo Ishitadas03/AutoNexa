@@ -3,7 +3,7 @@
 from functools import lru_cache
 from pathlib import Path
 from typing import List, Optional
-from pydantic import AliasChoices, Field
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -165,22 +165,46 @@ class Settings(BaseSettings):
         description="Default number of resamples for statistical bootstrap confidence intervals",
     )
 
-    # Phase 13: Model Serving & Security Configuration
-    serving_auth_enabled: bool = Field(
+    # Phase 16B: Unified API Security & Access Control Configuration
+    api_auth_enabled: bool = Field(
         default=True,
-        validation_alias=AliasChoices("SERVING_AUTH_ENABLED"),
-        description="Whether to enforce API key authentication on model serving endpoints",
+        validation_alias=AliasChoices("API_AUTH_ENABLED", "SERVING_AUTH_ENABLED", "AUTH_ENABLED"),
+        description="Whether to enforce API key authentication across AutoNexa endpoints",
     )
-    serving_api_key_read: str = Field(
+    api_key_read: str = Field(
         default="autonexa-read-key-secret",
-        validation_alias=AliasChoices("SERVING_API_KEY_READ", "SERVING_API_KEY"),
-        description="Read-only API key for querying endpoints and running predictions",
+        validation_alias=AliasChoices("API_KEY_READ", "SERVING_API_KEY_READ", "SERVING_API_KEY"),
+        description="Read-only / inference API key for querying endpoints, inspecting metadata, and running predictions",
     )
-    serving_api_key_admin: str = Field(
+    api_key_admin: str = Field(
         default="autonexa-admin-key-secret",
-        validation_alias=AliasChoices("SERVING_API_KEY_ADMIN"),
-        description="Admin API key for cache invalidation and privileged serving operations",
+        validation_alias=AliasChoices("API_KEY_ADMIN", "SERVING_API_KEY_ADMIN"),
+        description="Admin API key for privileged operations (dataset uploads, training, promotion, deletion)",
     )
+    @property
+    def serving_auth_enabled(self) -> bool:
+        return self.api_auth_enabled
+
+    @serving_auth_enabled.setter
+    def serving_auth_enabled(self, val: bool) -> None:
+        self.api_auth_enabled = val
+
+    @property
+    def serving_api_key_read(self) -> str:
+        return self.api_key_read
+
+    @serving_api_key_read.setter
+    def serving_api_key_read(self, val: str) -> None:
+        self.api_key_read = val
+
+    @property
+    def serving_api_key_admin(self) -> str:
+        return self.api_key_admin
+
+    @serving_api_key_admin.setter
+    def serving_api_key_admin(self, val: str) -> None:
+        self.api_key_admin = val
+
     serving_eligible_stages: List[str] = Field(
         default=["production", "staging"],
         validation_alias=AliasChoices("SERVING_ELIGIBLE_STAGES"),
@@ -250,6 +274,58 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("PIPELINE_TIMEOUT_SECONDS"),
         description="Maximum execution timeout for an entire pipeline run in seconds (default 600)",
     )
+
+    @model_validator(mode="after")
+    def validate_and_sync_security_settings(self) -> "Settings":
+        """Validate fail-closed security configuration in production."""
+
+        # Fail-closed validation when running in production
+        if self.environment and self.environment.strip().lower() == "production":
+            if not self.api_auth_enabled or not self.serving_auth_enabled:
+                raise ValueError(
+                    "Insecure production configuration: API authentication cannot be disabled when ENVIRONMENT=production."
+                )
+
+            insecure_defaults = {
+                "autonexa-read-key-secret",
+                "autonexa-admin-key-secret",
+                "secret",
+                "changeme",
+                "admin",
+                "password",
+                "default",
+                "test",
+            }
+
+            admin_key = (self.api_key_admin or "").strip()
+            read_key = (self.api_key_read or "").strip()
+
+            if not admin_key or admin_key.lower() in insecure_defaults:
+                raise ValueError(
+                    "Insecure production configuration: API_KEY_ADMIN must be set to a strong, non-default secret when ENVIRONMENT=production."
+                )
+
+            if not read_key or read_key.lower() in insecure_defaults:
+                raise ValueError(
+                    "Insecure production configuration: API_KEY_READ must be set to a strong, non-default secret when ENVIRONMENT=production."
+                )
+
+            if admin_key == read_key:
+                raise ValueError(
+                    "Insecure production configuration: API_KEY_ADMIN and API_KEY_READ must be distinct secrets with proper role separation."
+                )
+
+            if len(admin_key) < 16:
+                raise ValueError(
+                    "Insecure production configuration: API_KEY_ADMIN must be at least 16 characters long."
+                )
+
+            if len(read_key) < 16:
+                raise ValueError(
+                    "Insecure production configuration: API_KEY_READ must be at least 16 characters long."
+                )
+
+        return self
 
     @property
     def resolved_upload_dir(self) -> Path:

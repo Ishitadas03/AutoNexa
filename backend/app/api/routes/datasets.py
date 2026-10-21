@@ -1,8 +1,9 @@
 """Dataset ingestion, profiling, intelligence analysis, and AutoML training endpoints."""
 
-from typing import Optional
+from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, File, UploadFile, status
 
+from app.core.security import require_admin_role, require_inference_role
 from app.schemas.analysis import AnalysisRequest, AnalysisResponse
 from app.schemas.dataset import DatasetProfileResponse
 from app.schemas.training import TrainingRequest, TrainingResponse
@@ -20,12 +21,14 @@ router = APIRouter(prefix="/datasets", tags=["Datasets"])
     summary="Upload and Profile Tabular CSV Dataset",
     description=(
         "Streams a multipart CSV dataset, enforces file size constraints, validates tabular integrity, "
-        "persists the file under a safe server identifier, and computes a non-sensitive summary profile."
+        "persists the file under a safe server identifier, and computes a non-sensitive summary profile. "
+        "Requires administrator credentials."
     ),
 )
 async def upload_dataset(
     file: UploadFile = File(..., description="Multipart CSV dataset file to ingest and profile"),
     service: DatasetService = Depends(get_dataset_service),
+    _auth: Dict[str, Any] = Depends(require_admin_role),
 ) -> DatasetProfileResponse:
     """Ingest a CSV dataset, validate its schema and data rows, and return its summary profile."""
     return await service.ingest_dataset(file)
@@ -47,6 +50,7 @@ def analyze_dataset(
     dataset_id: str,
     request: Optional[AnalysisRequest] = None,
     service: AnalysisService = Depends(get_analysis_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> AnalysisResponse:
     """Analyze an uploaded dataset and infer machine learning task configuration."""
     return service.analyze(dataset_id=dataset_id, request=request)
@@ -61,13 +65,16 @@ def analyze_dataset(
         "Executes a leakage-safe AutoML training pipeline on an uploaded dataset. "
         "Splits data into train and holdout validation sets, fits scikit-learn candidate estimators "
         "(including baselines, linear/tree models, and ensemble boosting), enforces training time "
-        "budgets and dataset bounds, computes holdout metrics, ranks models, and persists experiment artifacts."
+        "budgets and dataset bounds, computes holdout metrics, ranks models, and persists experiment artifacts. "
+        "Requires administrator credentials."
     ),
 )
 def train_dataset(
     dataset_id: str,
     request: TrainingRequest,
     service: TrainingService = Depends(get_training_service),
+    _auth: Dict[str, Any] = Depends(require_admin_role),
 ) -> TrainingResponse:
     """Train candidate machine learning models under resource constraints and return experiment leaderboard."""
     return service.train_experiment(dataset_id=dataset_id, request=request)
+

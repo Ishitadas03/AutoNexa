@@ -119,16 +119,24 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-function getServingHeaders(apiKey?: string, extraHeaders?: Record<string, string>): Record<string, string> {
+function getAuthHeaders(apiKey?: string, extraHeaders?: Record<string, string>): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: "application/json",
     ...extraHeaders,
   };
-  const key = apiKey || (typeof window !== "undefined" ? localStorage.getItem("autonexa_serving_api_key") || "" : "");
+  const key =
+    apiKey ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("autonexa_api_key") || localStorage.getItem("autonexa_serving_api_key") || ""
+      : "");
   if (key) {
     headers["X-API-Key"] = key;
   }
   return headers;
+}
+
+function getServingHeaders(apiKey?: string, extraHeaders?: Record<string, string>): Record<string, string> {
+  return getAuthHeaders(apiKey, extraHeaders);
 }
 
 export const api = {
@@ -148,77 +156,99 @@ export const api = {
   },
 
   /** Upload a CSV dataset file */
-  async uploadDataset(file: File): Promise<DatasetProfileResponse> {
+  async uploadDataset(file: File, apiKey?: string): Promise<DatasetProfileResponse> {
     const formData = new FormData();
     formData.append("file", file, file.name);
+
+    const headers: Record<string, string> = {};
+    const key =
+      apiKey ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem("autonexa_api_key") || localStorage.getItem("autonexa_serving_api_key") || ""
+        : "");
+    if (key) {
+      headers["X-API-Key"] = key;
+    }
 
     const url = getEffectiveUrl("/api/v1/datasets/upload");
     const res = await fetch(url, {
       method: "POST",
+      headers,
       body: formData,
     });
     return handleResponse<DatasetProfileResponse>(res);
   },
 
   /** Upload dataset from raw CSV string */
-  async uploadDatasetContent(csvContent: string, filename: string): Promise<DatasetProfileResponse> {
+  async uploadDatasetContent(csvContent: string, filename: string, apiKey?: string): Promise<DatasetProfileResponse> {
     const blob = new Blob([csvContent], { type: "text/csv" });
     const file = new File([blob], filename, { type: "text/csv" });
-    return this.uploadDataset(file);
+    return this.uploadDataset(file, apiKey);
   },
 
   /** Analyze dataset intelligence & task detection */
-  async analyzeDataset(datasetId: string, request?: AnalysisRequest): Promise<AnalysisResponse> {
+  async analyzeDataset(datasetId: string, request?: AnalysisRequest, apiKey?: string): Promise<AnalysisResponse> {
     const url = getEffectiveUrl(`/api/v1/datasets/${datasetId}/analyze`);
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(apiKey, { "Content-Type": "application/json" }),
       body: JSON.stringify(request || {}),
     });
     return handleResponse<AnalysisResponse>(res);
   },
 
   /** Train AutoML models on dataset */
-  async trainDataset(datasetId: string, request: TrainingRequest): Promise<TrainingResponse> {
+  async trainDataset(datasetId: string, request: TrainingRequest, apiKey?: string): Promise<TrainingResponse> {
     const url = getEffectiveUrl(`/api/v1/datasets/${datasetId}/train`);
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(apiKey, { "Content-Type": "application/json" }),
       body: JSON.stringify(request),
     });
     return handleResponse<TrainingResponse>(res);
   },
 
   /** Inspect completed experiment and model artifact */
-  async inspectExperiment(experimentId: string): Promise<ExperimentInspectionResponse> {
+  async inspectExperiment(experimentId: string, apiKey?: string): Promise<ExperimentInspectionResponse> {
     const url = getEffectiveUrl(`/api/v1/experiments/${experimentId}`);
     const res = await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: getAuthHeaders(apiKey),
       cache: "no-store",
     });
     return handleResponse<ExperimentInspectionResponse>(res);
   },
 
   /** Generate predictions for JSON records */
-  async predictRecords(experimentId: string, request: PredictionRequest): Promise<PredictionResponse> {
+  async predictRecords(experimentId: string, request: PredictionRequest, apiKey?: string): Promise<PredictionResponse> {
     const url = getEffectiveUrl(`/api/v1/experiments/${experimentId}/predict`);
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(apiKey, { "Content-Type": "application/json" }),
       body: JSON.stringify(request),
     });
     return handleResponse<PredictionResponse>(res);
   },
 
   /** Batch predict on uploaded CSV file and return CSV Blob */
-  async predictCsv(experimentId: string, file: File): Promise<{ blob: Blob; filename: string }> {
+  async predictCsv(experimentId: string, file: File, apiKey?: string): Promise<{ blob: Blob; filename: string }> {
     const formData = new FormData();
     formData.append("file", file, file.name);
+
+    const headers: Record<string, string> = {};
+    const key =
+      apiKey ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem("autonexa_api_key") || localStorage.getItem("autonexa_serving_api_key") || ""
+        : "");
+    if (key) {
+      headers["X-API-Key"] = key;
+    }
 
     const url = getEffectiveUrl(`/api/v1/experiments/${experimentId}/predict-csv`);
     const res = await fetch(url, {
       method: "POST",
+      headers,
       body: formData,
     });
 

@@ -30,7 +30,7 @@ def registry_env(tmp_path: Path):
          patch("app.services.automl.experiment_tracker_service.get_settings", return_value=test_settings), \
          patch("app.services.automl.model_registry_service.get_settings", return_value=test_settings), \
          patch("app.services.automl.prediction_service.get_settings", return_value=test_settings):
-        with TestClient(app) as client:
+        with TestClient(app, headers={"X-API-Key": "autonexa-admin-key-secret"}) as client:
             yield client, experiments_dir
 
 

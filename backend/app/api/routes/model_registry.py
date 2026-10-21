@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import FileResponse
 
+from app.core.security import require_admin_role, require_inference_role
+
 from app.schemas.tracking import (
     ArtifactVerificationResponse,
     ModelRegistrationRequest,
@@ -33,6 +35,7 @@ router = APIRouter(prefix="/models", tags=["Model Registry"])
 def register_model(
     request: ModelRegistrationRequest,
     service: ModelRegistryService = Depends(get_model_registry_service),
+    _auth: Dict[str, Any] = Depends(require_admin_role),
 ) -> ModelVersionRecord:
     """Register a new model version from a completed experiment."""
     return service.register_model(request)
@@ -47,6 +50,7 @@ def register_model(
 )
 def list_registered_models(
     service: ModelRegistryService = Depends(get_model_registry_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> ModelRegistryListResponse:
     """List all registered model families."""
     return service.list_models()
@@ -62,6 +66,7 @@ def list_registered_models(
 def get_model_versions(
     model_name: str,
     service: ModelRegistryService = Depends(get_model_registry_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> List[ModelVersionRecord]:
     """List all versions of a model family."""
     return service.get_model_versions(model_name=model_name)
@@ -78,6 +83,7 @@ def get_version_details(
     model_name: str,
     version: int,
     service: ModelRegistryService = Depends(get_model_registry_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> ModelVersionRecord:
     """Retrieve details for a specific model version."""
     return service.get_version_details(model_name=model_name, version=version)
@@ -98,6 +104,7 @@ def transition_stage(
     version: int,
     request: StageTransitionRequest,
     service: ModelRegistryService = Depends(get_model_registry_service),
+    _auth: Dict[str, Any] = Depends(require_admin_role),
 ) -> ModelVersionRecord:
     """Transition the lifecycle stage of a model version."""
     return service.transition_stage(model_name=model_name, version=version, request=request)
@@ -114,6 +121,7 @@ def verify_version_artifact(
     model_name: str,
     version: int,
     service: ModelRegistryService = Depends(get_model_registry_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> ArtifactVerificationResponse:
     """Verify physical artifact presence and cryptographic SHA-256 integrity."""
     return service.verify_version_artifact(model_name=model_name, version=version)
@@ -135,6 +143,7 @@ def download_version_artifact(
     model_name: str,
     version: int,
     service: ModelRegistryService = Depends(get_model_registry_service),
+    _auth: Dict[str, Any] = Depends(require_admin_role),
 ):
     """Download verified model version binary."""
     artifact_path = service.get_artifact_file_path(model_name, version)
@@ -157,6 +166,7 @@ def compare_model_versions(
     model_name: str,
     versions: Optional[List[int]] = Query(default=None, description="Optional list of version numbers to compare"),
     service: ModelRegistryService = Depends(get_model_registry_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> Dict[str, Any]:
     """Compare multiple versions of a model family side-by-side."""
     return service.compare_versions(model_name=model_name, versions=versions)

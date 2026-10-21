@@ -38,7 +38,7 @@ def isolated_prediction_env(tmp_path: Path):
     app.dependency_overrides[get_training_service] = lambda: training_service
     app.dependency_overrides[get_prediction_service] = lambda: prediction_service
 
-    client = TestClient(app)
+    client = TestClient(app, headers={"X-API-Key": "autonexa-admin-key-secret"})
     yield client, upload_dir, experiments_dir
 
     app.dependency_overrides.clear()

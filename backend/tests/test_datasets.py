@@ -24,7 +24,7 @@ def client(isolated_service):
     """FastAPI TestClient with overridden dataset service pointing to temporary storage."""
     service, _ = isolated_service
     app.dependency_overrides[get_dataset_service] = lambda: service
-    test_client = TestClient(app)
+    test_client = TestClient(app, headers={"X-API-Key": "autonexa-admin-key-secret"})
     yield test_client
     app.dependency_overrides.clear()
 

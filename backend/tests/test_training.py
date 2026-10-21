@@ -29,7 +29,7 @@ def isolated_env(tmp_path: Path):
     app.dependency_overrides[get_analysis_service] = lambda: analysis_service
     app.dependency_overrides[get_training_service] = lambda: training_service
 
-    test_client = TestClient(app)
+    test_client = TestClient(app, headers={"X-API-Key": "autonexa-admin-key-secret"})
     yield test_client, temp_upload_dir, temp_exp_dir
 
     app.dependency_overrides.clear()

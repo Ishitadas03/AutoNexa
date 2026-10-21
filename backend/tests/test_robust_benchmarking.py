@@ -22,7 +22,7 @@ from app.services.automl.robust_benchmarking_service import (
 )
 from app.services.automl.statistical_engine import StatisticalEngine
 
-client = TestClient(app)
+client = TestClient(app, headers={"X-API-Key": "autonexa-admin-key-secret"})
 
 
 # ---------------------------------------------------------------------------

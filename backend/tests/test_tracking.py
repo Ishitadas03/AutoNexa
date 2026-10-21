@@ -35,7 +35,7 @@ def client(tmp_path: Path):
          patch("app.services.dataset_service.get_settings", return_value=test_settings), \
          patch("app.services.analysis_service.get_settings", return_value=test_settings), \
          patch("app.services.automl.training_service.get_settings", return_value=test_settings):
-        with TestClient(app) as test_client:
+        with TestClient(app, headers={"X-API-Key": "autonexa-admin-key-secret"}) as test_client:
             yield test_client, upload_dir, experiments_dir
 
 
@@ -329,7 +329,7 @@ def test_mlflow_tracking_disabled(client, tmp_path: Path):
          patch("app.services.dataset_service.get_settings", return_value=no_track_settings), \
          patch("app.services.analysis_service.get_settings", return_value=no_track_settings), \
          patch("app.services.automl.training_service.get_settings", return_value=no_track_settings):
-        with TestClient(app) as test_client:
+        with TestClient(app, headers={"X-API-Key": "autonexa-admin-key-secret"}) as test_client:
             csv_data = "a,b,target\n1,2,0\n3,4,1\n5,6,0\n7,8,1\n9,10,0\n11,12,1\n"
             dataset_id = create_csv_upload(test_client, csv_data)
 

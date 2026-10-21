@@ -4,6 +4,8 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.responses import PlainTextResponse
 
+from app.core.security import require_admin_role, require_inference_role
+
 from app.schemas.benchmark import (
     BenchmarkCompareRequest,
     BenchmarkComparisonResponse,
@@ -76,6 +78,7 @@ router = APIRouter(prefix="/benchmarks", tags=["Benchmarks"])
 def compare_benchmarks(
     request: BenchmarkCompareRequest,
     service: BenchmarkService = Depends(get_benchmark_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> BenchmarkComparisonResponse:
     """Benchmark and compare two or more completed AutoML experiments."""
     return service.compare_experiments(request=request)
@@ -95,6 +98,7 @@ def compare_benchmarks(
 def run_repeated_benchmarks(
     request: RepeatedRunRequest,
     service: ResearchBenchmarkingService = Depends(get_research_benchmark_service),
+    _auth: Dict[str, Any] = Depends(require_admin_role),
 ) -> RepeatedRunGroupResponse:
     """Run repeated-seed experiments, compute statistical summaries, and profile resource efficiency."""
     return service.run_repeated_experiments(request=request)
@@ -110,6 +114,7 @@ def run_repeated_benchmarks(
 def get_repeated_run_group(
     run_group_id: str,
     service: ResearchBenchmarkingService = Depends(get_research_benchmark_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> RepeatedRunGroupResponse:
     """Retrieve stored repeated experiment group results and statistical summaries."""
     return service.get_repeated_run_group(run_group_id=run_group_id)
@@ -128,6 +133,7 @@ def get_repeated_run_group(
 def compare_to_baselines(
     request: BaselineComparisonRequest,
     service: ResearchBenchmarkingService = Depends(get_research_benchmark_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> List[BaselineComparisonResult]:
     """Evaluate canonical baselines under identical data partitions for an existing experiment."""
     return service.compare_existing_experiment_to_baselines(request=request)
@@ -142,6 +148,7 @@ def compare_to_baselines(
 def export_repeated_runs_csv(
     run_group_id: str,
     service: ResearchBenchmarkingService = Depends(get_research_benchmark_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> Response:
     """Download repeated run results as a comma-separated values (CSV) file."""
     csv_content = service.export_csv(run_group_id=run_group_id)
@@ -161,6 +168,7 @@ def export_repeated_runs_csv(
 def export_repeated_runs_latex(
     run_group_id: str,
     service: ResearchBenchmarkingService = Depends(get_research_benchmark_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> Dict[str, Any]:
     """Generate publication-ready LaTeX table code for repeated experimental benchmarks."""
     latex_code = service.generate_latex_table(run_group_id=run_group_id)
@@ -182,7 +190,9 @@ def export_repeated_runs_latex(
     summary="List Tunable Hyperparameter Search Spaces",
     description="Returns all supported model families and their defined tunable hyperparameter domains.",
 )
-def get_hpo_search_spaces() -> List[HyperparameterSpace]:
+def get_hpo_search_spaces(
+    _auth: Dict[str, Any] = Depends(require_inference_role),
+) -> List[HyperparameterSpace]:
     """Retrieve all defined model hyperparameter spaces."""
     return list_available_search_spaces()
 
@@ -202,6 +212,7 @@ def get_hpo_search_spaces() -> List[HyperparameterSpace]:
 def run_hpo_experiment(
     request: HPOExperimentRequest,
     service: HPOService = Depends(get_hpo_service),
+    _auth: Dict[str, Any] = Depends(require_admin_role),
 ) -> HPOExperimentResponse:
     """Execute controlled HPO experiment comparing Random Search and Bayesian Optimization."""
     return service.run_hpo_experiment(request=request)
@@ -217,6 +228,7 @@ def run_hpo_experiment(
 def get_hpo_experiment(
     experiment_id: str,
     service: HPOService = Depends(get_hpo_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> HPOExperimentResponse:
     """Retrieve stored HPO experiment report."""
     return service.get_hpo_experiment(experiment_id=experiment_id)
@@ -231,6 +243,7 @@ def get_hpo_experiment(
 def export_hpo_csv(
     experiment_id: str,
     service: HPOService = Depends(get_hpo_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> Response:
     """Download HPO experiment trial history as CSV."""
     csv_content = service.export_csv(experiment_id=experiment_id)
@@ -261,6 +274,7 @@ def export_hpo_csv(
 def run_multi_objective_experiment(
     request: MultiObjectiveExperimentRequest,
     service: MultiObjectiveService = Depends(get_multi_objective_service),
+    _auth: Dict[str, Any] = Depends(require_admin_role),
 ) -> MultiObjectiveExperimentResponse:
     """Run multi-objective optimization, compute Pareto dominance, and perform resource-aware selection."""
     return service.run_multi_objective_experiment(request=request)
@@ -276,6 +290,7 @@ def run_multi_objective_experiment(
 def get_multi_objective_experiment(
     experiment_id: str,
     service: MultiObjectiveService = Depends(get_multi_objective_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> MultiObjectiveExperimentResponse:
     """Retrieve stored multi-objective experiment report."""
     return service.get_multi_objective_experiment(experiment_id=experiment_id)
@@ -291,6 +306,7 @@ def get_multi_objective_experiment(
 def get_pareto_frontier(
     experiment_id: str,
     service: MultiObjectiveService = Depends(get_multi_objective_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> List[ParetoCandidateResult]:
     """Retrieve the non-dominated Pareto-optimal models from an experiment."""
     return service.get_pareto_frontier(experiment_id=experiment_id)
@@ -310,6 +326,7 @@ def select_model_with_constraints(
     experiment_id: str,
     request: MultiObjectiveSelectionRequest,
     service: MultiObjectiveService = Depends(get_multi_objective_service),
+    _auth: Dict[str, Any] = Depends(require_admin_role),
 ) -> MultiObjectiveSelectionResult:
     """Apply updated resource constraints and select the winning candidate model."""
     return service.select_model_for_experiment(experiment_id=experiment_id, request=request)
@@ -324,6 +341,7 @@ def select_model_with_constraints(
 def export_multi_objective_csv(
     experiment_id: str,
     service: MultiObjectiveService = Depends(get_multi_objective_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> Response:
     """Download multi-objective candidate evaluations as CSV."""
     csv_content = service.export_csv(experiment_id=experiment_id)
@@ -351,6 +369,7 @@ def export_multi_objective_csv(
 )
 def list_benchmark_dataset_catalog(
     service: DatasetCatalogService = Depends(get_dataset_catalog_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> List[DatasetCatalogEntry]:
     """List all available benchmark datasets with provenance metadata."""
     return service.list_catalog()
@@ -370,6 +389,7 @@ def list_benchmark_dataset_catalog(
 def execute_robust_benchmark(
     request: RobustBenchmarkRequest,
     service: RobustBenchmarkingService = Depends(get_robust_benchmark_service),
+    _auth: Dict[str, Any] = Depends(require_admin_role),
 ) -> RobustBenchmarkResponse:
     """Execute multi-seed robust benchmark experiment."""
     return service.run_robust_benchmark(request=request)
@@ -385,6 +405,7 @@ def execute_robust_benchmark(
 def get_robust_benchmark_report(
     robust_benchmark_id: str,
     service: RobustBenchmarkingService = Depends(get_robust_benchmark_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> RobustBenchmarkResponse:
     """Retrieve robust benchmark report by ID."""
     report = service.get_robust_benchmark(benchmark_id=robust_benchmark_id)
@@ -406,6 +427,7 @@ def get_robust_benchmark_report(
 def export_robust_benchmark_csv(
     robust_benchmark_id: str,
     service: RobustBenchmarkingService = Depends(get_robust_benchmark_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> Response:
     """Download robust benchmark per-seed runs as CSV."""
     csv_content = service.export_csv(benchmark_id=robust_benchmark_id)

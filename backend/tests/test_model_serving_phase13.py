@@ -133,6 +133,7 @@ def test_authentication_and_role_authorization_boundaries(serving_env):
     client.post(
         "/api/v1/models/register",
         json={"experiment_id": "exp-auth-test", "model_name": "auth_guarded_model", "initial_stage": "staging"},
+        headers={"X-API-Key": admin_key},
     )
 
     # 1. Unauthenticated request (no X-API-Key or Authorization header) -> 401
@@ -167,7 +168,7 @@ def test_authentication_and_role_authorization_boundaries(serving_env):
 
 def test_classification_serving_with_probabilities_and_auto_resolution(serving_env):
     """Verify classification inference, probability generation, and automatic active version resolution."""
-    client, exp_dir, read_key, _ = serving_env
+    client, exp_dir, read_key, admin_key = serving_env
     headers = {"X-API-Key": read_key}
 
     create_real_trained_experiment(exp_dir, "exp-cls-prod")
@@ -176,6 +177,7 @@ def test_classification_serving_with_probabilities_and_auto_resolution(serving_e
     reg_res = client.post(
         "/api/v1/models/register",
         json={"experiment_id": "exp-cls-prod", "model_name": "credit_risk", "initial_stage": "production"},
+        headers={"X-API-Key": admin_key},
     )
     assert reg_res.status_code == 201
 
@@ -225,7 +227,7 @@ def test_classification_serving_with_probabilities_and_auto_resolution(serving_e
 
 def test_regression_serving_and_unsupported_probabilities(serving_env):
     """Verify regression inference returns scalar continuous numbers and leaves probabilities as None."""
-    client, exp_dir, read_key, _ = serving_env
+    client, exp_dir, read_key, admin_key = serving_env
     headers = {"X-API-Key": read_key}
 
     create_real_trained_experiment(exp_dir, "exp-reg-served", task_type="regression")
@@ -233,6 +235,7 @@ def test_regression_serving_and_unsupported_probabilities(serving_env):
     client.post(
         "/api/v1/models/register",
         json={"experiment_id": "exp-reg-served", "model_name": "house_price_model", "initial_stage": "staging"},
+        headers={"X-API-Key": admin_key},
     )
 
     detail = client.get("/api/v1/serving/models/house_price_model/versions/1", headers=headers).json()
@@ -253,13 +256,14 @@ def test_regression_serving_and_unsupported_probabilities(serving_env):
 
 def test_strict_feature_validation_rejections(serving_env):
     """Verify strict rejection of missing features, rogue unexpected columns, and nested JSON values."""
-    client, exp_dir, read_key, _ = serving_env
+    client, exp_dir, read_key, admin_key = serving_env
     headers = {"X-API-Key": read_key}
 
     create_real_trained_experiment(exp_dir, "exp-schema-strict")
     client.post(
         "/api/v1/models/register",
         json={"experiment_id": "exp-schema-strict", "model_name": "schema_guard", "initial_stage": "staging"},
+        headers={"X-API-Key": admin_key},
     )
 
     # 1. Missing feature column
@@ -295,13 +299,14 @@ def test_strict_feature_validation_rejections(serving_env):
 
 def test_archived_and_ineligible_model_rejection(serving_env):
     """Verify that models in development or archived stages are strictly rejected from serving."""
-    client, exp_dir, read_key, _ = serving_env
+    client, exp_dir, read_key, admin_key = serving_env
     headers = {"X-API-Key": read_key}
 
     create_real_trained_experiment(exp_dir, "exp-archived-test")
     client.post(
         "/api/v1/models/register",
         json={"experiment_id": "exp-archived-test", "model_name": "archived_model", "initial_stage": "development"},
+        headers={"X-API-Key": admin_key},
     )
 
     payload = {"records": [{"feature_a": 1.0, "feature_b": 1.0, "feature_c": 1.0}]}
@@ -315,6 +320,7 @@ def test_archived_and_ineligible_model_rejection(serving_env):
     client.post(
         "/api/v1/models/archived_model/versions/1/stage",
         json={"new_stage": "archived", "reason": "Deprecated model"},
+        headers={"X-API-Key": admin_key},
     )
     res = client.post("/api/v1/serving/models/archived_model/versions/1/predict", json=payload, headers=headers)
     assert res.status_code == 400
@@ -331,6 +337,7 @@ def test_artifact_tampering_and_cache_invalidation(serving_env):
     client.post(
         "/api/v1/models/register",
         json={"experiment_id": "exp-tamper-serving", "model_name": "tamper_serving", "initial_stage": "staging"},
+        headers={"X-API-Key": admin_key},
     )
 
     payload = {"records": [{"feature_a": 0.5, "feature_b": -0.2, "feature_c": 1.1}]}
@@ -368,13 +375,14 @@ def test_artifact_tampering_and_cache_invalidation(serving_env):
 
 def test_monitoring_metrics_collection_and_latency_tracking(serving_env):
     """Verify aggregated operational metrics accurately count requests, errors, and latencies."""
-    client, exp_dir, read_key, _ = serving_env
+    client, exp_dir, read_key, admin_key = serving_env
     headers = {"X-API-Key": read_key}
 
     create_real_trained_experiment(exp_dir, "exp-metrics-test")
     client.post(
         "/api/v1/models/register",
         json={"experiment_id": "exp-metrics-test", "model_name": "metrics_model", "initial_stage": "staging"},
+        headers={"X-API-Key": admin_key},
     )
 
     valid_payload = {"records": [{"feature_a": 0.1, "feature_b": 0.2, "feature_c": 0.3}]}
@@ -399,13 +407,14 @@ def test_monitoring_metrics_collection_and_latency_tracking(serving_env):
 
 def test_concurrent_serving_inference_thread_safety(serving_env):
     """Verify high-throughput concurrent inference across multiple threads with model cache."""
-    client, exp_dir, read_key, _ = serving_env
+    client, exp_dir, read_key, admin_key = serving_env
     headers = {"X-API-Key": read_key}
 
     create_real_trained_experiment(exp_dir, "exp-concurrent-infer")
     client.post(
         "/api/v1/models/register",
         json={"experiment_id": "exp-concurrent-infer", "model_name": "concurrent_infer", "initial_stage": "production"},
+        headers={"X-API-Key": admin_key},
     )
 
     def worker(worker_id: int):
@@ -441,6 +450,7 @@ def test_unknown_models_versions_and_bounds(serving_env):
     client.post(
         "/api/v1/models/register",
         json={"experiment_id": "exp-unknown-ver", "model_name": "known_model", "initial_stage": "production"},
+        headers={"X-API-Key": admin_key},
     )
     res = client.get("/api/v1/serving/models/known_model/versions/999", headers=headers)
     assert res.status_code == 404

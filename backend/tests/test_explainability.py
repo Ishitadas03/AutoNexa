@@ -49,7 +49,7 @@ def explain_env(tmp_path: Path):
     app.dependency_overrides[get_prediction_service] = lambda: prediction_service
     app.dependency_overrides[get_explainability_service] = lambda: explainability_service
 
-    client = TestClient(app)
+    client = TestClient(app, headers={"X-API-Key": "autonexa-admin-key-secret"})
     yield client, upload_dir, experiments_dir
 
     app.dependency_overrides.clear()

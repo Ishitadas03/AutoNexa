@@ -4,6 +4,8 @@ from typing import Any, Dict, Literal, Optional
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
 from fastapi.responses import FileResponse
 
+from app.core.security import require_admin_role, require_inference_role
+
 from app.schemas.error_analysis import (
     ErrorAnalysisRequest,
     ErrorAnalysisResponse,
@@ -64,6 +66,7 @@ def list_experiments(
     dataset_id: Optional[str] = Query(default=None, description="Filter by dataset ID"),
     search: Optional[str] = Query(default=None, description="Search keyword across ID, name, and columns"),
     tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> ExperimentListResponse:
     """List persisted AutoML experiments with pagination and filtering."""
     return tracker.list_experiments(
@@ -89,6 +92,7 @@ def list_experiments(
 def compare_experiments(
     request: ExperimentCompareRequest,
     tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> ExperimentComparisonResponse:
     """Compare multiple AutoML experiments side-by-side."""
     return tracker.compare_experiments(request.experiment_ids)
@@ -109,6 +113,7 @@ def compare_experiments(
 def inspect_experiment(
     experiment_id: str,
     service: PredictionService = Depends(get_prediction_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> ExperimentInspectionResponse:
     """Inspect an AutoML experiment's metadata and winning model state."""
     return service.inspect_experiment(experiment_id=experiment_id)
@@ -127,6 +132,7 @@ def inspect_experiment(
 def get_experiment_details(
     experiment_id: str,
     tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> ExperimentDetailResponse:
     """Retrieve full experiment details and candidate evaluations."""
     return tracker.get_experiment_detail(experiment_id=experiment_id)
@@ -141,6 +147,7 @@ def get_experiment_details(
 def get_experiment_metrics(
     experiment_id: str,
     tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> Dict[str, Any]:
     """Retrieve metrics dictionary for an experiment."""
     return tracker.get_experiment_metrics(experiment_id=experiment_id)
@@ -160,6 +167,7 @@ def get_experiment_metrics(
 def get_reproducibility_manifest(
     experiment_id: str,
     tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> ReproducibilityManifest:
     """Generate and export the experiment's reproducibility manifest."""
     return tracker.get_reproducibility_manifest(experiment_id=experiment_id)
@@ -175,6 +183,7 @@ def get_reproducibility_manifest(
 def verify_experiment_artifact(
     experiment_id: str,
     tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> ArtifactVerificationResponse:
     """Verify physical artifact presence and SHA-256 integrity."""
     return tracker.verify_manifest_integrity(experiment_id=experiment_id)
@@ -195,6 +204,7 @@ def verify_experiment_artifact(
 def download_experiment_artifact(
     experiment_id: str,
     tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+    _auth: Dict[str, Any] = Depends(require_admin_role),
 ):
     """Download verified model artifact binary."""
     verification = tracker.verify_manifest_integrity(experiment_id)
@@ -227,6 +237,7 @@ def download_experiment_artifact(
 def delete_experiment(
     experiment_id: str,
     tracker: ExperimentTrackerService = Depends(get_experiment_tracker_service),
+    _auth: Dict[str, Any] = Depends(require_admin_role),
 ) -> Dict[str, Any]:
     """Delete an experiment and its artifacts."""
     success = tracker.delete_experiment(experiment_id)
@@ -249,6 +260,7 @@ def predict(
     experiment_id: str,
     request: PredictionRequest,
     service: PredictionService = Depends(get_prediction_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> PredictionResponse:
     """Generate model predictions for a bounded list of tabular records."""
     return service.predict_records(experiment_id=experiment_id, request=request)
@@ -273,6 +285,7 @@ async def predict_csv(
     experiment_id: str,
     file: UploadFile = File(..., description="CSV dataset for batch prediction"),
     service: PredictionService = Depends(get_prediction_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> Response:
     """Execute batch inference on an uploaded CSV file and return a downloadable CSV response."""
     return await service.predict_csv(experiment_id=experiment_id, file=file)
@@ -307,6 +320,7 @@ def get_feature_importance(
         description="Optional seed override for evaluation sampling and permutation shuffling",
     ),
     service: ExplainabilityService = Depends(get_explainability_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> GlobalFeatureImportanceResponse:
     """Compute global feature importances for the experiment's trained model."""
     return service.compute_global_importance(
@@ -332,6 +346,7 @@ def explain_prediction(
     experiment_id: str,
     request: PredictionExplanationRequest,
     service: ExplainabilityService = Depends(get_explainability_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> PredictionExplanationResponse:
     """Generate instance-level prediction explanations for tabular records."""
     return service.compute_local_explanations(experiment_id=experiment_id, request=request)
@@ -354,6 +369,7 @@ def analyze_prediction_errors(
     experiment_id: str,
     request: ErrorAnalysisRequest = ErrorAnalysisRequest(),
     service: ErrorAnalysisService = Depends(get_error_analysis_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
 ) -> ErrorAnalysisResponse:
     """Compute comprehensive prediction error analysis for the experiment's winning pipeline."""
     return service.analyze_errors(experiment_id=experiment_id, request=request)

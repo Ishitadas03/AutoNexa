@@ -40,7 +40,7 @@ def hpo_test_env(tmp_path: Path):
     app.dependency_overrides[get_benchmark_service] = lambda: benchmark_service
     app.dependency_overrides[get_hpo_service] = lambda: hpo_service
 
-    client = TestClient(app)
+    client = TestClient(app, headers={"X-API-Key": "autonexa-admin-key-secret"})
     yield client, upload_dir, experiments_dir
 
     app.dependency_overrides.clear()

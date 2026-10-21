@@ -43,7 +43,7 @@ def benchmark_env(tmp_path: Path):
     app.dependency_overrides[get_prediction_service] = lambda: prediction_service
     app.dependency_overrides[get_benchmark_service] = lambda: benchmark_service
 
-    client = TestClient(app)
+    client = TestClient(app, headers={"X-API-Key": "autonexa-admin-key-secret"})
     yield client, upload_dir, experiments_dir
 
     app.dependency_overrides.clear()

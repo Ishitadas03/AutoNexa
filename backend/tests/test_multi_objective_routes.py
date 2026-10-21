@@ -34,7 +34,7 @@ def mo_routes_env(tmp_path: Path):
     app.dependency_overrides[get_analysis_service] = lambda: analysis_service
     app.dependency_overrides[get_multi_objective_service] = lambda: mo_service
 
-    client = TestClient(app)
+    client = TestClient(app, headers={"X-API-Key": "autonexa-admin-key-secret"})
     yield client, upload_dir, experiments_dir
 
     app.dependency_overrides.clear()
