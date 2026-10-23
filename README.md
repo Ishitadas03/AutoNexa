@@ -146,13 +146,51 @@ flowchart TB
 
 ## Technology Stack
 
-| Domain | Verified Technologies |
-| :--- | :--- |
-| **Frontend** | Next.js 16 (App Router), React 19, Tailwind CSS v4, Three.js / React Three Fiber, Recharts, Lucide React |
-| **Backend & API** | FastAPI 0.143.3, Uvicorn 0.34.0 (single-worker), Pydantic Settings 2.16.0 |
-| **ML & Statistics** | scikit-learn 1.9.1, SHAP 0.51.0, Optuna 5.0.0, SciPy 1.17.1, NumPy 2.4.6, Pandas 3.0.6 |
-| **Storage & Persistence** | SQLite (WAL Mode), SQLAlchemy 2.1.4, Local Filesystem Storage (`uploads/`, `experiments/`) |
-| **Quality & Operations** | pytest 9.1.1, HTTPX 0.28.1, Docker & Docker Compose, GitHub Actions CI |
+```mermaid
+graph TD
+    subgraph FrontendLayer ["Client & Visualization Tier"]
+        FE1["Next.js 16 (App Router)"]
+        FE2["React 19 & TypeScript"]
+        FE3["Tailwind CSS v4 & Lucide"]
+        FE4["Three.js / React Three Fiber"]
+        FE5["Recharts Data Visualizations"]
+    end
+
+    subgraph BackendLayer ["API Gateway & Core Runtime Tier"]
+        BE1["FastAPI 0.143 (REST APIs & OpenAPI)"]
+        BE2["Uvicorn ASGI Engine (Single-Worker)"]
+        BE3["Pydantic Settings (Type Validation)"]
+        BE4["Constant-Time RBAC Middleware"]
+    end
+
+    subgraph MLLayer ["Machine Learning, XAI & Optimization Tier"]
+        ML1["scikit-learn (Estimators & Pipelines)"]
+        ML2["SHAP (Tree & Linear Explainers)"]
+        ML3["Optuna (Bayesian Hyperparameter Search)"]
+        ML4["SciPy (Wilcoxon & Student-t Tests)"]
+        ML5["Pandas 3.0 & NumPy 2.4 (Data Math)"]
+    end
+
+    subgraph StorageOpsLayer ["Storage, Quality & Operations Tier"]
+        ST1["SQLite Database (WAL Mode)"]
+        ST2["SQLAlchemy 2.1 (Repositories)"]
+        ST3["Filesystem Storage (Artifacts & CSVs)"]
+        ST4["pytest 9.1 (279 Automated Tests)"]
+        ST5["Docker & GitHub Actions CI"]
+    end
+
+    FrontendLayer -->|HTTP REST / JSON Client| BackendLayer
+    BackendLayer -->|Pipeline Coordination| MLLayer
+    MLLayer -->|Persist Metadata & Models| StorageOpsLayer
+```
+
+| Layer | Verified Technologies | Primary Purpose |
+| :--- | :--- | :--- |
+| **Frontend** | Next.js 16, React 19, Tailwind CSS v4, Three.js, Recharts, Lucide | Responsive web UI, 3D canvas, interactive pipeline visualizer, 16 workspace tabs. |
+| **Backend & API** | FastAPI 0.143.3, Uvicorn 0.34.0 (single-worker), Pydantic Settings | High-performance asynchronous REST API, OpenAPI docs, constant-time RBAC. |
+| **ML & Statistics** | scikit-learn 1.9.1, SHAP 0.51.0, Optuna 5.0.0, SciPy 1.17.1, Pandas, NumPy | Automated model training, leakage-free pipelines, SHAP XAI, HPO, statistical tests. |
+| **Storage & Persistence** | SQLite (WAL Mode), SQLAlchemy 2.1.4, Local Filesystem Storage | Relational catalog (`metadata.db`), raw CSVs (`uploads/`), serialized models (`experiments/`). |
+| **Quality & Operations** | pytest 9.1.1, HTTPX 0.28.1, Docker Compose, GitHub Actions CI | 279 automated quality gates, container packaging, crash-safe SQLite online backups. |
 
 ---
 
