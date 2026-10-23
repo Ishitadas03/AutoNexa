@@ -1,25 +1,16 @@
-# AutoNexa / AutoML Research Lab - Backend Core Dependencies
-# Python 3.11 compatible specifications based on verified installed versions
-
-# Web API Framework & ASGI Server
+# AutoNexa - Backend Production Dependencies (Optimized for Serverless & Container Deployment)
 fastapi==0.143.3
-uvicorn[standard]==0.54.0
+uvicorn==0.34.0
 python-multipart==0.0.32
 pydantic-settings==2.16.0
 
 # Database & Persistent Metadata
 sqlalchemy==2.1.4
 
-# Data Processing & Machine Learning
+# Data Processing & Core Machine Learning Engine
 pandas==3.0.6
 numpy==2.4.6
 scikit-learn==1.9.1
-mlflow==3.17.1
-shap==0.51.0
 scipy==1.17.1
 optuna==5.0.0
 psutil==7.2.2
-
-# Testing & Asynchronous HTTP Client
-pytest==9.1.1
-httpx==0.28.1

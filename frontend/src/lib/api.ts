@@ -95,12 +95,6 @@ function resolveBaseUrl(overrideUrl?: string): string {
 
 function getEffectiveUrl(endpoint: string, overrideUrl?: string): string {
   const base = resolveBaseUrl(overrideUrl);
-  if (!base) {
-    throw new ApiError(
-      503,
-      "Backend API URL is not configured. Please enter your backend API URL in Platform Settings (e.g. http://localhost:8000, your tunnel URL, or cloud API endpoint)."
-    );
-  }
   return `${base}${endpoint}`;
 }
 
