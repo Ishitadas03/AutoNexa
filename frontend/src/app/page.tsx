@@ -61,39 +61,34 @@ export default function Home() {
   const [trainingDuration, setTrainingDuration] = useState(0);
 
   // Check health of backend on mount and sync dataset catalog
-  useEffect(() => {
-    let isMounted = true;
+  const refreshHealth = useCallback(() => {
     api
       .checkHealth()
       .then((health) => {
-        if (isMounted) {
-          const isHealthy = health.status === "healthy";
-          setApiConnected(isHealthy);
-          if (isHealthy) {
-            api
-              .listDatasets({ page: 1, pageSize: 50 })
-              .then((catalog) => {
-                if (isMounted && catalog?.datasets?.length > 0) {
-                  syncDatasets(catalog.datasets);
-                }
-              })
-              .catch((err) => {
-                console.warn("Dataset catalog sync skipped:", err.message);
-              });
-          }
+        const isHealthy = health.status === "healthy";
+        setApiConnected(isHealthy);
+        if (isHealthy) {
+          api
+            .listDatasets({ page: 1, pageSize: 50 })
+            .then((catalog) => {
+              if (catalog?.datasets?.length > 0) {
+                syncDatasets(catalog.datasets);
+              }
+            })
+            .catch((err) => {
+              console.warn("Dataset catalog sync skipped:", err.message);
+            });
         }
       })
       .catch((err) => {
-        if (isMounted) {
-          console.warn("FastAPI backend is offline or unreachable:", err.message);
-          setApiConnected(false);
-        }
+        console.warn("FastAPI backend is offline or unreachable:", err.message);
+        setApiConnected(false);
       });
-
-    return () => {
-      isMounted = false;
-    };
   }, [setApiConnected, syncDatasets]);
+
+  useEffect(() => {
+    refreshHealth();
+  }, [refreshHealth]);
 
   // Upload handler for user file
   // Upload handler for user file - memoized with useCallback
@@ -486,7 +481,7 @@ export default function Home() {
           )}
 
           {activeTab === "settings" && (
-            <SettingsTab apiConnected={apiConnected} />
+            <SettingsTab apiConnected={apiConnected} onRefreshHealth={refreshHealth} />
           )}
         </WorkspaceLayout>
       )}

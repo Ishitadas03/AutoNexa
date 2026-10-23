@@ -24,16 +24,19 @@ interface SettingsTabProps {
   apiConnected: boolean | null;
   onClearData?: () => void;
   onReloadBenchmarks?: () => void;
+  onRefreshHealth?: () => void;
 }
 
 export default function SettingsTab({
   apiConnected,
   onClearData,
   onReloadBenchmarks,
+  onRefreshHealth,
 }: SettingsTabProps) {
   const [apiUrl, setApiUrl] = useState(() => api.getBaseUrl() || "http://127.0.0.1:8000");
   const [isPinging, setIsPinging] = useState(false);
   const [pingResult, setPingResult] = useState<{ status: string; latencyMs: number } | null>(null);
+  const [urlSavedMessage, setUrlSavedMessage] = useState<string | null>(null);
 
   // Default Hyperparameters
   const [defaultFolds, setDefaultFolds] = useState(5);
@@ -58,6 +61,7 @@ export default function SettingsTab({
         status: res.status || "healthy",
         latencyMs: latency,
       });
+      if (onRefreshHealth) onRefreshHealth();
     } catch {
       const latency = Math.round(performance.now() - start);
       setPingResult({
@@ -67,6 +71,23 @@ export default function SettingsTab({
     } finally {
       setIsPinging(false);
     }
+  };
+
+  const handleSaveApiUrl = () => {
+    api.setStoredBaseUrl(apiUrl);
+    setUrlSavedMessage(apiUrl.trim() ? "Backend URL saved to browser storage." : "Backend URL reset.");
+    setTimeout(() => setUrlSavedMessage(null), 3500);
+    handlePingBackend();
+    if (onRefreshHealth) onRefreshHealth();
+  };
+
+  const handleResetApiUrl = () => {
+    api.clearStoredBaseUrl();
+    const defaultUrl = api.getBaseUrl() || "http://127.0.0.1:8000";
+    setApiUrl(defaultUrl);
+    setUrlSavedMessage("Backend URL reset to system default.");
+    setTimeout(() => setUrlSavedMessage(null), 3500);
+    if (onRefreshHealth) onRefreshHealth();
   };
 
   const handleSaveDefaults = (e: React.FormEvent) => {
@@ -141,29 +162,62 @@ export default function SettingsTab({
           <div className="space-y-3">
             <div>
               <label className="block text-xs font-mono text-[#0F172A] font-semibold mb-1">
-                FastAPI Host URL:
+                FastAPI Gateway URL:
               </label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={apiUrl}
                   onChange={(e) => setApiUrl(e.target.value)}
+                  placeholder="http://127.0.0.1:8000 or https://your-backend.com"
                   className="flex-1 px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-[#0F172A] text-xs font-mono focus:border-[#1D4ED8] focus:bg-white focus:outline-none"
                 />
+              </div>
+
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={handleSaveApiUrl}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Save URL</span>
+                </button>
                 <button
                   type="button"
                   onClick={handlePingBackend}
                   disabled={isPinging}
-                  className="px-4 py-2 rounded-xl bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-[#F1F5F9] border border-[#CBD5E1] text-[#334155] text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {isPinging ? (
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                   ) : (
-                    <Zap className="w-3.5 h-3.5" />
+                    <Zap className="w-3.5 h-3.5 text-amber-500" />
                   )}
                   <span>Ping Health</span>
                 </button>
+                <button
+                  type="button"
+                  onClick={handleResetApiUrl}
+                  className="px-3 py-1.5 rounded-xl text-xs font-mono text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors"
+                  title="Reset to system default"
+                >
+                  Reset
+                </button>
               </div>
+
+              {urlSavedMessage && (
+                <div className="mt-2 text-xs font-mono text-[#15803D] bg-[#DCFCE7] border border-[#86EFAC] px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>{urlSavedMessage}</span>
+                </div>
+              )}
+
+              <p className="mt-2 text-[11px] text-[#64748B] leading-relaxed">
+                <strong>Vercel Cloud Access:</strong> When accessing AutoNexa via{" "}
+                <span className="font-mono text-[#1D4ED8]">https://autonexa-orpin.vercel.app</span>,
+                you can connect directly to your backend endpoint (local server, ngrok/localtunnel HTTPS URL, or hosted API).
+              </p>
             </div>
 
             {/* Diagnostic Result */}

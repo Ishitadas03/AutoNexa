@@ -75,19 +75,30 @@ import {
 
 const isProduction = process.env.NODE_ENV === "production";
 const rawBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+const STORAGE_KEY_API_BASE_URL = "autonexa_api_base_url";
 
-const API_BASE_URL = rawBaseUrl
-  ? rawBaseUrl.replace(/\/$/, "")
-  : isProduction
-  ? "" // Never silently fall back to localhost in production
-  : "http://127.0.0.1:8000";
+function resolveBaseUrl(overrideUrl?: string): string {
+  if (overrideUrl !== undefined && overrideUrl.trim()) {
+    return overrideUrl.trim().replace(/\/$/, "");
+  }
+  if (typeof window !== "undefined") {
+    const customUrl = localStorage.getItem(STORAGE_KEY_API_BASE_URL)?.trim();
+    if (customUrl) {
+      return customUrl.replace(/\/$/, "");
+    }
+  }
+  if (rawBaseUrl) {
+    return rawBaseUrl.replace(/\/$/, "");
+  }
+  return isProduction ? "" : "http://127.0.0.1:8000";
+}
 
 function getEffectiveUrl(endpoint: string, overrideUrl?: string): string {
-  const base = (overrideUrl !== undefined ? overrideUrl : API_BASE_URL).replace(/\/$/, "");
-  if (!base && isProduction) {
+  const base = resolveBaseUrl(overrideUrl);
+  if (!base) {
     throw new ApiError(
       503,
-      "NEXT_PUBLIC_API_BASE_URL is not configured for production. Please configure your deployed backend API URL in Vercel project environment variables."
+      "Backend API URL is not configured. Please enter your backend API URL in Platform Settings (e.g. http://localhost:8000, your tunnel URL, or cloud API endpoint)."
     );
   }
   return `${base}${endpoint}`;
@@ -143,7 +154,34 @@ function getServingHeaders(apiKey?: string, extraHeaders?: Record<string, string
 
 export const api = {
   getBaseUrl(): string {
-    return API_BASE_URL;
+    return resolveBaseUrl();
+  },
+
+  /** Get user-configured backend base URL from browser localStorage if set */
+  getStoredBaseUrl(): string {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(STORAGE_KEY_API_BASE_URL) || "";
+    }
+    return "";
+  },
+
+  /** Store custom backend base URL in browser localStorage for all API calls */
+  setStoredBaseUrl(url: string): void {
+    if (typeof window !== "undefined") {
+      const trimmed = url.trim().replace(/\/$/, "");
+      if (trimmed) {
+        localStorage.setItem(STORAGE_KEY_API_BASE_URL, trimmed);
+      } else {
+        localStorage.removeItem(STORAGE_KEY_API_BASE_URL);
+      }
+    }
+  },
+
+  /** Clear stored custom backend base URL from browser localStorage */
+  clearStoredBaseUrl(): void {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(STORAGE_KEY_API_BASE_URL);
+    }
   },
 
   /** Get currently configured API key from browser localStorage */
