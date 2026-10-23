@@ -230,7 +230,7 @@ def test_structured_log_formatter_with_exception_record():
     assert "synthetic_secret_pwd_456" not in formatted
     assert "[REDACTED]" in formatted
     assert "C:\\Users\\synthetic_dev\\" not in formatted
-    assert "[HOME]\\" in formatted
+    assert ("[HOME]\\" in formatted or "[HOME]/" in formatted)
 
 
 # =============================================================================

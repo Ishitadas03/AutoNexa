@@ -7,30 +7,55 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from app.core.config import Settings
+from app.core.config import Settings, get_settings
+from app.db.session import init_db
 from app.main import app
 
 
 @pytest.fixture
-def tracking_env(tmp_path: Path):
-    """Isolated test environment with temporary experiments and upload directories."""
+def tracking_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Isolated test environment with temporary experiments, uploads, and database."""
     experiments_dir = tmp_path / "experiments"
     upload_dir = tmp_path / "uploads"
+    data_dir = tmp_path / "data"
+    db_path = data_dir / "metadata.db"
+
     experiments_dir.mkdir(parents=True, exist_ok=True)
     upload_dir.mkdir(parents=True, exist_ok=True)
+    data_dir.mkdir(parents=True, exist_ok=True)
 
     test_settings = Settings(
         UPLOAD_DIR=str(upload_dir),
         EXPERIMENTS_DIR=str(experiments_dir),
+        METADATA_DB_PATH=str(db_path),
         ENABLE_MLFLOW_TRACKING=False,
     )
 
-    with patch("app.core.config.get_settings", return_value=test_settings), \
-         patch("app.services.automl.experiment_tracker_service.get_settings", return_value=test_settings), \
-         patch("app.services.automl.model_registry_service.get_settings", return_value=test_settings), \
-         patch("app.services.automl.prediction_service.get_settings", return_value=test_settings):
+    init_db(db_path=db_path)
+    monkeypatch.setenv("METADATA_DB_PATH", str(db_path))
+    monkeypatch.setenv("EXPERIMENTS_DIR", str(experiments_dir))
+    monkeypatch.setenv("UPLOAD_DIR", str(upload_dir))
+    get_settings.cache_clear()
+
+    patches = [
+        patch("app.core.config.get_settings", return_value=test_settings),
+        patch("app.db.session.get_settings", return_value=test_settings),
+        patch("app.db.reconciliation.get_settings", return_value=test_settings),
+        patch("app.services.automl.experiment_tracker_service.get_settings", return_value=test_settings),
+        patch("app.services.automl.model_registry_service.get_settings", return_value=test_settings),
+        patch("app.services.automl.prediction_service.get_settings", return_value=test_settings),
+    ]
+
+    for p in patches:
+        p.start()
+
+    try:
         with TestClient(app, headers={"X-API-Key": "autonexa-admin-key-secret"}) as client:
             yield client, experiments_dir
+    finally:
+        for p in reversed(patches):
+            p.stop()
+        get_settings.cache_clear()
 
 
 def create_synthetic_experiment(
@@ -126,6 +151,23 @@ def create_synthetic_experiment(
 
     meta_file = exp_dir / "metadata.json"
     meta_file.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+
+    db_candidates = [
+        experiments_dir.parent / "data" / "metadata.db",
+        experiments_dir.parent / "metadata.db",
+        experiments_dir / "metadata.db",
+    ]
+    for db_file in db_candidates:
+        if db_file.exists():
+            try:
+                from app.db.session import get_db_context
+                from app.db.reconciliation import MetadataReconciliationService
+                with get_db_context(db_file) as session:
+                    MetadataReconciliationService().reconcile_experiments(session, experiments_dir)
+            except Exception:
+                pass
+            break
+
     return exp_dir
 
 

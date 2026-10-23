@@ -46,14 +46,24 @@ venv.bak/
 *.key
 *.cert
 
+# Databases & Local Metadata Stores
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
 # Uploaded Datasets & Temporary Data
 backend/uploads/*
 !backend/uploads/.gitkeep
 experiments/*
 !experiments/.gitkeep
-data/
+data/*
+!data/research_benchmarks/
+!data/research_benchmarks/**
 datasets/
 *.csv
+!data/research_benchmarks/*.csv
 *.tsv
 *.parquet
 *.feather
