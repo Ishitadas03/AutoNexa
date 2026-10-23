@@ -54,7 +54,12 @@ from app.schemas.explainability import (
     PredictionExplanationResponse,
     TransformedFeatureImportanceItem,
 )
-from app.schemas.health import HealthResponse
+from app.schemas.health import (
+    DiagnosticsResponse,
+    HealthResponse,
+    MetricsResponse,
+    ReadinessResponse,
+)
 from app.schemas.hpo_experiment import (
     HPOExperimentProtocol,
     HPOExperimentRequest,
@@ -191,6 +196,7 @@ __all__ = [
     "DatasetListResponse",
     "DatasetProfileResponse",
     "DatasetSummary",
+    "DiagnosticsResponse",
     "DriftAnalysisRequest",
     "DriftAnalysisResponse",
     "DriftMethod",
@@ -229,6 +235,7 @@ __all__ = [
     "LifecycleAuditEntry",
     "LifecycleStage",
     "MetricStatisticalSummary",
+    "MetricsResponse",
     "MisclassifiedInstance",
     "ModelBenchmarkEntry",
     "ModelComplexityMetadata",
@@ -265,6 +272,7 @@ __all__ = [
     "PredictionResponse",
     "PromotionPolicy",
     "QualityWarning",
+    "ReadinessResponse",
     "ReferenceProfileCreate",
     "ReferenceProfileResponse",
     "RegisteredModelSummary",

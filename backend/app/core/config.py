@@ -52,6 +52,11 @@ class Settings(BaseSettings):
         validation_alias="DEBUG",
         description="Debug mode toggle",
     )
+    log_level: str = Field(
+        default="INFO",
+        validation_alias="LOG_LEVEL",
+        description="Logging output level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+    )
 
     # Server Configuration
     server_host: str = Field(
@@ -368,6 +373,18 @@ class Settings(BaseSettings):
     def resolved_pipelines_dir(self) -> Path:
         """Return absolute Path for pipeline orchestration storage directory."""
         path = (self.resolved_experiments_dir / "pipelines").resolve()
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def resolved_artifacts_dir(self) -> Path:
+        """Return absolute Path for general artifacts storage directory."""
+        return self.resolved_experiments_dir
+
+    @property
+    def resolved_models_dir(self) -> Path:
+        """Return absolute Path for model registry storage directory."""
+        path = (self.resolved_experiments_dir / "models").resolve()
         path.mkdir(parents=True, exist_ok=True)
         return path
 

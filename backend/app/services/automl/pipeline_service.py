@@ -62,6 +62,7 @@ from app.services.automl.model_registry_service import (
     ModelRegistryService,
     get_model_registry_service,
 )
+from app.core.metrics import get_metrics_collector
 from app.services.automl.training_service import TrainingService
 
 logger = logging.getLogger("autonexa.pipeline")
@@ -161,6 +162,11 @@ class PipelineService:
     def is_shutting_down(self) -> bool:
         """Indicate whether graceful shutdown is in progress."""
         return self._is_shutting_down
+
+    def get_active_count(self) -> int:
+        """Return the count of currently executing pipeline jobs."""
+        with _PIPELINE_LOCK:
+            return len(self._active_jobs)
 
     # ==========================================================================
     # Process Restart & Recovery
@@ -517,6 +523,15 @@ class PipelineService:
             message=f"Pipeline initialized for model '{model_name}' and dataset '{request.dataset_id}'.",
         )
 
+        get_metrics_collector().record_pipeline_event("created")
+        logger.info(
+            "Pipeline created | pipeline_id=%s model_name=%s dataset_id=%s stages=%d",
+            pipeline_id,
+            request.model_name,
+            request.dataset_id,
+            len(pipeline.stages),
+        )
+
         # Launch background execution worker
         self._executor.submit(self._execute_pipeline_worker, pipeline_id, request)
 
@@ -534,6 +549,14 @@ class PipelineService:
             pipeline.status = PipelineStatus.RUNNING
             pipeline.started_at = now_dt.isoformat()
             self._persist_pipeline(pipeline)
+            get_metrics_collector().record_pipeline_event("started")
+            get_metrics_collector().set_pipeline_gauges(active=len(self._active_jobs))
+            logger.info(
+                "Pipeline execution started | pipeline_id=%s model_name=%s dataset_id=%s",
+                pipeline_id,
+                pipeline.model_name,
+                pipeline.dataset_id,
+            )
 
         def _is_cancelled() -> bool:
             return self._cancel_flags.get(pipeline_id, False)
@@ -942,6 +965,13 @@ class PipelineService:
                 PipelineStage.COMPLETED,
                 f"End-to-end pipeline finished successfully in {pipeline.duration_seconds} seconds.",
             )
+            get_metrics_collector().record_pipeline_event("completed", duration_seconds=pipeline.duration_seconds)
+            logger.info(
+                "Pipeline execution succeeded | pipeline_id=%s model_name=%s duration_s=%.2f",
+                pipeline_id,
+                pipeline.model_name,
+                pipeline.duration_seconds or 0.0,
+            )
 
         except InterruptedError as int_exc:
             now_iso = datetime.now(timezone.utc).isoformat()
@@ -963,12 +993,20 @@ class PipelineService:
                 level="warning",
                 message=f"Pipeline execution cancelled: {int_exc}",
             )
+            get_metrics_collector().record_pipeline_event("cancelled", duration_seconds=pipeline.duration_seconds)
+            logger.info(
+                "Pipeline execution cancelled | pipeline_id=%s duration_s=%.2f",
+                pipeline_id,
+                pipeline.duration_seconds or 0.0,
+            )
         except Exception as exc:
-            logger.exception("Pipeline execution failed: %s", exc)
+            logger.error("Pipeline execution failed | pipeline_id=%s error=%s", pipeline_id, type(exc).__name__)
             _fail_pipeline(pipeline.current_stage, str(exc))
+            get_metrics_collector().record_pipeline_event("failed", duration_seconds=pipeline.duration_seconds)
         finally:
             with _PIPELINE_LOCK:
                 self._active_jobs.pop(pipeline_id, None)
+                get_metrics_collector().set_pipeline_gauges(active=len(self._active_jobs))
 
     # ==========================================================================
     # Management Operations: Cancel, Retry, Query
@@ -1001,6 +1039,7 @@ class PipelineService:
             level="warning",
             message="Operator requested cooperative pipeline cancellation.",
         )
+        logger.info("Pipeline cancellation requested | pipeline_id=%s", pipeline_id)
         return pipeline
 
     def retry_pipeline(self, pipeline_id: str) -> PipelineResponse:
@@ -1071,6 +1110,9 @@ class PipelineService:
             create_reference_profile=True,
             description=pipeline.description,
         )
+
+        get_metrics_collector().record_pipeline_event("retried")
+        logger.info("Pipeline retry initiated | pipeline_id=%s retry_count=%d", pipeline_id, pipeline.retry_count)
 
         self._executor.submit(self._execute_pipeline_worker, pipeline_id, req)
         return pipeline

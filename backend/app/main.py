@@ -9,6 +9,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import api_router
 from app.core.config import get_settings, settings
+from app.core.correlation import CorrelationIdMiddleware
+from app.core.logging import setup_logging
+from app.core.metrics import MetricsMiddleware, get_metrics_collector
 from app.db import MetadataReconciliationService, close_db, init_db
 from app.services.automl.pipeline_service import (
     get_pipeline_service,
@@ -23,6 +26,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """FastAPI application lifespan manager for deterministic startup, metadata indexing, and bounded graceful shutdown."""
     startup_start = time.perf_counter()
     current_settings = get_settings()
+    setup_logging(current_settings.log_level)
+
     logger.info(
         "AutoNexa backend starting up | app=%s version=%s env=%s max_concurrency=%d",
         current_settings.app_name,
@@ -36,8 +41,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         init_db()
         reconciler = MetadataReconciliationService(current_settings)
         reconciled_stats = reconciler.reconcile_all()
+        reconciled_total = sum(v for v in reconciled_stats.values() if isinstance(v, int))
+        get_metrics_collector().record_reconciliation(reconciled_total, error=False)
         logger.info("Metadata catalog and indexing reconciliation pass: %s", reconciled_stats)
     except Exception as exc:
+        get_metrics_collector().record_reconciliation(0, error=True)
         logger.error("Metadata database initialization/reconciliation warning: %s", exc, exc_info=True)
 
     # 2. Pipeline startup initialization & orphan reconciliation
@@ -79,6 +87,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 def create_application() -> FastAPI:
     """Factory to create and configure the FastAPI application instance."""
+    setup_logging(settings.log_level)
+
     application = FastAPI(
         title=settings.app_name,
         version=settings.app_version,
@@ -99,6 +109,10 @@ def create_application() -> FastAPI:
             allow_headers=["*"],
         )
 
+    # Operational metrics and correlation middlewares
+    application.add_middleware(MetricsMiddleware)
+    application.add_middleware(CorrelationIdMiddleware)
+
     # Mount API v1 router
     application.include_router(api_router, prefix=settings.api_v1_prefix)
 
@@ -106,4 +120,3 @@ def create_application() -> FastAPI:
 
 
 app: FastAPI = create_application()
-

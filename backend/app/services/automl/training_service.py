@@ -29,6 +29,7 @@ from app.schemas.training import (
     TrainingRequest,
     TrainingResponse,
 )
+from app.core.metrics import get_metrics_collector
 from app.services.analysis_service import AnalysisService
 from app.services.automl.evaluator import ModelEvaluator
 from app.services.automl.experiment_tracker_service import get_system_environment_info
@@ -204,6 +205,16 @@ class TrainingService:
             random_state=request.random_state,
             primary_metric=primary_metric,
             time_budget_seconds=request.time_budget_seconds,
+        )
+
+        get_metrics_collector().record_training_event("started", task_type=task_type.value)
+        logger.info(
+            "Training experiment started | experiment_id=%s dataset_id=%s task_type=%s target_column=%s candidates=%d",
+            experiment_id,
+            dataset_id,
+            task_type.value,
+            target_col,
+            len(candidates),
         )
 
         results: List[ModelEvaluationResult] = []
@@ -715,6 +726,16 @@ class TrainingService:
                     )
             except Exception:
                 pass
+            get_metrics_collector().record_training_event(
+                "failed",
+                task_type=task_type.value if "task_type" in locals() and hasattr(task_type, "value") else "unknown",
+            )
+            logger.error(
+                "Training experiment failed | experiment_id=%s dataset_id=%s error=%s",
+                experiment_id,
+                dataset_id,
+                type(exc).__name__,
+            )
 
         # 13. Finalize MLflow Parent Run
         tracker.finalize_parent_run(
@@ -725,13 +746,20 @@ class TrainingService:
             metadata_file=metadata_file,
         )
 
+        get_metrics_collector().record_training_event(
+            "completed",
+            task_type=task_type.value,
+            duration_seconds=total_duration,
+        )
+        score_str = f"{best_score:.4f}" if isinstance(best_score, (int, float)) else "None"
         logger.info(
-            "Experiment %s finished in %.2fs. Evaluated %d models. Strategy: %s. Best model: %s",
+            "Training experiment completed | experiment_id=%s dataset_id=%s best_model=%s score=%s duration_s=%.2f models=%d",
             experiment_id,
+            dataset_id,
+            best_model_id,
+            score_str,
             total_duration,
             len(results),
-            request.evaluation_strategy,
-            best_model_id,
         )
 
         return TrainingResponse(

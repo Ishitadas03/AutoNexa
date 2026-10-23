@@ -63,6 +63,7 @@ from app.services.automl.model_registry_service import (
 )
 from app.services.automl.prediction_service import sanitize_scalar
 from app.services.automl.tracker import compute_dataset_fingerprint
+from app.core.metrics import get_metrics_collector
 from app.services.automl.training_service import TrainingService
 
 logger = logging.getLogger(__name__)
@@ -1460,6 +1461,8 @@ class ModelMonitoringService:
             # Prevent concurrent retraining jobs for the same model (in-memory and persisted checks)
             if model_name in self._active_retraining_jobs:
                 active_jid = self._active_retraining_jobs[model_name]
+                get_metrics_collector().record_retraining_trigger("skipped_busy")
+                logger.warning("Monitoring retraining skipped (job active) | model_name=%s active_job=%s", model_name, active_jid)
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail=f"A retraining job ({active_jid}) is already currently running for model '{model_name}'.",
@@ -1467,6 +1470,8 @@ class ModelMonitoringService:
 
             for existing in self.list_retraining_jobs(model_name=model_name):
                 if existing.status in (RetrainingJobStatus.RUNNING, RetrainingJobStatus.QUEUED):
+                    get_metrics_collector().record_retraining_trigger("skipped_busy")
+                    logger.warning("Monitoring retraining skipped (job queued/running) | model_name=%s active_job=%s", model_name, existing.job_id)
                     raise HTTPException(
                         status_code=status.HTTP_409_CONFLICT,
                         detail=f"A retraining job ({existing.job_id}) is already currently {existing.status.value} for model '{model_name}'.",
@@ -1533,6 +1538,16 @@ class ModelMonitoringService:
                 t_path = Path(tf.name)
             t_path.replace(j_file)
 
+            get_metrics_collector().record_retraining_trigger("triggered")
+            logger.info(
+                "Monitoring retraining triggered | job_id=%s model_name=%s source_version=%s policy=%s reason=%s",
+                job_id,
+                model_name,
+                str(source_version),
+                policy.value,
+                trigger_reason,
+            )
+
         # Phase 2: Execute training WITHOUT holding _MONITORING_LOCK
         src_exp = self.registry.tracker.get_experiment_detail(source_record.experiment_id)
         target_col = request.target_column or src_exp.target_column
@@ -1563,6 +1578,8 @@ class ModelMonitoringService:
                     job.status = RetrainingJobStatus.FAILED
                     job.error_message = str(training_error)
                     job.completed_at = datetime.now(timezone.utc).isoformat()
+                    get_metrics_collector().record_retraining_trigger("failed")
+                    logger.error("Monitoring retraining failed | job_id=%s model_name=%s error=%s", job_id, model_name, type(training_error).__name__)
                 else:
                     assert train_resp is not None
                     job.experiment_id = train_resp.experiment_id

@@ -24,6 +24,7 @@ from app.schemas.tracking import (
     RegisteredModelSummary,
     StageTransitionRequest,
 )
+from app.core.metrics import get_metrics_collector
 from app.services.automl.experiment_tracker_service import ExperimentTrackerService
 from app.services.automl.prediction_service import EXPERIMENT_ID_PATTERN, sanitize_scalar
 
@@ -214,7 +215,14 @@ class ModelRegistryService:
             if request.initial_stage == LifecycleStage.PRODUCTION:
                 self._handle_production_exclusivity(model_name, exempt_version=next_version)
 
-            logger.info("Successfully registered model '%s' version %d (stage: %s)", model_name, next_version, request.initial_stage.value)
+            logger.info(
+                "Model registered | model_name=%s version=%d stage=%s experiment_id=%s sha256=%s",
+                model_name,
+                next_version,
+                request.initial_stage.value,
+                request.experiment_id,
+                computed_sha256[:16],
+            )
             return record
 
     def _get_version_numbers(self, model_name: str) -> List[int]:
@@ -423,7 +431,15 @@ class ModelRegistryService:
             if request.new_stage == LifecycleStage.PRODUCTION:
                 self._handle_production_exclusivity(model_name, exempt_version=version)
 
-            logger.info("Transitioned model '%s' v%d: %s -> %s", model_name, version, old_stage.value, request.new_stage.value)
+            get_metrics_collector().record_stage_transition(request.new_stage.value)
+            logger.info(
+                "Model registry stage transition | model_name=%s version=%d from=%s to=%s reason=%s",
+                model_name,
+                version,
+                old_stage.value,
+                request.new_stage.value,
+                request.reason or "-",
+            )
             return record
 
     def verify_version_artifact(self, model_name: str, version: int) -> ArtifactVerificationResponse:

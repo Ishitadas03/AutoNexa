@@ -136,6 +136,13 @@ class DatasetService:
                 detail="Uploaded CSV file contains only whitespace.",
             )
 
+        logger.info(
+            "Dataset upload validated | dataset_id=%s filename=%s bytes=%d sha256=%s",
+            dataset_id,
+            sanitized_filename,
+            total_bytes,
+            hasher.hexdigest()[:16],
+        )
         return dataset_id, target_path, sanitized_filename, total_bytes, hasher.hexdigest()
 
     def profile_csv(self, file_path: Path, dataset_id: str, original_filename: str) -> DatasetProfileResponse:
@@ -171,6 +178,7 @@ class DatasetService:
             validation_error = "Malformed CSV: structural validation failed."
 
         if validation_error:
+            logger.warning("Dataset validation failed | dataset_id=%s reason=%s", dataset_id, validation_error)
             file_path.unlink(missing_ok=True)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -314,6 +322,7 @@ class DatasetService:
             except Exception as db_err:
                 logger.error("Failed to persist dataset %s to metadata database: %s", dataset_id, db_err)
 
+            logger.info("Dataset profiling completed | dataset_id=%s rows=%d cols=%d", dataset_id, profile.rows, profile.columns)
             return profile
         finally:
             await file.close()
