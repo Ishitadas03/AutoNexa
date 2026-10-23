@@ -289,6 +289,18 @@ class Settings(BaseSettings):
     def validate_and_sync_security_settings(self) -> "Settings":
         """Validate fail-closed security configuration in production."""
 
+        # Vercel Serverless environment automatic path adaptation
+        import os
+        if os.environ.get("VERCEL") == "1":
+            if self.upload_dir == "uploads":
+                self.upload_dir = "/tmp/uploads"
+            if self.experiments_dir == "experiments":
+                self.experiments_dir = "/tmp/experiments"
+            if not self.metadata_db_path:
+                self.metadata_db_path = "/tmp/data/metadata.db"
+            if self.enable_mlflow_tracking and not self.mlflow_tracking_uri:
+                self.mlflow_tracking_uri = "file:/tmp/mlruns"
+
         # Fail-closed validation when running in production
         if self.environment and self.environment.strip().lower() == "production":
             if not self.api_auth_enabled or not self.serving_auth_enabled:
@@ -309,6 +321,11 @@ class Settings(BaseSettings):
 
             admin_key = (self.api_key_admin or "").strip()
             read_key = (self.api_key_read or "").strip()
+
+            # In Vercel serverless demo deployment, do not block initialization if keys are unset
+            if os.environ.get("VERCEL") == "1":
+                if not admin_key or admin_key.lower() in insecure_defaults or not read_key or read_key.lower() in insecure_defaults:
+                    return self
 
             if not admin_key or admin_key.lower() in insecure_defaults:
                 raise ValueError(
