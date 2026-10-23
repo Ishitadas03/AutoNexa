@@ -3,7 +3,7 @@
 import logging
 import os
 import re
-from typing import Optional
+from typing import Any, Optional
 
 from app.core.correlation import CorrelationIdFilter, get_correlation_id
 
@@ -17,7 +17,7 @@ TOKEN_PATTERNS = [
     # Key-value assignments like api_key="secret", password: 'xyz', token=...
     (
         re.compile(
-            r"(?i)\b(api[_-]?key|secret|password|token|authorization)\b\s*([:=])\s*['\"]?([^\s,'\"]+)['\"]?"
+            r"(?i)\b(api[_-]?key|secret|password|token|authorization)\b\s*([:=])\s*['\"]?(?!(?:\[REDACTED|Bearer\b))([^\s,'\"\)]+)['\"]?"
         ),
         r"\1\2[REDACTED]",
     ),
@@ -27,6 +27,8 @@ TOKEN_PATTERNS = [
 PATH_PATTERNS = [
     # Windows User Directory: C:\Users\<username>\...
     (re.compile(r"[a-zA-Z]:\\Users\\[^\\]+\\", re.IGNORECASE), r"[HOME]\\"),
+    # Windows User Directory with forward slashes: C:/Users/<username>/...
+    (re.compile(r"[a-zA-Z]:/Users/[^/]+/", re.IGNORECASE), r"[HOME]/"),
     # Linux / Unix Home Directory: /home/<username>/...
     (re.compile(r"/home/[^/]+/", re.IGNORECASE), r"[HOME]/"),
 ]
@@ -92,6 +94,16 @@ class StructuredLogFormatter(logging.Formatter):
                 }
 
         return super().format(record)
+
+    def formatException(self, ei: Any) -> str:
+        """Format and sanitize exception traceback to prevent credential and path leaking."""
+        raw_tb = super().formatException(ei)
+        return sanitize_log_message(raw_tb)
+
+    def formatStack(self, stack_info: str) -> str:
+        """Format and sanitize stack information to prevent path leaking."""
+        raw_stack = super().formatStack(stack_info)
+        return sanitize_log_message(raw_stack)
 
 
 def setup_logging(log_level: str = "INFO") -> None:

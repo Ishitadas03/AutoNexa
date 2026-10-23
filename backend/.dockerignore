@@ -1,0 +1,45 @@
+# Python byte-code and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+ENV/
+
+# Testing and coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+tests/
+
+# Environment files and credentials (never build into container layers)
+.env
+.env.*
+!.env.example
+
+# Git metadata and ide configs
+.git/
+.gitignore
+.github/
+.vscode/
+.idea/
+
+# Local databases, model checkpoints, and runtime uploads
+data/
+uploads/
+experiments/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.joblib
+*.pkl
+
+# Log files and temporary files
+*.log
+*.tmp
+*.bak

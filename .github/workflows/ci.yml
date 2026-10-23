@@ -1,0 +1,139 @@
+name: AutoNexa CI Quality Gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Backend Testing & Verification
+  # ---------------------------------------------------------------------------
+  backend-tests:
+    name: Backend Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Run backend pytest suite
+        env:
+          ENVIRONMENT: development
+          API_AUTH_ENABLED: "true"
+          API_KEY_READ: autonexa-read-key-secret
+          API_KEY_ADMIN: autonexa-admin-key-secret
+          METADATA_DB_PATH: data/ci_metadata.db
+          UPLOAD_DIR: uploads
+          EXPERIMENTS_DIR: experiments
+        run: |
+          pytest backend/tests -v --durations=10
+
+  # ---------------------------------------------------------------------------
+  # 2. Frontend Production Build & Typecheck
+  # ---------------------------------------------------------------------------
+  frontend-build:
+    name: Frontend Build & Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies reproducibly
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run Next.js production build
+        working-directory: frontend
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          NODE_ENV: production
+          NEXT_PUBLIC_API_BASE_URL: "http://127.0.0.1:8000"
+        run: npm run build
+
+  # ---------------------------------------------------------------------------
+  # 3. Container Image Build & Smoke Validation
+  # ---------------------------------------------------------------------------
+  container-validation:
+    name: Container Build & Health Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [backend-tests, frontend-build]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend Docker image
+        run: |
+          docker build \
+            --tag autonexa-backend:ci-test \
+            --file backend/Dockerfile \
+            backend/
+
+      - name: Validate backend container runtime health
+        run: |
+          # Start backend container with development test keys and bounded ports
+          docker run -d \
+            --name autonexa-backend-ci \
+            -p 8000:8000 \
+            -e ENVIRONMENT=development \
+            -e API_AUTH_ENABLED=true \
+            -e API_KEY_READ=autonexa-read-key-secret \
+            -e API_KEY_ADMIN=autonexa-admin-key-secret \
+            autonexa-backend:ci-test
+
+          # Poll health endpoint until responsive (up to 30s)
+          timeout=30
+          counter=0
+          until curl --silent --fail http://127.0.0.1:8000/api/v1/health || [ $counter -ge $timeout ]; do
+            sleep 2
+            counter=$((counter + 2))
+          done
+
+          if [ $counter -ge $timeout ]; then
+            echo "Backend container failed to become healthy within ${timeout}s"
+            docker logs autonexa-backend-ci
+            exit 1
+          fi
+
+          echo "Backend container healthcheck succeeded"
+          docker stop autonexa-backend-ci
+          docker rm autonexa-backend-ci
+
+      - name: Build frontend Docker image
+        run: |
+          docker build \
+            --tag autonexa-frontend:ci-test \
+            --file frontend/Dockerfile \
+            frontend/

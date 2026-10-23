@@ -1,0 +1,64 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: autonexa-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8000
+      - API_AUTH_ENABLED=true
+      # Note: Set strong, distinct 16+ character production secrets in .env before starting
+      - API_KEY_READ=${AUTONEXA_API_KEY_READ}
+      - API_KEY_ADMIN=${AUTONEXA_API_KEY_ADMIN}
+      - BACKEND_CORS_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000"]
+      - UPLOAD_DIR=/app/uploads
+      - EXPERIMENTS_DIR=/app/experiments
+      - METADATA_DB_PATH=/app/data/metadata.db
+      - LOG_LEVEL=INFO
+    volumes:
+      - autonexa-data:/app/data
+      - autonexa-uploads:/app/uploads
+      - autonexa-experiments:/app/experiments
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: autonexa-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  # Mandatory persistent storage: SQLite metadata database must persist across container restarts
+  autonexa-data:
+    driver: local
+  # Persistent storage: uploaded raw datasets
+  autonexa-uploads:
+    driver: local
+  # Persistent storage: trained models, MLflow artifacts, pipeline definitions, and monitoring logs
+  autonexa-experiments:
+    driver: local
