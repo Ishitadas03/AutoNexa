@@ -293,3 +293,238 @@ def test_sqlite_safe_backup_verification_and_restore(tmp_path):
     assert (restore_target / "uploads" / "sample.csv").read_text(encoding="utf-8") == "a,b,c\n1,2,3"
     assert (restore_target / "experiments" / "model.bin").read_bytes() == b"SYNTHETIC_MODEL_BYTES"
 
+
+# =============================================================================
+# 4. Post-Review Hardening: Secure Archive Extraction (SEC-2)
+# =============================================================================
+
+def _create_synthetic_tar(archive_path, members_spec):
+    """Helper to create synthetic tar archives with custom member names, types, and contents."""
+    import io
+    import tarfile
+
+    with tarfile.open(archive_path, "w:gz") as tar:
+        for spec in members_spec:
+            name = spec["name"]
+            content = spec.get("content", b"test content")
+            member_type = spec.get("type", tarfile.REGTYPE)
+            linkname = spec.get("linkname", "")
+
+            ti = tarfile.TarInfo(name=name)
+            ti.size = len(content) if member_type == tarfile.REGTYPE else 0
+            ti.type = member_type
+            ti.linkname = linkname
+
+            if member_type == tarfile.REGTYPE:
+                tar.addfile(ti, io.BytesIO(content))
+            else:
+                tar.addfile(ti)
+
+
+def test_backup_restore_rejects_parent_traversal(tmp_path):
+    """Verify that archives with '..' directory traversal are rejected before extraction."""
+    from scripts.backup_restore import restore_backup, verify_backup
+
+    archive_path = tmp_path / "traversal_attack.tar.gz"
+    _create_synthetic_tar(
+        archive_path,
+        [
+            {"name": "manifest.json", "content": b'{"components": {}}'},
+            {"name": "uploads/../../escape.txt", "content": b"malicious content"},
+        ],
+    )
+
+    restore_target = tmp_path / "restore_dest"
+    restore_target.mkdir()
+
+    with pytest.raises(ValueError, match="directory traversal '..' detected"):
+        verify_backup(archive_path)
+
+    with pytest.raises(ValueError, match="directory traversal '..' detected"):
+        restore_backup(archive_path, restore_target)
+
+    # Ensure no file was written anywhere
+    assert not (tmp_path / "escape.txt").exists()
+    assert not (restore_target / "escape.txt").exists()
+
+
+def test_backup_restore_rejects_absolute_posix_path(tmp_path):
+    """Verify that archives with absolute POSIX paths are rejected."""
+    from scripts.backup_restore import restore_backup, verify_backup
+
+    archive_path = tmp_path / "abs_posix_attack.tar.gz"
+    _create_synthetic_tar(
+        archive_path,
+        [
+            {"name": "manifest.json", "content": b'{"components": {}}'},
+            {"name": "/tmp/evil_posix.txt", "content": b"malicious content"},
+        ],
+    )
+
+    restore_target = tmp_path / "restore_dest"
+    restore_target.mkdir()
+
+    with pytest.raises(ValueError, match="absolute or UNC path detected"):
+        verify_backup(archive_path)
+
+    with pytest.raises(ValueError, match="absolute or UNC path detected"):
+        restore_backup(archive_path, restore_target)
+
+
+def test_backup_restore_rejects_windows_drive_and_unc_paths(tmp_path):
+    r"""Verify that Windows drive-qualified (C:\...) and UNC (//server/...) paths are rejected."""
+    from scripts.backup_restore import restore_backup, verify_backup
+
+    # 1. Windows drive-letter path
+    drive_archive = tmp_path / "drive_attack.tar.gz"
+    _create_synthetic_tar(
+        drive_archive,
+        [
+            {"name": "manifest.json", "content": b'{"components": {}}'},
+            {"name": "C:/evil_drive.txt", "content": b"malicious content"},
+        ],
+    )
+
+    restore_target = tmp_path / "restore_dest"
+    restore_target.mkdir(exist_ok=True)
+
+    with pytest.raises(ValueError, match="Windows drive-qualified path detected"):
+        verify_backup(drive_archive)
+
+    # 2. UNC network path
+    unc_archive = tmp_path / "unc_attack.tar.gz"
+    _create_synthetic_tar(
+        unc_archive,
+        [
+            {"name": "manifest.json", "content": b'{"components": {}}'},
+            {"name": "//evil.server/share/payload.txt", "content": b"malicious content"},
+        ],
+    )
+
+    with pytest.raises(ValueError, match="absolute or UNC path detected"):
+        verify_backup(unc_archive)
+
+
+def test_backup_restore_rejects_symlinks_and_hardlinks(tmp_path):
+    """Verify that symbolic links and hard links in backup archives are rejected."""
+    import tarfile
+    from scripts.backup_restore import restore_backup, verify_backup
+
+    # 1. Symlink
+    symlink_archive = tmp_path / "symlink_attack.tar.gz"
+    _create_synthetic_tar(
+        symlink_archive,
+        [
+            {"name": "manifest.json", "content": b'{"components": {}}'},
+            {
+                "name": "uploads/evil_symlink",
+                "type": tarfile.SYMTYPE,
+                "linkname": "/etc/passwd",
+            },
+        ],
+    )
+
+    restore_target = tmp_path / "restore_dest"
+    restore_target.mkdir(exist_ok=True)
+
+    with pytest.raises(ValueError, match="symbolic link rejected"):
+        verify_backup(symlink_archive)
+
+    # 2. Hardlink
+    hardlink_archive = tmp_path / "hardlink_attack.tar.gz"
+    _create_synthetic_tar(
+        hardlink_archive,
+        [
+            {"name": "manifest.json", "content": b'{"components": {}}'},
+            {
+                "name": "uploads/evil_hardlink",
+                "type": tarfile.LNKTYPE,
+                "linkname": "metadata.db",
+            },
+        ],
+    )
+
+    with pytest.raises(ValueError, match="hard link rejected"):
+        verify_backup(hardlink_archive)
+
+
+def test_backup_restore_rejects_unauthorized_top_level_files(tmp_path):
+    """Verify that unexpected files outside ALLOWED_TOP_LEVEL_COMPONENTS are rejected."""
+    from scripts.backup_restore import verify_backup
+
+    bad_member_archive = tmp_path / "unauthorized_member.tar.gz"
+    _create_synthetic_tar(
+        bad_member_archive,
+        [
+            {"name": "manifest.json", "content": b'{"components": {}}'},
+            {"name": "unauthorized_payload.sh", "content": b"echo attack"},
+        ],
+    )
+
+    with pytest.raises(ValueError, match="is not in allowed list"):
+        verify_backup(bad_member_archive)
+
+
+def test_backup_restore_rejects_corrupt_or_tampered_manifest(tmp_path):
+    """Verify that corrupted manifest JSON, missing manifest, or SHA256 mismatches are caught."""
+    import hashlib
+    from scripts.backup_restore import verify_backup
+
+    # 1. Missing manifest
+    no_manifest = tmp_path / "no_manifest.tar.gz"
+    _create_synthetic_tar(no_manifest, [{"name": "metadata.db", "content": b"sqlite dummy"}])
+    with pytest.raises(ValueError, match="manifest.json missing"):
+        verify_backup(no_manifest)
+
+    # 2. Corrupt manifest JSON
+    corrupt_json = tmp_path / "corrupt_json.tar.gz"
+    _create_synthetic_tar(
+        corrupt_json,
+        [
+            {"name": "manifest.json", "content": b"{invalid-json::"},
+        ],
+    )
+    with pytest.raises(ValueError, match="Corrupt or invalid manifest.json"):
+        verify_backup(corrupt_json)
+
+    # 3. SHA-256 mismatch (tampered database)
+    tampered_archive = tmp_path / "tampered_db.tar.gz"
+    _create_synthetic_tar(
+        tampered_archive,
+        [
+            {
+                "name": "manifest.json",
+                "content": b'{"components": {"database": {"sha256": "fake_expected_hash"}}}',
+            },
+            {"name": "metadata.db", "content": b"actual sqlite database bytes"},
+        ],
+    )
+    with pytest.raises(ValueError, match="Database SHA256 mismatch"):
+        verify_backup(tampered_archive)
+
+
+def test_rejected_archives_leave_no_unclean_state(tmp_path):
+    """Verify that when an archive fails validation, nothing is written and temporary directories are cleaned."""
+    from scripts.backup_restore import restore_backup
+
+    bad_archive = tmp_path / "bad.tar.gz"
+    _create_synthetic_tar(
+        bad_archive,
+        [
+            {"name": "manifest.json", "content": b'{"components": {}}'},
+            {"name": "uploads/data.csv", "content": b"col1,col2"},
+            {"name": "uploads/../../escaped.txt", "content": b"payload"},
+        ],
+    )
+
+    restore_target = tmp_path / "clean_target"
+    restore_target.mkdir()
+
+    with pytest.raises(ValueError, match="directory traversal '..' detected"):
+        restore_backup(bad_archive, restore_target)
+
+    # Target directory must remain completely clean (no temporary extraction leftovers)
+    assert list(restore_target.iterdir()) == []
+    assert not (tmp_path / "escaped.txt").exists()
+
+
