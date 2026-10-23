@@ -550,11 +550,12 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                     />
 
                     <Image
-                      src="/images/landing-ref/pipeline-engine-workflow-v3.png"
+                      src="/images/landing-ref/pipeline-engine-workflow-v3.webp"
                       alt="AutoNexa AI Engine Central Plinth"
                       fill
                       sizes="(max-width: 1024px) 100vw, 600px"
-                      priority
+                      loading="lazy"
+                      unoptimized
                       className="object-contain pointer-events-none select-none transition-transform duration-700 group-hover:scale-[1.01]"
                       style={{
                         imageRendering: "-webkit-optimize-contrast",

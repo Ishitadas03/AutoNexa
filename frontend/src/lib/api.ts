@@ -208,15 +208,22 @@ export const api = {
     }
   },
 
-  /** Check backend health status */
+  /** Check backend health status with bounded 3.5s timeout */
   async checkHealth(overrideUrl?: string): Promise<HealthResponse> {
     const url = getEffectiveUrl("/api/v1/health", overrideUrl);
-    const res = await fetch(url, {
-      method: "GET",
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-    });
-    return handleResponse<HealthResponse>(res);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+    try {
+      const res = await fetch(url, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      return await handleResponse<HealthResponse>(res);
+    } finally {
+      clearTimeout(timeoutId);
+    }
   },
 
   /** List persistent datasets from backend catalog with optional pagination and filters */

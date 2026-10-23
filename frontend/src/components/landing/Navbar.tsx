@@ -109,18 +109,30 @@ export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps)
           {/* Right Action CTAs: Backend Status Pill + Launch Workspace Button */}
           <div className="hidden md:flex items-center gap-3.5">
             {/* Status Pill */}
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#DCFCE7] border border-[#86EFAC] text-xs font-mono">
+            <div
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-mono transition-colors ${
+                apiConnected === true
+                  ? "bg-[#DCFCE7] border-[#86EFAC] text-[#15803D]"
+                  : apiConnected === false
+                  ? "bg-[#FEF3C7] border-[#FCD34D] text-[#B45309]"
+                  : "bg-white border-[#CBD5E1] text-[#64748B]"
+              }`}
+            >
               <span
                 className={`w-2 h-2 rounded-full ${
                   apiConnected === true
                     ? "bg-[#10B981] shadow-[0_0_8px_#10B981]"
                     : apiConnected === false
                     ? "bg-[#F59E0B]"
-                    : "bg-[#10B981] shadow-[0_0_8px_#10B981]"
+                    : "bg-[#94A3B8] animate-pulse"
                 }`}
               />
-              <span className="text-[#15803D] text-xs font-sans font-medium">
-                {apiConnected === false ? "Simulation Mode" : "API Connected"}
+              <span className="text-xs font-sans font-medium">
+                {apiConnected === true
+                  ? "API Connected"
+                  : apiConnected === false
+                  ? "Simulation Mode"
+                  : "Checking API…"}
               </span>
             </div>
 
@@ -136,14 +148,26 @@ export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps)
 
           {/* Mobile hamburger button */}
           <div className="md:hidden flex items-center gap-2.5">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#DCFCE7] border border-[#86EFAC] text-[10px] font-mono">
+            <div
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-mono ${
+                apiConnected === true
+                  ? "bg-[#DCFCE7] border-[#86EFAC] text-[#15803D]"
+                  : apiConnected === false
+                  ? "bg-[#FEF3C7] border-[#FCD34D] text-[#B45309]"
+                  : "bg-white border-[#CBD5E1] text-[#64748B]"
+              }`}
+            >
               <span
                 className={`w-1.5 h-1.5 rounded-full ${
-                  apiConnected === true ? "bg-[#10B981]" : "bg-[#F59E0B]"
+                  apiConnected === true
+                    ? "bg-[#10B981]"
+                    : apiConnected === false
+                    ? "bg-[#F59E0B]"
+                    : "bg-[#94A3B8] animate-pulse"
                 }`}
               />
-              <span className="text-[#15803D] font-medium">
-                {apiConnected === true ? "Live" : "Sim"}
+              <span className="font-medium">
+                {apiConnected === true ? "Live" : apiConnected === false ? "Sim" : "…"}
               </span>
             </div>
             <button

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import dynamic from "next/dynamic";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import InteractivePipeline from "@/components/landing/InteractivePipeline";
@@ -9,22 +10,17 @@ import FeatureHighlights from "@/components/landing/FeatureHighlights";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
 
-import WorkspaceLayout from "@/components/workspace/WorkspaceLayout";
-import OverviewTab from "@/components/workspace/OverviewTab";
-import DatasetsTab from "@/components/workspace/DatasetsTab";
-import ProfilingTab from "@/components/workspace/ProfilingTab";
-import TrainingTab from "@/components/workspace/TrainingTab";
-import LeaderboardTab from "@/components/workspace/LeaderboardTab";
-import ExperimentsTab from "@/components/workspace/ExperimentsTab";
-import PredictionTab from "@/components/workspace/PredictionTab";
-import ModelRegistryTab from "@/components/workspace/ModelRegistryTab";
-import PipelinesTab from "@/components/workspace/PipelinesTab";
-import MonitoringTab from "@/components/workspace/MonitoringTab";
-import ExplainabilityTab from "@/components/workspace/ExplainabilityTab";
-import ErrorAnalysisTab from "@/components/workspace/ErrorAnalysisTab";
-import BenchmarkingTab from "@/components/workspace/BenchmarkingTab";
-import DocumentationTab from "@/components/workspace/DocumentationTab";
-import SettingsTab from "@/components/workspace/SettingsTab";
+const WorkspaceView = dynamic(() => import("@/components/workspace/WorkspaceView"), {
+  loading: () => (
+    <div className="flex-1 flex items-center justify-center min-h-[60vh] bg-[#F2F6F9]">
+      <div className="flex items-center gap-3 px-5 py-3 rounded-full bg-white border border-[#CBD5E1] shadow-md text-xs sm:text-sm text-[#475569] font-mono">
+        <span className="w-3.5 h-3.5 rounded-full border-2 border-[#1D4ED8] border-t-transparent animate-spin" />
+        <span>Loading AutoNexa Workspace…</span>
+      </div>
+    </div>
+  ),
+  ssr: false,
+});
 
 import { useAutoNexaStore } from "@/lib/store";
 import { api } from "@/lib/api";
@@ -60,37 +56,23 @@ export default function Home() {
   const [isTraining, setIsTraining] = useState(false);
   const [trainingDuration, setTrainingDuration] = useState(0);
 
-  // Check health of backend on mount and sync dataset catalog
+  // Check health of backend on mount (bounded, non-blocking)
   const refreshHealth = useCallback(() => {
     api
       .checkHealth()
       .then((health) => {
-        const isHealthy = health.status === "healthy";
-        setApiConnected(isHealthy);
-        if (isHealthy) {
-          api
-            .listDatasets({ page: 1, pageSize: 50 })
-            .then((catalog) => {
-              if (catalog?.datasets?.length > 0) {
-                syncDatasets(catalog.datasets);
-              }
-            })
-            .catch((err) => {
-              console.warn("Dataset catalog sync skipped:", err.message);
-            });
-        }
+        setApiConnected(health.status === "healthy");
       })
       .catch((err) => {
-        console.warn("FastAPI backend is offline or unreachable:", err.message);
+        console.warn("FastAPI backend health check unreachable:", err.message);
         setApiConnected(false);
       });
-  }, [setApiConnected, syncDatasets]);
+  }, [setApiConnected]);
 
   useEffect(() => {
     refreshHealth();
   }, [refreshHealth]);
 
-  // Upload handler for user file
   // Upload handler for user file - memoized with useCallback
   const handleUploadFile = useCallback(async (file: File) => {
     setIsUploading(true);
@@ -353,137 +335,30 @@ export default function Home() {
           <Footer onLaunchWorkspace={() => setActiveView("workspace")} apiConnected={apiConnected} />
         </div>
       ) : (
-        /* FUNCTIONAL WORKSPACE VIEW (MATCHES VISUAL REFERENCE) */
-        <WorkspaceLayout
+        /* FUNCTIONAL WORKSPACE VIEW (CODE-SPLIT ON DEMAND) */
+        <WorkspaceView
           activeTab={activeTab}
-          onTabChange={(tab) => setActiveTab(tab)}
+          setActiveTab={setActiveTab}
           onExitWorkspace={() => setActiveView("landing")}
           apiConnected={apiConnected}
-        >
-          {activeTab === "overview" && (
-            <OverviewTab
-              datasets={datasets}
-              experiments={experiments}
-              onNavigateTab={(tab) => setActiveTab(tab)}
-              onUploadSample={handleUploadSample}
-            />
-          )}
-
-          {activeTab === "datasets" && (
-            <DatasetsTab
-              datasets={datasets}
-              activeDataset={activeDataset}
-              activeAnalysis={activeAnalysis}
-              onSelectDataset={(id) => setActiveDatasetId(id)}
-              onUploadFile={handleUploadFile}
-              onUploadSample={handleUploadSample}
-              onRunAnalysis={handleRunAnalysis}
-              onProceedToTraining={() => setActiveTab("training")}
-              onNavigateTab={(tab) => setActiveTab(tab)}
-              isLoading={isUploading}
-              isAnalyzing={isAnalyzing}
-            />
-          )}
-
-          {activeTab === "analysis" && (
-            <ProfilingTab
-              activeDataset={activeDataset}
-              activeAnalysis={activeAnalysis}
-              onRunAnalysis={handleRunAnalysis}
-              onProceedToTraining={() => setActiveTab("training")}
-              isAnalyzing={isAnalyzing}
-            />
-          )}
-
-          {activeTab === "training" && (
-            <TrainingTab
-              activeDataset={activeDataset}
-              onRunTraining={handleRunTraining}
-              isTraining={isTraining}
-              trainingDuration={trainingDuration}
-            />
-          )}
-
-          {activeTab === "pipelines" && (
-            <PipelinesTab
-              datasets={datasets}
-              onNavigateTab={(tab) => setActiveTab(tab)}
-            />
-          )}
-
-          {activeTab === "leaderboard" && (
-            <LeaderboardTab
-              activeExperiment={activeExperiment}
-              onNavigateTab={(tab) => setActiveTab(tab)}
-            />
-          )}
-
-          {(activeTab === "experiments" || activeTab === "details") && (
-            <ExperimentsTab
-              experiments={experiments}
-              activeExperiment={activeExperiment}
-              onSelectExperiment={(id) => setActiveExperimentId(id)}
-              onNavigateTab={(tab) => setActiveTab(tab)}
-            />
-          )}
-
-          {activeTab === "prediction" && (
-            <PredictionTab
-              activeExperiment={activeExperiment}
-              onNavigateTab={(tab) => setActiveTab(tab)}
-            />
-          )}
-
-          {activeTab === "explainability" && (
-            <ExplainabilityTab
-              activeExperiment={activeExperiment}
-              experiments={experiments}
-              onNavigateTab={(tab) => setActiveTab(tab)}
-              onSelectExperiment={(id) => setActiveExperimentId(id)}
-            />
-          )}
-
-          {activeTab === "error_analysis" && (
-            <ErrorAnalysisTab
-              activeExperiment={activeExperiment}
-              experiments={experiments}
-              onNavigateTab={(tab) => setActiveTab(tab)}
-              onSelectExperiment={(id) => setActiveExperimentId(id)}
-            />
-          )}
-
-          {activeTab === "benchmarks" && (
-            <BenchmarkingTab
-              experiments={experiments}
-              activeExperiment={activeExperiment}
-              onNavigateTab={(tab) => setActiveTab(tab)}
-              onSelectExperiment={(id) => setActiveExperimentId(id)}
-            />
-          )}
-
-          {activeTab === "models" && (
-            <ModelRegistryTab
-              experiments={experiments}
-              activeExperiment={activeExperiment}
-              onNavigateTab={(tab) => setActiveTab(tab)}
-            />
-          )}
-
-          {activeTab === "monitoring" && (
-            <MonitoringTab
-              onNavigateTab={(tab) => setActiveTab(tab)}
-              datasets={datasets}
-            />
-          )}
-
-          {activeTab === "docs" && (
-            <DocumentationTab />
-          )}
-
-          {activeTab === "settings" && (
-            <SettingsTab apiConnected={apiConnected} onRefreshHealth={refreshHealth} />
-          )}
-        </WorkspaceLayout>
+          datasets={datasets}
+          activeDataset={activeDataset}
+          setActiveDatasetId={setActiveDatasetId}
+          experiments={experiments}
+          activeExperiment={activeExperiment}
+          setActiveExperimentId={setActiveExperimentId}
+          activeAnalysis={activeAnalysis}
+          handleUploadFile={handleUploadFile}
+          handleUploadSample={handleUploadSample}
+          handleRunAnalysis={handleRunAnalysis}
+          handleRunTraining={handleRunTraining}
+          isUploading={isUploading}
+          isAnalyzing={isAnalyzing}
+          isTraining={isTraining}
+          trainingDuration={trainingDuration}
+          onRefreshHealth={refreshHealth}
+          syncDatasets={syncDatasets}
+        />
       )}
     </div>
   );

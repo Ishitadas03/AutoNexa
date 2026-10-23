@@ -76,7 +76,15 @@ export default function Footer({ onLaunchWorkspace, apiConnected }: FooterProps)
         {/* Status & License */}
         <ScrollReveal direction="right" distance={16} delay={0.12} duration={0.5}>
         <div className="flex items-center gap-3 text-[11px] text-[#64748B] font-mono">
-          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#CBD5E1] shadow-xs">
+          <span
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full border shadow-xs transition-colors ${
+              apiConnected === true
+                ? "bg-[#DCFCE7] border-[#86EFAC] text-[#15803D]"
+                : apiConnected === false
+                ? "bg-[#FEF3C7] border-[#FCD34D] text-[#B45309]"
+                : "bg-white border-[#CBD5E1] text-[#64748B]"
+            }`}
+          >
             <span
               className={`w-2 h-2 rounded-full ${
                 apiConnected === true
@@ -86,7 +94,7 @@ export default function Footer({ onLaunchWorkspace, apiConnected }: FooterProps)
                   : "bg-[#94A3B8] animate-pulse"
               }`}
             />
-            <span className="text-[#15803D] font-medium">
+            <span className="font-medium">
               {apiConnected === true
                 ? "API Connected"
                 : apiConnected === false

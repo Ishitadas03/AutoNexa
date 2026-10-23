@@ -108,11 +108,12 @@ export default function HeroWorkflowGraphic({ onSelectStage }: HeroWorkflowGraph
         
         {/* Crisp Retina 3D Isometric Artwork with Stationary Robot on Central Plinth */}
         <Image
-          src="/images/landing-ref/hero-network-light@2x.png"
+          src="/images/landing-ref/hero-network-light@2x.webp"
           alt="AutoNexa Connected 3D Pipeline Network"
           fill
           sizes="(max-width: 1024px) 100vw, 960px"
           priority
+          unoptimized
           className="object-contain pointer-events-none select-none transition-transform duration-700 ease-out group-hover:scale-[1.01]"
           style={{ imageRendering: "-webkit-optimize-contrast" }}
         />
