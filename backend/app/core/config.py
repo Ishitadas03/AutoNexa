@@ -90,6 +90,11 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("EXPERIMENTS_DIR"),
         description="Directory where experiment metadata and artifacts are stored",
     )
+    metadata_db_path: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("METADATA_DB_PATH"),
+        description="Path to SQLite metadata database; defaults to <experiments_dir>/metadata.db",
+    )
     enable_mlflow_tracking: bool = Field(
         default=True,
         validation_alias=AliasChoices("ENABLE_MLFLOW_TRACKING"),
@@ -365,6 +370,20 @@ class Settings(BaseSettings):
         path = (self.resolved_experiments_dir / "pipelines").resolve()
         path.mkdir(parents=True, exist_ok=True)
         return path
+
+    @property
+    def resolved_metadata_db_path(self) -> Path:
+        """Return absolute Path for SQLite metadata database, ensuring parent directory exists."""
+        if self.metadata_db_path:
+            p = Path(self.metadata_db_path)
+            if not p.is_absolute():
+                base_dir = Path(__file__).resolve().parent.parent.parent
+                p = (base_dir / p).resolve()
+            p.parent.mkdir(parents=True, exist_ok=True)
+            return p
+        p = (self.resolved_experiments_dir.parent / "data" / "metadata.db").resolve()
+        p.parent.mkdir(parents=True, exist_ok=True)
+        return p
 
 
 @lru_cache

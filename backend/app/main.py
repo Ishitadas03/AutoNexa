@@ -8,7 +8,8 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import api_router
-from app.core.config import settings
+from app.core.config import get_settings, settings
+from app.db import MetadataReconciliationService, close_db, init_db
 from app.services.automl.pipeline_service import (
     get_pipeline_service,
     reset_pipeline_service,
@@ -19,17 +20,27 @@ logger = logging.getLogger("autonexa.lifecycle")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """FastAPI application lifespan manager for deterministic startup and bounded graceful shutdown."""
+    """FastAPI application lifespan manager for deterministic startup, metadata indexing, and bounded graceful shutdown."""
     startup_start = time.perf_counter()
+    current_settings = get_settings()
     logger.info(
         "AutoNexa backend starting up | app=%s version=%s env=%s max_concurrency=%d",
-        settings.app_name,
-        settings.app_version,
-        settings.environment,
-        settings.pipeline_max_concurrency,
+        current_settings.app_name,
+        current_settings.app_version,
+        current_settings.environment,
+        current_settings.pipeline_max_concurrency,
     )
 
-    # 1. Startup initialization & orphan reconciliation
+    # 1. Database schema initialization & legacy metadata reconciliation
+    try:
+        init_db()
+        reconciler = MetadataReconciliationService(current_settings)
+        reconciled_stats = reconciler.reconcile_all()
+        logger.info("Metadata catalog and indexing reconciliation pass: %s", reconciled_stats)
+    except Exception as exc:
+        logger.error("Metadata database initialization/reconciliation warning: %s", exc, exc_info=True)
+
+    # 2. Pipeline startup initialization & orphan reconciliation
     try:
         pipeline_service_getter = app.dependency_overrides.get(get_pipeline_service, get_pipeline_service)
         pipeline_service = pipeline_service_getter()
@@ -46,7 +57,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
 
-    # 2. Bounded graceful shutdown
+    # 3. Bounded graceful shutdown
     shutdown_start = time.perf_counter()
     logger.info("AutoNexa backend shutting down: initiating graceful resource draining...")
     try:
@@ -57,6 +68,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.error("Error during pipeline service shutdown: %s", exc, exc_info=True)
     finally:
         reset_pipeline_service()
+        try:
+            close_db()
+        except Exception as exc:
+            logger.warning("Error closing database connections during shutdown: %s", exc)
 
     shutdown_elapsed_ms = (time.perf_counter() - shutdown_start) * 1000.0
     logger.info("AutoNexa backend graceful shutdown completed in %.2fms.", shutdown_elapsed_ms)

@@ -27,6 +27,10 @@ import scipy
 import sklearn
 
 from app.core.config import Settings, get_settings
+from app.db.models import utc_now
+from app.db.repositories.experiment_repository import parse_datetime
+from app.db.repositories.pipeline_repository import PipelineRepository
+from app.db.session import get_db_context, init_db
 from app.schemas.monitoring import ReferenceProfileCreate
 from app.schemas.pipeline import (
     PipelineCreateRequest,
@@ -109,10 +113,16 @@ class PipelineService:
         tracker_service: Optional[ExperimentTrackerService] = None,
         registry_service: Optional[ModelRegistryService] = None,
         monitoring_service: Optional[ModelMonitoringService] = None,
+        metadata_db_path: Optional[Path] = None,
     ) -> None:
         self.settings: Settings = get_settings()
         self.pipelines_dir: Path = pipelines_dir or self.settings.resolved_pipelines_dir
         self.pipelines_dir.mkdir(parents=True, exist_ok=True)
+        self.metadata_db_path: Path = metadata_db_path or (self.pipelines_dir.parent / "metadata.db").resolve()
+        try:
+            init_db(db_path=self.metadata_db_path)
+        except Exception as exc:
+            logger.warning("Database init check warning in PipelineService: %s", exc)
 
         self.manifests_dir = self.pipelines_dir / "manifests"
         self.events_dir = self.pipelines_dir / "events"
@@ -358,6 +368,36 @@ class PipelineService:
                             logger.warning("Fallback persistence failed for %s: %s", pipeline.pipeline_id, exc)
                     else:
                         time.sleep(0.05 * (attempt + 1))
+
+        # Index in SQLite metadata catalog
+        try:
+            with get_db_context(self.metadata_db_path) as session:
+                repo = PipelineRepository(session)
+                created_dt = parse_datetime(pipeline.created_at) or utc_now()
+                updated_dt = parse_datetime(pipeline.updated_at) or created_dt
+                completed_dt = parse_datetime(pipeline.completed_at)
+                completed_stages_count = sum(1 for s in pipeline.stages if s.status == "completed")
+
+                repo.upsert_pipeline(
+                    pipeline_id=pipeline.pipeline_id,
+                    name=pipeline.name,
+                    model_name=pipeline.model_name,
+                    dataset_id=pipeline.dataset_id,
+                    target_column=pipeline.target_column,
+                    status=pipeline.status.value,
+                    manifest_json=pipeline.model_dump(),
+                    current_stage=pipeline.current_stage.value if pipeline.current_stage else None,
+                    total_stages=len(pipeline.stages),
+                    completed_stages=completed_stages_count,
+                    retry_count=pipeline.retry_count,
+                    failure_reason=pipeline.failure_reason,
+                    duration_seconds=pipeline.duration_seconds,
+                    created_at=created_dt,
+                    updated_at=updated_dt,
+                    completed_at=completed_dt,
+                )
+        except Exception as db_err:
+            logger.warning("Failed to index pipeline %s in SQLite: %s", pipeline.pipeline_id, db_err)
 
     def _load_pipeline_record(self, pipeline_id: str) -> PipelineResponse:
         """Load a persisted pipeline record or raise HTTP 404."""
@@ -1047,7 +1087,66 @@ class PipelineService:
         model_name: Optional[str] = None,
         dataset_id: Optional[str] = None,
     ) -> PipelineListResponse:
-        """Query and paginate recorded pipeline executions with optional filtering."""
+        """Query and paginate recorded pipeline executions via indexed relational repository."""
+        limit = max(1, min(limit, 100))
+        offset = max(0, offset)
+
+        try:
+            with get_db_context(self.metadata_db_path) as session:
+                repo = PipelineRepository(session)
+                records, total = repo.list_pipelines(
+                    limit=limit,
+                    offset=offset,
+                    status=status,
+                    model_name=model_name,
+                    dataset_id=dataset_id,
+                )
+
+                # Check if reconciliation is needed (zero in db but manifests exist on disk)
+                if total == 0 and not status and not model_name and not dataset_id:
+                    if any(self.manifests_dir.glob("*.json")):
+                        from app.db.reconciliation import MetadataReconciliationService
+                        MetadataReconciliationService(self.settings).reconcile_pipelines(session, self.pipelines_dir)
+                        records, total = repo.list_pipelines(
+                            limit=limit,
+                            offset=offset,
+                            status=status,
+                            model_name=model_name,
+                            dataset_id=dataset_id,
+                        )
+
+                pipelines: List[PipelineResponse] = []
+                for r in records:
+                    manifest_data = dict(r.manifest_json)
+                    if manifest_data.get("current_stage") is None:
+                        manifest_data["current_stage"] = "completed" if r.status in ("succeeded", "completed") else "dataset_validation"
+                    pipelines.append(PipelineResponse(**manifest_data))
+
+                return PipelineListResponse(
+                    total=total,
+                    limit=limit,
+                    offset=offset,
+                    pipelines=pipelines,
+                )
+        except Exception as exc:
+            logger.warning("Indexed pipeline query failed, falling back to disk listing: %s", exc)
+            return self._legacy_list_pipelines(
+                limit=limit,
+                offset=offset,
+                status=status,
+                model_name=model_name,
+                dataset_id=dataset_id,
+            )
+
+    def _legacy_list_pipelines(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        status: Optional[str] = None,
+        model_name: Optional[str] = None,
+        dataset_id: Optional[str] = None,
+    ) -> PipelineListResponse:
+        """Legacy filesystem scanning fallback for pipeline listing."""
         limit = max(1, min(limit, 100))
         offset = max(0, offset)
 

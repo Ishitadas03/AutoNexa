@@ -150,6 +150,38 @@ export function useAutoNexaStore() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
+  const syncDatasets = (serverDatasets: DatasetProfileResponse[]) => {
+    setDatasets((prev) => {
+      const prevMap = new Map(prev.map((d) => [d.dataset_id, d]));
+      const merged: DatasetProfileResponse[] = [];
+      const seen = new Set<string>();
+
+      for (const sDs of serverDatasets) {
+        seen.add(sDs.dataset_id);
+        const existing = prevMap.get(sDs.dataset_id);
+        if (existing) {
+          merged.push({
+            ...sDs,
+            preview_rows: existing.preview_rows || sDs.preview_rows,
+          });
+        } else {
+          merged.push(sDs);
+        }
+      }
+
+      for (const pDs of prev) {
+        if (!seen.has(pDs.dataset_id)) {
+          merged.push(pDs);
+        }
+      }
+
+      return merged;
+    });
+
+    // If no active dataset is currently selected, select the first server dataset
+    setActiveDatasetId((current) => current || (serverDatasets.length > 0 ? serverDatasets[0].dataset_id : null));
+  };
+
   const activeDataset = datasets.find((d) => d.dataset_id === activeDatasetId) || null;
   const activeExperiment = experiments.find((e) => e.experiment_id === activeExperimentId) || null;
 
@@ -159,6 +191,8 @@ export function useAutoNexaStore() {
     activeTab,
     setActiveTab,
     datasets,
+    setDatasets,
+    syncDatasets,
     activeDatasetId,
     setActiveDatasetId,
     activeDataset,

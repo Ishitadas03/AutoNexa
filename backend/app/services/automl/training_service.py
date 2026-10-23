@@ -19,6 +19,9 @@ from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
 import sklearn
 
 from app.core.config import Settings, get_settings
+from app.db.models import utc_now
+from app.db.repositories.experiment_repository import ExperimentRepository
+from app.db.session import get_db_context, init_db
 from app.schemas.analysis import TaskType
 from app.schemas.training import (
     ModelEvaluationResult,
@@ -43,10 +46,23 @@ class TrainingService:
         self,
         upload_dir: Optional[Path] = None,
         experiments_dir: Optional[Path] = None,
+        metadata_db_path: Optional[Path] = None,
     ) -> None:
         self.settings: Settings = get_settings()
         self.upload_dir: Path = upload_dir or self.settings.resolved_upload_dir
         self.experiments_dir: Path = experiments_dir or self.settings.resolved_experiments_dir
+        if metadata_db_path is not None:
+            self.metadata_db_path = Path(metadata_db_path).resolve()
+        elif experiments_dir is not None:
+            self.metadata_db_path = (self.experiments_dir.parent / "data" / "metadata.db").resolve()
+        else:
+            self.metadata_db_path = self.settings.resolved_metadata_db_path
+
+        try:
+            init_db(db_path=self.metadata_db_path)
+        except Exception as exc:
+            logger.warning("Database init check warning in TrainingService: %s", exc)
+
         self.analysis_service = AnalysisService(upload_dir=self.upload_dir)
         self.registry = ModelRegistry()
         self.max_dataset_rows = self.settings.max_dataset_rows
@@ -630,6 +646,34 @@ class TrainingService:
                 temp_meta_path = Path(tf.name)
             temp_meta_path.replace(metadata_file)
 
+            # Relational index persistence
+            try:
+                with get_db_context(self.metadata_db_path) as session:
+                    exp_repo = ExperimentRepository(session)
+                    exp_repo.upsert_experiment(
+                        experiment_id=experiment_id,
+                        name=metadata_dict.get("name") or f"AutoML Run {experiment_id[:8]}",
+                        description=metadata_dict.get("description"),
+                        dataset_id=dataset_id,
+                        dataset_fingerprint=dataset_fingerprint,
+                        task_type=task_type.value,
+                        target_column=target_col,
+                        status="completed",
+                        primary_metric=primary_metric,
+                        primary_metric_greater_is_better=greater_is_better,
+                        best_model=best_model_id,
+                        best_score=best_score,
+                        evaluation_strategy=request.evaluation_strategy,
+                        total_duration_seconds=total_duration,
+                        models_count=len(results),
+                        has_artifact=True,
+                        created_at=utc_now(),
+                        updated_at=utc_now(),
+                        artifacts_manifest=metadata_dict.get("artifacts"),
+                    )
+            except Exception as db_err:
+                logger.warning("Failed to index experiment %s in SQLite: %s", experiment_id, db_err)
+
         except Exception as exc:
             logger.error("Failed to persist experiment artifacts for %s: %s", experiment_id, exc)
             artifacts_saved = False
@@ -654,6 +698,21 @@ class TrainingService:
                     json.dump(failure_dict, tf, indent=2)
                     temp_f_path = Path(tf.name)
                 temp_f_path.replace(metadata_file)
+
+                with get_db_context(self.metadata_db_path) as session:
+                    exp_repo = ExperimentRepository(session)
+                    exp_repo.upsert_experiment(
+                        experiment_id=experiment_id,
+                        name=f"AutoML Run {experiment_id[:8]}",
+                        dataset_id=dataset_id,
+                        dataset_fingerprint=dataset_fingerprint,
+                        task_type=task_type.value,
+                        target_column=target_col,
+                        status="failed",
+                        primary_metric=primary_metric,
+                        created_at=utc_now(),
+                        updated_at=utc_now(),
+                    )
             except Exception:
                 pass
 

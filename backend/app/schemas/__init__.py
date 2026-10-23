@@ -27,7 +27,11 @@ from app.schemas.research_benchmark import (
     RepeatedRunRequest,
     ResourceEfficiencyReport,
 )
-from app.schemas.dataset import DatasetProfileResponse
+from app.schemas.dataset import (
+    DatasetListResponse,
+    DatasetProfileResponse,
+    DatasetSummary,
+)
 from app.schemas.error_analysis import (
     CategoryErrorSlice,
     ClassErrorSummary,
@@ -184,7 +188,9 @@ __all__ = [
     "ComparabilityWarning",
     "ConfidenceBucket",
     "ConstraintViolation",
+    "DatasetListResponse",
     "DatasetProfileResponse",
+    "DatasetSummary",
     "DriftAnalysisRequest",
     "DriftAnalysisResponse",
     "DriftMethod",

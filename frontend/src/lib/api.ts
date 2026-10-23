@@ -5,7 +5,9 @@ import {
   AnalysisResponse,
   BenchmarkCompareRequest,
   BenchmarkComparisonResponse,
+  DatasetListResponse,
   DatasetProfileResponse,
+  DatasetSummary,
   ErrorAnalysisRequest,
   ErrorAnalysisResponse,
   ExperimentInspectionResponse,
@@ -183,6 +185,54 @@ export const api = {
       cache: "no-store",
     });
     return handleResponse<HealthResponse>(res);
+  },
+
+  /** List persistent datasets from backend catalog with optional pagination and filters */
+  async listDatasets(
+    params?: {
+      page?: number;
+      pageSize?: number;
+      search?: string;
+      status?: string;
+      sortBy?: string;
+      sortOrder?: "asc" | "desc";
+    },
+    apiKey?: string,
+    overrideUrl?: string
+  ): Promise<DatasetListResponse> {
+    const query = new URLSearchParams();
+    if (params?.page) query.set("page", params.page.toString());
+    if (params?.pageSize) query.set("page_size", params.pageSize.toString());
+    if (params?.search) query.set("search", params.search);
+    if (params?.status) query.set("status", params.status);
+    if (params?.sortBy) query.set("sort_by", params.sortBy);
+    if (params?.sortOrder) query.set("sort_order", params.sortOrder);
+
+    const queryString = query.toString();
+    const endpoint = `/api/v1/datasets${queryString ? `?${queryString}` : ""}`;
+    const url = getEffectiveUrl(endpoint, overrideUrl);
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getAuthHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<DatasetListResponse>(res);
+  },
+
+  /** Retrieve dataset metadata by identifier from backend catalog */
+  async getDataset(
+    datasetId: string,
+    apiKey?: string,
+    overrideUrl?: string
+  ): Promise<DatasetSummary> {
+    const url = getEffectiveUrl(`/api/v1/datasets/${encodeURIComponent(datasetId)}`, overrideUrl);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: getAuthHeaders(apiKey),
+      cache: "no-store",
+    });
+    return handleResponse<DatasetSummary>(res);
   },
 
   /** Upload a CSV dataset file */

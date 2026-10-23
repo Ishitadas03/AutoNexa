@@ -1,17 +1,74 @@
 """Dataset ingestion, profiling, intelligence analysis, and AutoML training endpoints."""
 
 from typing import Any, Dict, Optional
-from fastapi import APIRouter, Depends, File, UploadFile, status
+from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 
 from app.core.security import require_admin_role, require_inference_role
 from app.schemas.analysis import AnalysisRequest, AnalysisResponse
-from app.schemas.dataset import DatasetProfileResponse
+from app.schemas.dataset import (
+    DatasetListResponse,
+    DatasetProfileResponse,
+    DatasetSummary,
+)
 from app.schemas.training import TrainingRequest, TrainingResponse
 from app.services.analysis_service import AnalysisService, get_analysis_service
 from app.services.automl.training_service import TrainingService, get_training_service
 from app.services.dataset_service import DatasetService, get_dataset_service
 
 router = APIRouter(prefix="/datasets", tags=["Datasets"])
+
+
+@router.get(
+    "",
+    response_model=DatasetListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="List Persistent Datasets from Catalog",
+    description=(
+        "Retrieves a paginated list of cataloged tabular datasets stored on the server. "
+        "Supports filtering by validation status, search across filename/fingerprint/ID, "
+        "and deterministic sorting. Requires inference/read credentials."
+    ),
+)
+def list_datasets(
+    page: int = Query(default=1, ge=1, description="Page number (1-indexed)"),
+    page_size: int = Query(default=10, ge=1, le=100, description="Items per page"),
+    search: Optional[str] = Query(default=None, description="Search filter for ID, filename, or SHA-256 fingerprint"),
+    status_filter: Optional[str] = Query(default=None, alias="status", description="Filter by status (validated, corrupted)"),
+    sort_by: str = Query(default="created_at", description="Field to sort by (created_at, filename, rows, file_size_bytes)"),
+    sort_order: str = Query(default="desc", description="Sort order direction ('asc' or 'desc')"),
+    service: DatasetService = Depends(get_dataset_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
+) -> DatasetListResponse:
+    """List persisted datasets with pagination and filtering."""
+    return service.list_datasets(
+        page=page,
+        page_size=page_size,
+        search=search,
+        status_filter=status_filter,
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
+
+
+@router.get(
+    "/{dataset_id}",
+    response_model=DatasetSummary,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve Dataset Metadata by Identifier",
+    description=(
+        "Retrieves detailed metadata for a specific dataset from the persistent catalog, "
+        "including structural summary, column types, fingerprint, and experiment association counts. "
+        "Requires inference/read credentials."
+    ),
+)
+def get_dataset(
+    dataset_id: str,
+    service: DatasetService = Depends(get_dataset_service),
+    _auth: Dict[str, Any] = Depends(require_inference_role),
+) -> DatasetSummary:
+    """Retrieve metadata for a specific dataset."""
+    return service.get_dataset(dataset_id=dataset_id)
+
 
 
 @router.post(

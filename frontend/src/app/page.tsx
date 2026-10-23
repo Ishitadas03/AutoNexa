@@ -49,6 +49,7 @@ export default function Home() {
     setActiveAnalysis,
     apiConnected,
     setApiConnected,
+    syncDatasets,
     toasts,
     showToast,
     dismissToast,
@@ -59,14 +60,27 @@ export default function Home() {
   const [isTraining, setIsTraining] = useState(false);
   const [trainingDuration, setTrainingDuration] = useState(0);
 
-  // Check health of backend on mount
+  // Check health of backend on mount and sync dataset catalog
   useEffect(() => {
     let isMounted = true;
     api
       .checkHealth()
       .then((health) => {
         if (isMounted) {
-          setApiConnected(health.status === "healthy");
+          const isHealthy = health.status === "healthy";
+          setApiConnected(isHealthy);
+          if (isHealthy) {
+            api
+              .listDatasets({ page: 1, pageSize: 50 })
+              .then((catalog) => {
+                if (isMounted && catalog?.datasets?.length > 0) {
+                  syncDatasets(catalog.datasets);
+                }
+              })
+              .catch((err) => {
+                console.warn("Dataset catalog sync skipped:", err.message);
+              });
+          }
         }
       })
       .catch((err) => {
@@ -79,7 +93,7 @@ export default function Home() {
     return () => {
       isMounted = false;
     };
-  }, [setApiConnected]);
+  }, [setApiConnected, syncDatasets]);
 
   // Upload handler for user file
   // Upload handler for user file - memoized with useCallback

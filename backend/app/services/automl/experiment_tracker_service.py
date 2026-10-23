@@ -16,6 +16,9 @@ from fastapi import HTTPException, status
 import numpy as np
 
 from app.core.config import Settings, get_settings
+from app.db.models import utc_now
+from app.db.repositories.experiment_repository import ExperimentRepository
+from app.db.session import get_db_context, init_db
 from app.schemas.tracking import (
     ArtifactVerificationResponse,
     ExperimentComparisonItem,
@@ -78,10 +81,25 @@ def get_system_environment_info() -> Dict[str, str]:
 class ExperimentTrackerService:
     """Provides persistent tracking, querying, audit manifests, and comparisons for AutoML experiments."""
 
-    def __init__(self, experiments_dir: Optional[Path] = None) -> None:
+    def __init__(
+        self,
+        experiments_dir: Optional[Path] = None,
+        metadata_db_path: Optional[Path] = None,
+    ) -> None:
         self.settings: Settings = get_settings()
         self.experiments_dir: Path = experiments_dir or self.settings.resolved_experiments_dir
+        if metadata_db_path is not None:
+            self.metadata_db_path = Path(metadata_db_path).resolve()
+        elif experiments_dir is not None:
+            self.metadata_db_path = (self.experiments_dir.parent / "data" / "metadata.db").resolve()
+        else:
+            self.metadata_db_path = self.settings.resolved_metadata_db_path
+
         self.experiments_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            init_db(db_path=self.metadata_db_path)
+        except Exception as exc:
+            logger.warning("Database init check warning in ExperimentTrackerService: %s", exc)
 
     def safe_resolve_experiment_dir(self, experiment_id: str) -> Path:
         """Resolve and validate the experiment directory path, preventing traversal attacks."""
@@ -206,7 +224,97 @@ class ExperimentTrackerService:
         dataset_id: Optional[str] = None,
         search: Optional[str] = None,
     ) -> ExperimentListResponse:
-        """List persisted experiments with filtering, search, and pagination."""
+        """List persisted experiments with filtering, search, and pagination via indexed relational store."""
+        if page < 1:
+            page = 1
+        if page_size < 1:
+            page_size = 10
+        if page_size > 100:
+            page_size = 100
+
+        try:
+            with get_db_context(self.metadata_db_path) as session:
+                repo = ExperimentRepository(session)
+                records, total = repo.list_experiments(
+                    page=page,
+                    page_size=page_size,
+                    task_type=task_type,
+                    status=status,
+                    dataset_id=dataset_id,
+                    search=search,
+                )
+
+                # If query returned zero records, check if legacy unindexed disk experiments exist
+                if total == 0 and self.experiments_dir.is_dir():
+                    has_disk_dirs = any(
+                        d.is_dir() and d.name not in RESERVED_EXPERIMENT_DIRS
+                        for d in self.experiments_dir.iterdir()
+                    )
+                    if has_disk_dirs:
+                        from app.db.reconciliation import MetadataReconciliationService
+                        reconciled = MetadataReconciliationService(self.settings).reconcile_experiments(session, self.experiments_dir)
+                        if reconciled > 0:
+                            records, total = repo.list_experiments(
+                                page=page,
+                                page_size=page_size,
+                                task_type=task_type,
+                                status=status,
+                                dataset_id=dataset_id,
+                                search=search,
+                            )
+
+                total_pages = max(1, math.ceil(total / page_size)) if total > 0 else 1
+                summaries = [
+                    ExperimentSummary(
+                        experiment_id=r.experiment_id,
+                        name=r.name,
+                        description=r.description,
+                        dataset_id=r.dataset_id,
+                        dataset_fingerprint=r.dataset_fingerprint,
+                        task_type=r.task_type,
+                        target_column=r.target_column,
+                        status=r.status,
+                        best_model=r.best_model,
+                        best_score=r.best_score,
+                        primary_metric=r.primary_metric,
+                        primary_metric_greater_is_better=r.primary_metric_greater_is_better,
+                        evaluation_strategy=r.evaluation_strategy,
+                        total_duration_seconds=r.total_duration_seconds,
+                        created_at=r.created_at.isoformat() if r.created_at else utc_now().isoformat(),
+                        models_count=r.models_count,
+                        has_artifact=r.has_artifact,
+                    )
+                    for r in records
+                ]
+
+                return ExperimentListResponse(
+                    items=summaries,
+                    total=total,
+                    page=page,
+                    page_size=page_size,
+                    total_pages=total_pages,
+                )
+        except Exception as exc:
+            logger.warning("Indexed experiment query failed, falling back to disk listing: %s", exc)
+            return self._legacy_list_experiments(
+                page=page,
+                page_size=page_size,
+                task_type=task_type,
+                status=status,
+                dataset_id=dataset_id,
+                search=search,
+            )
+
+    def _legacy_list_experiments(
+        self,
+        page: int = 1,
+        page_size: int = 10,
+        task_type: Optional[str] = None,
+        status: Optional[str] = None,
+        dataset_id: Optional[str] = None,
+        search: Optional[str] = None,
+    ) -> ExperimentListResponse:
+        """Legacy filesystem scanning fallback for experiment listing."""
         if page < 1:
             page = 1
         if page_size < 1:
@@ -392,11 +500,17 @@ class ExperimentTrackerService:
         return metrics
 
     def delete_experiment(self, experiment_id: str) -> bool:
-        """Safely delete an experiment directory and all persisted artifacts."""
+        """Safely delete an experiment directory, all persisted artifacts, and remove from relational index."""
         exp_dir = self.safe_resolve_experiment_dir(experiment_id)
         try:
             shutil.rmtree(exp_dir)
             logger.info("Successfully deleted experiment directory: %s", experiment_id)
+            try:
+                with get_db_context(self.metadata_db_path) as session:
+                    repo = ExperimentRepository(session)
+                    repo.delete_experiment(experiment_id)
+            except Exception as db_err:
+                logger.warning("Failed to delete experiment %s from SQLite: %s", experiment_id, db_err)
             return True
         except Exception as exc:
             logger.error("Failed to delete experiment directory %s: %s", experiment_id, exc)

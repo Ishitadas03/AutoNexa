@@ -30,6 +30,23 @@ export interface DatasetProfileResponse {
   duplicate_rows_count?: number;
 }
 
+export interface DatasetSummary extends DatasetProfileResponse {
+  fingerprint_sha256: string;
+  validation_status: string;
+  created_at: string;
+  updated_at: string;
+  associated_experiments_count?: number;
+  associated_pipelines_count?: number;
+}
+
+export interface DatasetListResponse {
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  datasets: DatasetSummary[];
+}
+
 export type ColumnRole = "numeric" | "categorical" | "identifier" | "datetime" | "text" | "target" | "unknown";
 export type WarningSeverity = "info" | "warning" | "critical";
 

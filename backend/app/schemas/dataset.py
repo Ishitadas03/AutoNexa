@@ -107,3 +107,50 @@ class DatasetProfileResponse(BaseModel):
             }
         }
     }
+
+
+class DatasetSummary(DatasetProfileResponse):
+    """Rich persistent dataset catalog entry with provenance fingerprint and operational status."""
+
+    fingerprint_sha256: str = Field(
+        ...,
+        description="Cryptographic SHA-256 digest of the raw uploaded CSV file",
+        examples=["e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"],
+    )
+    validation_status: str = Field(
+        default="validated",
+        description="Dataset health and integrity status (e.g. validated, corrupted, archived)",
+        examples=["validated"],
+    )
+    created_at: str = Field(
+        ...,
+        description="ISO 8601 UTC timestamp of original dataset ingestion",
+        examples=["2026-10-23T12:00:00Z"],
+    )
+    updated_at: str = Field(
+        ...,
+        description="ISO 8601 UTC timestamp of last metadata modification",
+        examples=["2026-10-23T12:00:00Z"],
+    )
+    associated_experiments_count: int = Field(
+        default=0,
+        ge=0,
+        description="Count of AutoML experiments evaluated against this dataset",
+        examples=[3],
+    )
+    associated_pipelines_count: int = Field(
+        default=0,
+        ge=0,
+        description="Count of end-to-end pipelines executed against this dataset",
+        examples=[1],
+    )
+
+
+class DatasetListResponse(BaseModel):
+    """Paginated collection response for dataset catalog queries."""
+
+    total: int = Field(..., ge=0, description="Total count of datasets matching query filters")
+    page: int = Field(..., ge=1, description="Current page number (1-indexed)")
+    page_size: int = Field(..., ge=1, description="Requested number of items per page")
+    total_pages: int = Field(..., ge=0, description="Total pages available under current page size")
+    datasets: List[DatasetSummary] = Field(..., description="List of dataset catalog summaries for this page")
