@@ -1,638 +1,746 @@
-# AutoNexa (AutoML Research Lab)
+# AutoNexa
 
-An extensible, research-oriented Automated Machine Learning (AutoML) platform designed for tabular datasets. AutoNexa accelerates the workflow from raw tabular data ingestion to model selection, hyperparameter optimization, explainability, experiment tracking, and quantum machine learning benchmarking.
+<div align="center">
 
----
+**From Raw Data to Reliable Models**
 
-## 1. Project Overview
+*A visual, research-grade Automated Machine Learning (AutoML) platform engineered for tabular datasets.*
 
-AutoNexa provides an automated, reproducible pipeline for tabular machine learning workflows:
-- **Intelligent Ingestion & EDA**: Ingests tabular formats (CSV), infers schemas, profiles data distributions, and catches data quality anomalies and target leakages.
-- **Dataset Intelligence & Task Detection**: Automatically audits feature roles, evaluates data quality risks (missingness, constants, class imbalance, leakage), and recommends suitable ML tasks (classification vs. regression) with heuristic rationales.
-- **Resource-Aware AutoML**: Dynamically evaluates candidate models (linear baselines, tree-based models, and ensembles) under strict time and resource budgets.
-- **Explainable AI (XAI)**: Native SHAP integration to provide global feature importance and individual prediction attributions.
-- **Reproducible Experimentation**: Tracks trials, configurations, and artifacts via MLflow.
-- **Quantum Machine Learning (QML) Benchmarking**: Benchmarks variational quantum circuits (PennyLane) against classical ML baselines.
+[![CI Quality Gates](https://img.shields.io/badge/CI-Passing%20(279%2F279%20Tests)-0969da?style=flat-square&logo=githubactions&logoColor=white)](https://github.com/Ishitadas03/AutoNexa/actions)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776ab?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.143.3-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16.4.2-000000?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9.1-f7931e?style=flat-square&logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
+[![SQLite WAL](https://img.shields.io/badge/Storage-SQLite%20WAL%20%2B%20Artifacts-003b57?style=flat-square&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Docker](https://img.shields.io/badge/Container-Docker%20Compose-2496ed?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
 
----
+[**Explore Live Web Application**](https://autonexa-orpin.vercel.app) • [**GitHub Repository**](https://github.com/Ishitadas03/AutoNexa) • [**System Architecture**](docs/architecture.md) • [**Operational Runbook**](docs/operations/autonexa_runbook.md)
 
-## 2. Current Development Status
-
-- **Status**: **Phase 8 — Premium 3D Responsive Frontend & AutoML Platform (Complete)**
-- **Scope Implemented**:
-  - Modular FastAPI application entry point initialized ([`backend/app/main.py`](file:///c:/Users/ishit/AutoNexa/backend/app/main.py)).
-  - Centralized type-safe settings management powered by `pydantic-settings` ([`backend/app/core/config.py`](file:///c:/Users/ishit/AutoNexa/backend/app/core/config.py)).
-  - System health-check endpoint ([`GET /api/v1/health`](http://127.0.0.1:8000/api/v1/health)) with strict Pydantic response contract ([`backend/app/schemas/health.py`](file:///c:/Users/ishit/AutoNexa/backend/app/schemas/health.py)).
-  - Secure chunked CSV ingestion endpoint ([`POST /api/v1/datasets/upload`](http://127.0.0.1:8000/docs#/Datasets/upload_dataset_api_v1_datasets_upload_post)) with path-traversal protection and dynamic streaming size ceiling enforcement ([`backend/app/services/dataset_service.py`](file:///c:/Users/ishit/AutoNexa/backend/app/services/dataset_service.py)).
-  - Comprehensive Dataset Intelligence & Task Detection endpoint ([`POST /api/v1/datasets/{dataset_id}/analyze`](http://127.0.0.1:8000/docs#/Datasets/analyze_dataset_api_v1_datasets__dataset_id__analyze_post)) providing feature role classification, quality warnings, candidate target detection, and heuristic ML task recommendations with override support ([`backend/app/services/analysis_service.py`](file:///c:/Users/ishit/AutoNexa/backend/app/services/analysis_service.py)).
-  - Reliable AutoML Model Selection & Training endpoint ([`POST /api/v1/datasets/{dataset_id}/train`](http://127.0.0.1:8000/docs#/Datasets/train_models_api_v1_datasets__dataset_id__train_post)) with configurable evaluation strategies (`holdout` and `cross_validation`), sample standard deviation calculation (`ddof=1`), untouched final holdout evaluation, SHA-256 dataset fingerprinting, and hierarchical MLflow tracking ([`backend/app/services/automl/`](file:///c:/Users/ishit/AutoNexa/backend/app/services/automl/)).
-  - Read-only Experiment Inspection endpoint ([`GET /api/v1/experiments/{experiment_id}`](http://127.0.0.1:8000/docs#/Experiments/inspect_experiment_api_v1_experiments__experiment_id__get)) returning validated metadata, model leaderboard, expected feature schema, artifact disk availability, and SHA-256 integrity checksums without exposing server filesystem paths or secrets.
-  - Secure Tabular Prediction endpoint ([`POST /api/v1/experiments/{experiment_id}/predict`](http://127.0.0.1:8000/docs#/Experiments/predict_api_v1_experiments__experiment_id__predict_post)) accepting bounded JSON records, strictly validating feature columns, enforcing training feature ordering, utilizing the fitted pipeline for imputation, scaling, and encoding, returning predictions, and outputting class probabilities for classification when supported by the estimator.
-  - Batch CSV Prediction endpoint ([`POST /api/v1/experiments/{experiment_id}/predict-csv`](http://127.0.0.1:8000/docs#/Experiments/predict_csv_api_v1_experiments__experiment_id__predict_csv_post)) streaming CSV inputs, validating feature schema, safely handling optional target columns, and returning a downloadable enriched CSV with predictions and probabilities.
-  - Production Next.js 16 App Router frontend ([`frontend/`](file:///c:/Users/ishit/AutoNexa/frontend/)) built with TypeScript strict mode, Tailwind CSS v4, Lucide React, React Three Fiber & Three.js 3D canvas, Recharts ML charts, and responsive glassmorphism aesthetic reproducing the design reference image.
-  - Interactive Landing Page featuring dynamic 3D geometric particle canvas, 3-panel animated pipeline visualizer, feature highlights, and responsive mobile drawer navigation.
-  - Complete Research Workspace with Overview KPI dashboard, CSV drag-and-drop ingestion & tabular preview, automated Dataset Intelligence diagnostics, AutoML Studio configuration, Model Leaderboard with Recharts comparisons, Experiment artifact verification, and live Single-Record / Batch Prediction Playground.
-  - 83 automated backend tests passing cleanly with 100% route and schema coverage.
-- **Upcoming Phases**:
-  - Phase 9: PennyLane Classical vs. Quantum Benchmarking Module.
-  - Phase 10: SHAP Model Explainability Plots & Attributions.
+</div>
 
 ---
 
-## 3. Planned Features
+## Table of Contents
 
-- **Automatic Task Detection**: Automatically infers whether a problem is Binary Classification, Multi-class Classification, or Regression.
-- **Data Quality & Leakage Audit**: Identifies identifier columns, high-cardinality leakage, duplicate rows, missingness patterns, and class imbalances.
-- **Resource-Aware AutoML Engine**: Trains and compares diverse candidate models with leakage-free preprocessing, atomic metadata/model persistence, and bounded runtime budgets.
-- **Reliable Evaluation & Statistical Reporting**: Configurable holdout and cross-validation strategies, StratifiedKFold with rare-class fallbacks, sample standard deviations, and untouched final test sets.
-- **Experiment Tracking**: Automatic parameter logging, per-fold metrics, nested model runs, and artifact tracking via MLflow.
-- **Explainability (Upcoming)**: Integrated SHAP summary plots, waterfall plots, and feature attribution reports.
-- **Classical vs. Quantum ML Benchmark (Upcoming)**: Variational quantum circuits using PennyLane for research-grade comparative performance studies.
+- [Project Overview](#project-overview)
+- [Problem Statement & Motivation](#problem-statement--motivation)
+- [Key Features](#key-features)
+- [Visual Workflow](#visual-workflow)
+- [System Architecture](#system-architecture)
+- [Technology Stack](#technology-stack)
+- [Repository Structure](#repository-structure)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Local Backend Setup](#local-backend-setup)
+  - [Local Frontend Setup](#local-frontend-setup)
+  - [Containerized Setup (Docker Compose)](#containerized-setup-docker-compose)
+- [Configuration Reference](#configuration-reference)
+- [API Overview](#api-overview)
+- [ML Methodology & Scientific Reliability](#ml-methodology--scientific-reliability)
+- [Testing & Quality Assurance](#testing--quality-assurance)
+- [Operational Tooling: Backup, Restore & Verification](#operational-tooling-backup-restore--verification)
+- [Research Visualizations & Benchmarks](#research-visualizations--benchmarks)
+- [Current Constraints & Future Roadmap](#current-constraints--future-roadmap)
+- [Security & Responsible Machine Learning](#security--responsible-machine-learning)
+- [Contributing & License](#contributing--license)
+- [Acknowledgments & Contact](#acknowledgments--contact)
 
 ---
 
-## 4. Prerequisites
+## Project Overview
 
-Ensure the following tools are installed on your host system:
+**AutoNexa** is an open-source, visual, research-oriented Automated Machine Learning (AutoML) platform built to transform raw tabular data into robust, explainable, and production-ready predictive models. While conventional machine learning often relies on ad-hoc scripts with hidden data leakage, unvalidated metrics, and scattered artifacts, AutoNexa establishes an integrated, mathematically sound pipeline from ingestion to serving.
 
-| Tool | Recommended Version | Purpose |
+### What AutoNexa Solves
+
+Building production machine learning pipelines for tabular data is fraught with systematic pitfalls:
+- **Silent Data Leakage**: Global preprocessing, unconstrained imputation, or test-split contamination inflate validation scores while models fail in real-world environments.
+- **Unsound Evaluation**: Selecting models based on single-split lucky runs or inconsistent random seeds produces non-reproducible research conclusions.
+- **Opacity & Black-Box Predictions**: Complex estimators without model-specific and model-agnostic feature attributions leave domain experts unable to audit automated decisions.
+- **Operational Drift & Stale Models**: Deployed estimators deteriorate when underlying feature distributions shift without detection mechanisms.
+
+### Target Audience
+
+- **AI/ML Engineers & Researchers**: Requiring reproducible repeated-seed benchmarking, Optuna hyperparameter optimization, and Pareto frontier trade-off analysis.
+- **Software Engineering Recruiters & Evaluators**: Reviewing clean architectural boundaries, strict Role-Based Access Control (RBAC), type-safe schema contracts, and deterministic test suites.
+- **Data Scientists & Practitioners**: Streamlining dataset profiling, candidate model generation, explainability (SHAP), and error slicing through an interactive web workspace.
+
+---
+
+## Problem Statement & Motivation
+
+| Manual Pipeline Challenges | How AutoNexa Solves It | Verified Implementation |
 | :--- | :--- | :--- |
-| **Python** | 3.11.x (Required) | Backend runtime & ML libraries |
-| **Git** | 2.x+ | Version control |
-| **Node.js** | 18.x or 20.x+ | Future Next.js frontend |
+| **Data Ingestion Risks** | Path traversal attacks, uncontrolled file sizes, unverified delimiters, and raw row leaks. | Chunked multipart streaming with configurable size limits (10 MB default), strict RFC 4180 parsing, and metadata-only responses. |
+| **Target & Feature Leakage** | Preprocessing (scaling/imputation) fitted across the entire dataset prior to evaluation splits. | Isolated `ColumnTransformer` pipelines strictly fitted on training splits, with median/mode imputation and categorical frequency encoding. |
+| **Statistical Non-Reproducibility** | Evaluating models on single random seeds without confidence intervals or baseline checks. | Multi-seed matched benchmarking (2–10 seeds), sample standard deviations (`ddof=1`), and Student-t / Wilcoxon hypothesis tests. |
+| **Model Opacity** | Inability to audit individual predictions or understand primary feature drivers. | Native tree feature importance, model-agnostic permutation testing, and local SHAP attributions (`TreeExplainer` / `LinearExplainer`). |
+| **Silent Distribution Drift** | Deployed models degrading as population covariates shift in production. | In-memory inference telemetry, Kolmogorov-Smirnov (KS-test) drift tests, and Population Stability Index (PSI) monitoring. |
+| **Audit & Governance Deficits** | Lost experiment metadata, untracked library versions, and tampered serialized weights. | Relational SQLite metadata store, SHA-256 cryptographic dataset and artifact fingerprinting, and exportable JSON reproducibility manifests. |
 
 ---
 
-## 5. Project Directory Structure
+## Key Features
+
+### 1. Dataset Ingestion, Validation & Schema Intelligence
+- **Secure File Streaming**: Streams multipart `.csv` uploads in 64 KB chunks, validating byte signatures, enforcing configurable size ceilings (`MAX_UPLOAD_SIZE_BYTES`), and mitigating path-traversal attacks.
+- **Automated Profiling**: Computes deterministic row/column counts, missingness ratios, duplicate counts, column data types, and cryptographic SHA-256 dataset fingerprints.
+- **Diagnostic Heuristics**: Detects constant/near-constant columns, high-cardinality ID features, target class imbalances, and recommends ML tasks (`binary_classification`, `multiclass_classification`, `regression`).
+
+### 2. Preprocessing & Leakage-Aware Training
+- **Leakage-Safe Preprocessing**: Builds dynamic `ColumnTransformer` pipelines combining `SimpleImputer` (median for numeric, mode for categorical), `StandardScaler`, and `OneHotEncoder(handle_unknown="ignore", max_categories=25)`.
+- **Candidate Model Portfolio**: Trains linear baselines (`LogisticRegression`, `Ridge`), decision trees, random forests, and gradient boosted ensembles (`HistGradientBoostingClassifier`, `HistGradientBoostingRegressor`).
+- **Resource Budgeting**: Enforces strict execution time budgets (`MAX_TRAINING_BUDGET_SECONDS`) and bounded sample sizes (`MAX_DATASET_ROWS`, `MAX_DATASET_COLUMNS`).
+- **Cross-Validation Reliability**: Supports holdout validation and Stratified K-Fold / K-Fold splits with rare-class fallbacks, untouched final test sets, and sample standard deviation calculations (`ddof=1`).
+
+### 3. Explainable AI (XAI) & Prediction Diagnostics
+- **Global Feature Importance**: Computes native tree feature importances for ensemble models and model-agnostic permutation importance on untouched holdout partitions.
+- **Instance-Level Attributions**: Generates local feature contributions using SHAP (`TreeExplainer` for trees, `LinearExplainer` for linear models) alongside a deterministic leave-one-covariate-out perturbation fallback.
+- **Prediction Error Analysis**:
+  - *Classification*: Full confusion matrices, per-class Precision/Recall/F1, probability calibration buckets, and prioritized misclassified instances.
+  - *Regression*: Signed residual skewness, MAE, MSE, RMSE, Median Absolute Error, feature-error Spearman correlations, and categorical slice breakdowns.
+
+### 4. Research Benchmarking & Multi-Objective Optimization
+- **Scientific Comparability Audit**: Validates that compared models share identical dataset fingerprints, target columns, train/test split proportions, and evaluation metrics before computing relative deltas.
+- **Repeated-Seed Experiments**: Executes matched experimental runs across 2 to 10 random seeds, calculating Student-t and non-parametric bootstrap confidence intervals.
+- **Hyperparameter Optimization (HPO)**: Powered by Optuna (Bayesian TPE search) and randomized search with parameter spaces tailored for classifiers and regressors.
+- **Pareto Frontier Optimization**: Analyzes multi-objective trade-offs (e.g., accuracy vs. inference latency vs. model disk size) and selects candidates using Utopia distance or balanced compromise weighting.
+
+### 5. Model Registry, Serving & Real-Time Monitoring
+- **Model Registry Lifecycle**: Monotonic versioning (`v1`, `v2`, ...), auditable stage transitions (`Development`, `Staging`, `Production`, `Archived`), and single-production version exclusivity per model family.
+- **Low-Latency Inference**: Serves single-record and batch predictions with strict input feature schema validation and probability outputs.
+- **Drift & Degradation Monitoring**: Continuously evaluates inference telemetry windows against baseline reference profiles using Kolmogorov-Smirnov tests and Population Stability Index (PSI).
+- **Candidate Retraining Gate**: Evaluates newly trained models against active production incumbents before authorizing stage promotion.
+
+### 6. Relational Catalog & Resilient Operations
+- **Relational Metadata Store**: Persists indexed metadata for datasets, experiments, and pipelines in SQLite with WAL (Write-Ahead Logging) mode, foreign key enforcement, and busy timeouts.
+- **Metadata Reconciliation**: Idempotently scans server disk storage on startup, reconciling untracked legacy experiments and datasets into the relational catalog.
+- **Online Backup & Recovery**: Utilizes the SQLite Online Backup API to generate crash-safe, verified `.tar.gz` archives with strict archive traversal protections.
+
+---
+
+## Visual Workflow
+
+The following flowchart illustrates the verified, end-to-end execution path through the AutoNexa platform:
+
+```mermaid
+flowchart TD
+    subgraph DataIngestion ["1. Data Ingestion & Audit"]
+        CSV["Raw CSV Dataset"] --> UPLOAD["Chunked Multipart Stream\n(Size & Path Traversal Guards)"]
+        UPLOAD --> PROFILE["Tabular Profiler\n(SHA-256 Fingerprint, Missingness, Types)"]
+        PROFILE --> AUDIT["Quality & Leakage Analyzer\n(Class Imbalance, High Cardinality, Task Inference)"]
+    end
+
+    subgraph AutoMLEngine ["2. Automated Model Selection & Training"]
+        AUDIT --> SPLIT["Split Engine\n(Holdout / Stratified K-Fold)"]
+        SPLIT --> PREP["ColumnTransformer Pipeline\n(Median Imputer, Scaler, One-Hot Encoder)"]
+        PREP --> TRAIN["Resource-Aware Training\n(Dummy, Linear, Trees, Ensembles)"]
+        TRAIN --> EVAL["Evaluator & Leaderboard\n(Metrics Ranking, Sample Std ddof=1)"]
+    end
+
+    subgraph Governance ["3. Persistence & Reproducibility"]
+        EVAL --> REPO["Relational SQLite Catalog\n(Datasets, Experiments, Pipelines)"]
+        EVAL --> ARTIFACT["Serialized Artifacts\n(.joblib + SHA-256 Integrity Hash)"]
+        ARTIFACT --> MANIFEST["Reproducibility Manifest\n(Seeds, Environment, Configs)"]
+    end
+
+    subgraph PostTraining ["4. Post-Training Analysis & Research (Optional Branches)"]
+        REPO --> XAI["Explainable AI\n(SHAP & Permutation Importance)"]
+        REPO --> ERR["Error Analysis\n(Residuals, Confusion Matrix, Slices)"]
+        REPO --> HPO["Hyperparameter Optimization\n(Optuna Bayesian Search)"]
+        REPO --> PARETO["Pareto Frontier Analysis\n(Accuracy vs. Latency vs. Size)"]
+        REPO --> REGISTRY["Model Registry\n(Staging / Production Promotion)"]
+    end
+
+    subgraph ServingMonitoring ["5. Serving & Continuous Quality"]
+        REGISTRY --> SERVE["Low-Latency Inference\n(Schema Validation, Probabilities)"]
+        SERVE --> MONITOR["Drift Detection Engine\n(KS-Test, PSI, Retraining Gate)"]
+    end
+```
+
+---
+
+## System Architecture
+
+AutoNexa is structured as a decoupled two-tier application: a Next.js 16 frontend and a high-performance FastAPI backend.
+
+```mermaid
+flowchart TB
+    subgraph FrontendTier ["Client Tier (Next.js 16 App Router)"]
+        LANDING["Interactive 3D Landing Page\n(Three.js, Lucide, Framer Motion)"]
+        WORKSPACE["Research Workspace\n(16 Analytical & Operational Tabs)"]
+        API_CLIENT["Typed API Client\n(TypeScript Fetch, Auto-Retry)"]
+        LANDING --> WORKSPACE
+        WORKSPACE --> API_CLIENT
+    end
+
+    subgraph GatewayTier ["Backend API & Middleware Tier (FastAPI)"]
+        CORS["CORS Middleware"]
+        METRICS["Metrics Middleware\n(In-Memory Telemetry)"]
+        CORR["Correlation ID Middleware\n(X-Correlation-ID Tracking)"]
+        RBAC["Role-Based Access Control\n(secrets.compare_digest / Constant-Time)"]
+        CORS --> METRICS --> CORR --> RBAC
+    end
+
+    subgraph ServiceLayer ["AutoNexa Service Layer"]
+        DS_SVC["DatasetService"]
+        AN_SVC["AnalysisService"]
+        TR_SVC["TrainingService"]
+        EXP_SVC["ExperimentTrackerService"]
+        REG_SVC["ModelRegistryService"]
+        SRV_SVC["ModelServingService"]
+        MON_SVC["ModelMonitoringService"]
+        BM_SVC["RobustBenchmarkingService"]
+        PIP_SVC["PipelineService\n(Bounded Worker Pool)"]
+    end
+
+    subgraph StorageLayer ["Storage & Persistence Tier"]
+        DB[(SQLite WAL Database\nmetadata.db)]
+        FS_UPLOADS[uploads/\nRaw CSV Datasets]
+        FS_EXPERIMENTS[experiments/\nModel Binaries & Manifests]
+        FS_BENCHMARKS[data/research_benchmarks/\nCurated Benchmark Fixtures]
+    end
+
+    API_CLIENT -->|HTTP REST / JSON| CORS
+    RBAC --> ServiceLayer
+    ServiceLayer --> DB
+    ServiceLayer --> FS_UPLOADS
+    ServiceLayer --> FS_EXPERIMENTS
+    ServiceLayer --> FS_BENCHMARKS
+```
+
+### Architectural & Concurrency Constraints
+
+> [!IMPORTANT]
+> **Single-Worker Backend Constraint (`--workers 1`)**:
+> The AutoNexa backend utilizes in-process thread locking (`threading.RLock`, `threading.Lock`), in-memory metrics collectors, and SQLite write concurrency bounded by busy timeouts. **Do NOT increase the Uvicorn worker count beyond 1** in production without implementing external distributed locks (e.g., Redis) and migrating to a multi-writer database (e.g., PostgreSQL).
+
+---
+
+## Technology Stack
+
+The AutoNexa platform relies strictly on production-verified dependencies:
+
+| Category | Technology | Pinned Version | Purpose in AutoNexa |
+| :--- | :--- | :--- | :--- |
+| **Frontend Framework** | **Next.js** | `16.4.2` | App router, server-side rendering, and production web client |
+| **UI & Styling** | **Tailwind CSS** | `^4.0.0` | Modern responsive styling, glassmorphism design tokens |
+| **3D & Canvas** | **Three.js** / **React Three Fiber** | `^0.186.1` / `^9.8.2` | Interactive 3D geometric particle canvas and hero visualizations |
+| **Visualizations** | **Recharts** | `^3.10.1` | Leaderboards, ROC curves, residual distributions, and metric comparisons |
+| **Icons & Motion** | **Lucide React** / **Motion** | `^1.58.0` / `^14.3.0` | Accessible vector icons and smooth micro-animations |
+| **Backend Framework**| **FastAPI** | `0.143.3` | Asynchronous REST API routing, OpenAPI generation, and dependency injection |
+| **ASGI Server** | **Uvicorn** | `0.34.0` | High-performance ASGI runtime bound to a single worker |
+| **Configuration** | **Pydantic Settings** | `2.16.0` | Type-safe environment validation and fail-closed security enforcement |
+| **Relational Store** | **SQLAlchemy** / **SQLite** | `2.1.4` / Built-in | Relational metadata catalog operating in Write-Ahead Logging (WAL) mode |
+| **Machine Learning** | **scikit-learn** | `1.9.1` | Model candidate generation, pipelines, metrics, and permutation importance |
+| **Data Processing** | **Pandas** / **NumPy** | `3.0.6` / `2.4.6` | Data profiling, tabular manipulations, and numeric calculations |
+| **Explainable AI** | **SHAP** | `0.51.0` | Tree and linear Shapley additive explanations (`TreeExplainer`, `LinearExplainer`) |
+| **Optimization** | **Optuna** / **SciPy** | `5.0.0` / `1.17.1` | Bayesian hyperparameter optimization and hypothesis testing (t-test, Wilcoxon) |
+| **System Diagnostics**| **psutil** | `7.2.2` | Memory RSS profiling, process uptime, and storage space monitoring |
+| **Testing** | **pytest** / **HTTPX** | `9.1.1` / `0.28.1` | Automated test runner and asynchronous TestClient HTTP harnesses |
+| **Containerization** | **Docker** / **Docker Compose** | Pinned Base Images | Multi-stage production container builds and isolated local orchestration |
+
+---
+
+## Repository Structure
 
 ```text
 AutoNexa/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                 # GitHub Actions quality gates (test, build, container smoke)
 ├── backend/
 │   ├── app/
-│   │   ├── __init__.py            # Main application package
-│   │   ├── main.py                # FastAPI application entry point & factory
 │   │   ├── api/
-│   │   │   ├── __init__.py        # Aggregated API router
-│   │   │   └── routes/
-│   │   │       ├── __init__.py    # Route package initialization
-│   │   │       ├── health.py      # Health-check route definition
-│   │   │       └── datasets.py    # Dataset upload, profiling, analysis & training routes
+│   │   │   ├── routes/
+│   │   │   │   ├── benchmarks.py      # Repeated runs, robust benchmarking, HPO, Pareto routes
+│   │   │   │   ├── datasets.py        # CSV upload, profiling, analysis & training routes
+│   │   │   │   ├── experiments.py     # Tracking, inspection, XAI, error analysis, inference
+│   │   │   │   ├── health.py          # Liveness, readiness probe, diagnostics & metrics
+│   │   │   │   ├── model_registry.py  # Model versioning, stage transition, artifact download
+│   │   │   │   ├── monitoring.py      # Telemetry, reference profiles, drift detection & retraining
+│   │   │   │   ├── pipelines.py       # End-to-end AutoML pipeline orchestration
+│   │   │   │   └── serving.py         # Production inference serving and latency tracking
 │   │   ├── core/
-│   │   │   ├── __init__.py        # Core package exports
-│   │   │   └── config.py          # Centralized Pydantic settings & resource limits
-│   │   ├── schemas/
-│   │   │   ├── __init__.py        # Schema exports
-│   │   │   ├── health.py          # Health response Pydantic model
-│   │   │   ├── dataset.py         # Dataset profile Pydantic model
-│   │   │   ├── analysis.py        # Dataset intelligence & task detection schemas
-│   │   │   └── training.py        # AutoML training request & response schemas
-│   │   └── services/
-│   │       ├── __init__.py        # Service layer package exports
-│   │       ├── dataset_service.py # Ingestion, validation & profiling service
-│   │       ├── analysis_service.py # Dataset intelligence, diagnostics & task detection
-│   │       └── automl/            # Modular AutoML training & evaluation engine
-│   │           ├── __init__.py    # AutoML package exports
-│   │           ├── preprocessor.py# Memory-aware leakage-free ColumnTransformer builder
-│   │           ├── registry.py    # Extensible scikit-learn model candidate registry
-│   │           ├── evaluator.py   # Statistical aggregation, fold metrics, & ranking
-│   │           ├── tracker.py     # Modular MLflow experiment tracking & fingerprinting
-│   │           └── training_service.py # Training orchestrator & atomic persistence
-│   ├── tests/
-│   │   ├── __init__.py            # Test suite package
-│   │   ├── test_health.py         # Health endpoint automated tests
-│   │   ├── test_datasets.py       # Dataset upload and validation tests
-│   │   ├── test_analysis.py       # Dataset intelligence & task detection tests
-│   │   ├── test_training.py       # AutoML holdout training engine tests
-│   │   └── test_tracking.py       # CV evaluation, statistical aggregation & MLflow tests
-│   ├── uploads/
-│   │   └── .gitkeep               # Local dataset upload directory (ignored in git)
-│   ├── experiments/
-│   │   └── .gitkeep               # Experiment metadata & model binaries (ignored in git)
-│   ├── requirements.txt           # Pinned backend dependencies
-│   ├── .env.example               # Safe environment configuration template
-│   └── .venv/                     # Python 3.11 virtual environment (ignored in git)
-├── frontend/
-│   └── .gitkeep                   # Placeholder for Next.js frontend application
+│   │   │   ├── config.py              # Centralized Pydantic settings & validation rules
+│   │   │   ├── correlation.py         # Request correlation ID middleware (X-Correlation-ID)
+│   │   │   ├── logging.py             # Structured log formatter and sensitive secret redaction
+│   │   │   ├── metrics.py             # In-memory operational metrics collector
+│   │   │   └── security.py            # RBAC enforcement, constant-time API key verification
+│   │   ├── db/
+│   │   │   ├── models.py              # SQLAlchemy ORM models (Datasets, Experiments, Pipelines)
+│   │   │   ├── reconciliation.py      # Idempotent filesystem-to-database migration engine
+│   │   │   ├── session.py             # SQLite WAL engine configuration and session factories
+│   │   │   └── repositories/          # Type-safe relational database repositories
+│   │   ├── schemas/                   # Strongly typed Pydantic request/response contracts
+│   │   ├── services/
+│   │   │   ├── analysis_service.py    # Schema intelligence, heuristics & task detection
+│   │   │   ├── dataset_service.py     # Multipart CSV streaming, validation & profiling
+│   │   │   └── automl/                # Core machine learning & benchmarking engine
+│   │   │       ├── evaluator.py       # Metrics aggregation and ranking engine
+│   │   │       ├── explainability_service.py # SHAP and permutation importance engine
+│   │   │       ├── error_analysis_service.py # Residuals, confusion matrix, slice diagnostics
+│   │   │       ├── hpo_service.py     # Optuna Bayesian & Random search optimizer
+│   │   │       ├── model_monitoring_service.py # KS-test & PSI distribution drift analyzer
+│   │   │       ├── pareto.py          # Non-dominated sorting & Utopia distance selection
+│   │   │       ├── pipeline_service.py# Asynchronous pipeline coordinator & worker pool
+│   │   │       ├── preprocessor.py    # Leakage-free ColumnTransformer pipeline builder
+│   │   │       ├── registry.py        # Model candidate registry (linear, trees, ensembles)
+│   │   │       └── statistical_engine.py # Hypothesis testing, bootstrap CIs & IQR metrics
+│   │   └── main.py                    # FastAPI application initialization & lifespan manager
+│   ├── Dockerfile                     # Pinned Python 3.11-slim non-root production container
+│   ├── requirements.txt               # Pinned minimal production runtime dependencies
+│   ├── requirements-dev.txt           # Full development, MLflow, SHAP, and pytest dependencies
+│   ├── scripts/
+│   │   └── backup_restore.py          # SQLite Online Backup, verification, and restore utility
+│   └── tests/                         # 279 automated unit, integration, and security tests
+├── data/
+│   └── research_benchmarks/           # Curated benchmark datasets (wine, cancer, diabetes, etc.)
 ├── docs/
-│   └── architecture.md            # Planned high-level system architecture
-├── experiments/
-│   └── .gitkeep                   # Root experiment tracking directory
-├── .gitignore                     # Comprehensive git ignore rules
-└── README.md                      # Project documentation
+│   ├── architecture.md                # In-depth architectural specifications
+│   ├── operations/                    # Deployment guides and operational runbooks
+│   ├── quality/                       # Comprehensive phase audit and validation reports
+│   └── research/plots/                # Verified empirical research charts and visualizations
+├── frontend/
+│   ├── src/
+│   │   ├── app/                       # Next.js 16 App Router pages and global layouts
+│   │   ├── components/
+│   │   │   ├── 3d/                    # Interactive Three.js particle canvas
+│   │   │   ├── landing/               # Hero, visual pipeline flows, and documentation modal
+│   │   │   └── workspace/             # 16 analytical tabs (Datasets, AutoML, XAI, Monitoring, etc.)
+│   │   ├── lib/api.ts                 # Strongly typed backend API client
+│   │   └── types/                     # Shared TypeScript data contracts
+│   ├── package.json                   # Next.js, React 19, and Tailwind CSS dependencies
+│   └── Dockerfile                     # Multi-stage production container build for frontend
+├── docker-compose.yml                 # Multi-container production deployment orchestration
+├── .env.example                       # Root Docker Compose environment variable template
+├── vercel.json                        # Vercel deployment caching and routing configuration
+└── README.md                          # Platform documentation
 ```
 
 ---
 
-## 6. Python Environment Setup & Activation
+## Getting Started
 
-### Step 6.1: Navigate to Backend Directory
+### Prerequisites
 
+| Tool | Minimum Version | Required Purpose |
+| :--- | :--- | :--- |
+| **Python** | `3.11.x` | Backend runtime, scikit-learn, and test runner |
+| **Node.js** | `20.x` or `22.x` | Next.js 16 frontend build and development |
+| **npm** | `10.x+` | Frontend package management |
+| **Git** | `2.x+` | Source control |
+| **Docker** (Optional) | `24.x+` with Compose | Multi-container isolated deployment |
+
+---
+
+### Local Backend Setup
+
+#### 1. Clone the Repository
+```bash
+git clone https://github.com/Ishitadas03/AutoNexa.git
+cd AutoNexa
+```
+
+#### 2. Configure Python Virtual Environment
+
+**On Windows (PowerShell):**
+```powershell
+python -m venv backend\.venv
+.\backend\.venv\Scripts\Activate.ps1
+```
+
+**On Linux / macOS (bash):**
+```bash
+python3 -m venv backend/.venv
+source backend/.venv/bin/activate
+```
+
+#### 3. Install Backend Dependencies
+For local development, testing, SHAP explainability, and full benchmarking:
+```bash
+pip install --upgrade pip
+pip install -r backend/requirements-dev.txt
+```
+
+#### 4. Configure Backend Environment
+Copy the example environment template into the `backend/` directory:
+```bash
+cp backend/.env.example backend/.env
+```
+*(On Windows PowerShell, use `Copy-Item backend\.env.example backend\.env`)*
+
+Review `backend/.env`. For local development, default values work out of the box.
+
+#### 5. Launch Backend Server
 ```bash
 cd backend
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
 ```
+The backend initializes the SQLite database at `backend/data/metadata.db`, reconciles any legacy disk artifacts, and listens on `http://127.0.0.1:8000`.
 
-### Step 6.2: Create the Virtual Environment (If not already created)
-
-Using Python 3.11:
-
-- **Windows (Python Launcher)**:
-  ```powershell
-  py -3.11 -m venv .venv
-  ```
-- **macOS / Linux**:
-  ```bash
-  python3.11 -m venv .venv
-  ```
-
-### Step 6.3: Activate the Virtual Environment
-
-- **Windows PowerShell**:
-  ```powershell
-  .\.venv\Scripts\Activate.ps1
-  ```
-  *(Note: If script execution is restricted, run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process` first).*
-
-- **Windows Command Prompt (cmd.exe)**:
-  ```cmd
-  .\.venv\Scripts\activate.bat
-  ```
-
-- **Unix-like Shells (Bash / Zsh on macOS / Linux)**:
-  ```bash
-  source .venv/bin/activate
-  ```
-
-### Step 6.4: Install Dependencies
-
-With the virtual environment activated:
-
-```bash
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
----
-
-## 7. Starting the Development Server
-
-To launch the AutoNexa backend development server with auto-reload:
-
-```bash
-# Ensure you are inside the backend directory with .venv active
-python -m uvicorn app.main:app --reload
-```
-
-Once running, the backend server is accessible at:
-- **Health Check Endpoint**: [http://127.0.0.1:8000/api/v1/health](http://127.0.0.1:8000/api/v1/health)
-- **Dataset Upload Endpoint**: [http://127.0.0.1:8000/api/v1/datasets/upload](http://127.0.0.1:8000/api/v1/datasets/upload)
-- **Dataset Analysis Endpoint**: [http://127.0.0.1:8000/api/v1/datasets/{dataset_id}/analyze](http://127.0.0.1:8000/api/v1/datasets/{dataset_id}/analyze)
-- **AutoML Training Endpoint**: [http://127.0.0.1:8000/api/v1/datasets/{dataset_id}/train](http://127.0.0.1:8000/api/v1/datasets/{dataset_id}/train)
-- **Interactive Swagger UI Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **Interactive Swagger UI**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 - **ReDoc Documentation**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
-- **OpenAPI JSON Specification**: [http://127.0.0.1:8000/openapi.json](http://127.0.0.1:8000/openapi.json)
+- **Liveness Health Check**: [http://127.0.0.1:8000/api/v1/health](http://127.0.0.1:8000/api/v1/health)
 
 ---
 
-## 7.1 Starting the AutoNexa Frontend (Next.js 16)
+### Local Frontend Setup
 
-The frontend is a research-grade Next.js 16 application with React 19, TypeScript strict mode, Tailwind CSS v4, Three.js 3D visuals, and Recharts.
+In a new terminal window:
 
-### Installation & Execution:
-
+#### 1. Navigate to Frontend Directory
 ```bash
-# 1. Navigate to the frontend directory
-cd frontend
+cd AutoNexa/frontend
+```
 
-# 2. Install dependencies (use legacy-peer-deps for React 19 compatibility)
-npm install --legacy-peer-deps
+#### 2. Install Node Dependencies
+```bash
+npm ci
+```
 
-# 3. Start the local development server
+#### 3. Configure Frontend Environment
+Ensure `frontend/.env.local` points to your active local backend:
+```bash
+echo "NEXT_PUBLIC_API_BASE_URL=http://localhost:8000" > .env.local
+```
+
+#### 4. Launch Frontend Development Server
+```bash
 npm run dev
-
-# Or build and launch the optimized production bundle
-npm run build
-npm run start
 ```
-
-The frontend web application is available at:
-- **AutoNexa Platform UI**: [http://localhost:3000](http://localhost:3000)
-
-### Environment Variables:
-The frontend connects to the FastAPI backend via `NEXT_PUBLIC_API_BASE_URL`. If unspecified, it defaults automatically to `http://127.0.0.1:8000`.
-
-To customize, create `frontend/.env.local`:
-```env
-NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
-```
+Open [http://localhost:3000](http://localhost:3000) in your web browser. The application will connect directly to the local backend.
 
 ---
 
-## 8. API Specifications & Endpoints
+### Containerized Setup (Docker Compose)
 
-### 8.1 Health-Check: `GET /api/v1/health`
+To run the complete production stack (isolated backend, frontend, and persistent volumes) via Docker:
 
-Validates that the AutoNexa application server is online and operational. Decoupled from external databases and ML training.
-
+#### 1. Configure Secrets
+Copy the top-level environment template:
 ```bash
-curl -X GET http://127.0.0.1:8000/api/v1/health
-```
-
----
-
-### 8.2 Dataset Upload & Profiling: `POST /api/v1/datasets/upload`
-
-Uploads, validates, stores, and profiles a tabular CSV dataset.
-
-#### Minimal `curl` Example:
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/datasets/upload \
-  -H "Accept: application/json" \
-  -F "file=@california_housing.csv;type=text/csv"
-```
-
----
-
-### 8.3 Dataset Intelligence & ML Task Detection: `POST /api/v1/datasets/{dataset_id}/analyze`
-
-Performs deep structural diagnostics, data quality auditing, candidate target detection, and ML task inference on an uploaded dataset.
-
-#### Request Payload Model (Optional):
-```json
-{
-  "target_column": "purchased",
-  "task_override": "classification"
-}
-```
-
-#### Sample `curl` Command:
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/datasets/7e4a1c5d-2b99-4d6b-9c71-2f738a901e4a/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"target_column": "churn"}'
-```
-
----
-
-### 8.4 AutoML Model Selection & Training: `POST /api/v1/datasets/{dataset_id}/train`
-
-Executes a resource-aware AutoML training experiment comparing task-compatible candidate estimators using either single holdout evaluation or K-fold cross-validation with untouched test evaluation and MLflow tracking.
-
-#### Request Payload Model:
-| Field | Type | Required | Default | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| `target_column` | `string` | **Yes** | — | Name of target column to predict (must exist, non-constant, non-empty) |
-| `task_type` | `string` | No | Inferred | `"classification"` or `"regression"`. If omitted, inferred from target diagnostics. |
-| `evaluation_strategy` | `string` | No | `"holdout"` | `"holdout"` (single train/test split) or `"cross_validation"` (K-fold CV on train partition) |
-| `cv_folds` | `integer` | No | `5` | Number of folds for cross-validation ($2 \le \text{cv\_folds} \le 10$) |
-| `cv_rare_class_fallback` | `boolean` | No | `true` | When true, permits classification CV fallback from StratifiedKFold to KFold if rare classes have fewer samples than cv_folds |
-| `holdout_test` | `boolean` | No | `true` | When true in CV mode, reserves an untouched test set for an independent final evaluation of the winning model |
-| `test_size` | `float` | No | `0.2` | Fraction of dataset reserved for evaluation or final holdout ($0.05 \le \text{test\_size} \le 0.5$) |
-| `random_state` | `integer` | No | `42` | Seed for reproducible split and stochastic estimators |
-| `time_budget_seconds` | `integer` | No | `60` | Wall-clock training limit ($5 \le \text{time\_budget} \le 300$ seconds) |
-| `models` | `list[string]` | No | All task models | Candidate model identifiers to evaluate (subset of registry) |
-| `primary_metric` | `string` | No | Task default | Primary ranking metric (e.g. `"f1_weighted"`, `"accuracy"`, `"rmse"`) |
-
-#### Sample `curl` Command (Cross-Validation with Untouched Test Set):
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/datasets/7e4a1c5d-2b99-4d6b-9c71-2f738a901e4a/train \
-  -H "Content-Type: application/json" \
-  -d '{
-    "target_column": "churn",
-    "task_type": "classification",
-    "evaluation_strategy": "cross_validation",
-    "cv_folds": 5,
-    "holdout_test": true,
-    "test_size": 0.2,
-    "random_state": 42,
-    "time_budget_seconds": 60,
-    "primary_metric": "f1_weighted"
-  }'
-```
-
-#### Illustrative Response (HTTP 201 Created):
-```json
-{
-  "experiment_id": "90e2da90-67bc-470c-a496-e2a0f8bfdfcb",
-  "dataset_id": "7e4a1c5d-2b99-4d6b-9c71-2f738a901e4a",
-  "dataset_fingerprint": "a4f810c9d93b3e2182098b671e...",
-  "target_column": "churn",
-  "task_type": "classification",
-  "evaluation_strategy": "cross_validation",
-  "cv_folds": 5,
-  "primary_metric": "f1_weighted",
-  "primary_metric_greater_is_better": true,
-  "random_state": 42,
-  "test_size": 0.2,
-  "train_rows": 800,
-  "test_rows": 200,
-  "features_count": 4,
-  "best_model": "random_forest",
-  "ranked_models": [
-    "random_forest",
-    "hist_gradient_boosting",
-    "logistic_regression",
-    "decision_tree",
-    "dummy"
-  ],
-  "models_evaluated": [
-    {
-      "model_id": "random_forest",
-      "model_name": "Random Forest",
-      "status": "successful",
-      "metrics": {
-        "accuracy": 0.935,
-        "f1_weighted": 0.9348,
-        "precision_weighted": 0.936,
-        "recall_weighted": 0.935
-      },
-      "cv_scores": [0.932, 0.941, 0.929, 0.938, 0.934],
-      "cv_mean": 0.9348,
-      "cv_std": 0.0047,
-      "valid_folds_count": 5,
-      "duration_seconds": 0.425,
-      "error_message": null
-    }
-  ],
-  "test_metrics": {
-    "accuracy": 0.94,
-    "f1_weighted": 0.9412,
-    "precision_weighted": 0.942,
-    "recall_weighted": 0.94
-  },
-  "total_duration_seconds": 1.25,
-  "artifacts_saved": true,
-  "mlflow_run_id": "89b71a2e4...",
-  "mlflow_experiment_id": "0",
-  "tracking_status": "completed",
-  "tracking_warning": null,
-  "evaluation_protocol": "Cross-validation (StratifiedKFold(5 folds)) on training partition (800 samples) was used for candidate selection. The selected model was evaluated once on an independent holdout test set (200 samples) that was completely untouched during candidate selection.",
-  "disclaimer": "Evaluation metrics reflect empirical performance on the specified validation protocol."
-}
-```
-
----
-
-## 9. AutoML Engine Architecture & Mechanics
-
-### 9.1 Evaluation Strategies & Strict Leakage Prevention
-
-AutoNexa provides two distinct evaluation modes to prevent overfitting and evaluation leakage:
-
-1. **Holdout Evaluation (`evaluation_strategy="holdout"`)**:
-   - Features and target are partitioned into a training split and a holdout test split.
-   - Preprocessing (`ColumnTransformer`) and estimators are fitted strictly on the training partition.
-   - Holdout metrics are reported on the test split.
-2. **Cross-Validation with Untouched Test Set (`evaluation_strategy="cross_validation"`)**:
-   - **Candidate Selection**: Models are trained and compared using K-fold cross-validation **strictly within the training partition**. In every fold, a fresh pipeline fits imputers, scalers, and encoders exclusively on that fold's training indices.
-   - **Sample Standard Deviation**: Reports valid fold counts and sample standard deviation (`ddof=1`) only when at least 2 valid scores exist (returning `null` otherwise). Undefined metrics are never replaced with zero.
-   - **Independent Final Assessment**: When `holdout_test=true`, the final test set remains completely untouched during candidate ranking. Once the winner is chosen, it is refitted on all training samples and evaluated **once** on the untouched test set to provide unbiased generalization metrics (`test_metrics`).
-   - **Stratified Folds & Rare Class Fallback**: Classification CV uses `StratifiedKFold` when all classes have $\ge \text{cv\_folds}$ samples. If a minority class has fewer samples than the requested folds, it gracefully falls back to `KFold(shuffle=True)` with an explicit audit note, or raises a clear HTTP 400 validation error if `cv_rare_class_fallback=false`.
-
-### 9.2 Cryptographic Dataset Fingerprinting
-
-AutoNexa computes a cryptographic **SHA-256 hash** of the stored dataset file. This provides:
-- Exact content verification and change detection across experiment runs.
-- Complete privacy protection: raw data rows, column values, and PII are never logged or exposed.
-
-### 9.3 Hierarchical MLflow Experiment Tracking
-
-AutoNexa integrates a modular `MLflowTracker` layer:
-- **Parent Run**: Represents the overall experiment run. Logs high-level parameters (`dataset_id`, `dataset_fingerprint`, `target_column`, `task_type`, `evaluation_strategy`, `cv_folds`, `test_size`, `random_state`, `primary_metric`), software version tags (`scikit-learn`, `pandas`, `numpy`, `mlflow`), overall duration, winning model ID, and registers `metadata.json` as an artifact.
-- **Nested Child Runs**: One run per candidate estimator. Logs candidate parameters, execution status, per-fold metrics, `cv_mean`, `cv_std`, and holdout scores.
-- **Fault-Tolerant Resilience**: If tracking fails or the tracking backend is unreachable, the experiment logs a sanitized warning and records `tracking_status="failed"` without disrupting model training or API responses.
-
-### 9.4 Memory & Resource Guards
-
-- **Memory-Bounded Preprocessing**: `OneHotEncoder` is configured with `max_categories=25` to guard against memory explosion and dense matrix bloat on high-cardinality categorical features.
-- **Best-Effort Time Budget**: Evaluated before each candidate model and before each CV fold. Budget exhaustion produces `skipped_timeout` status, distinguishing timeouts from estimator fit failures.
-- **Row/Column Ceilings**: Enforces `MAX_DATASET_ROWS` (default: 100,000) and `MAX_DATASET_COLUMNS` (default: 500).
-- **Controlled Parallelism**: Estimators are configured with `n_jobs=1` to prevent CPU oversubscription.
-
----
-
-## 10. Model Inspection & Prediction Workflow (Step 7)
-
-AutoNexa provides a secure, fully documented inference workflow that allows users to inspect trained experiments, retrieve feature requirements, and generate predictions on new tabular data using the persisted winning pipeline.
-
-### 10.1 Experiment & Model Inspection (`GET /api/v1/experiments/{experiment_id}`)
-
-Retrieves a sanitized, validated summary of a completed AutoML experiment:
-- **Status & Integrity**: Confirms training completion status, disk presence of `metadata.json` and `best_model.joblib`, and SHA-256 artifact checksums.
-- **Feature Specification**: Exposes the exact ordered list of expected `feature_names`, identified `numeric_features`, and `categorical_features`.
-- **Performance & Protocol**: Reports winning model ID, primary metric scores, independent final test metrics, and full model rankings.
-- **Security Notice**: Does not expose absolute filesystem paths, server directory structures, secrets, or internal stack traces.
-
-#### Example Request:
-```bash
-curl -X GET "http://127.0.0.1:8000/api/v1/experiments/ebd18e6e-331d-4cf5-836a-8265a6109e4a"
-```
-
-#### Example Response:
-```json
-{
-  "experiment_id": "ebd18e6e-331d-4cf5-836a-8265a6109e4a",
-  "status": "completed",
-  "dataset_id": "96c251da-81a0-4394-9b77-ce9c13ba7242",
-  "dataset_fingerprint": "a1b2c3d4e5f6...",
-  "target_column": "churn",
-  "task_type": "binary_classification",
-  "evaluation_strategy": "holdout",
-  "primary_metric": "f1_weighted",
-  "primary_metric_greater_is_better": true,
-  "best_model": "logistic_regression",
-  "best_score": 0.88,
-  "test_metrics": null,
-  "ranked_models": ["logistic_regression", "random_forest"],
-  "features_count": 3,
-  "feature_names": ["age", "city", "income"],
-  "numeric_features": ["age", "income"],
-  "categorical_features": ["city"],
-  "artifact_availability": {
-    "metadata_exists": true,
-    "model_file_exists": true,
-    "model_format": "joblib",
-    "model_size_bytes": 4058,
-    "model_sha256": "f8354673f502ad25ff81c1d74cf79358ef2cc202039f4f99ac476e85d4a54ceb"
-  },
-  "tracking_status": "completed",
-  "mlflow_run_id": "run-xyz-123",
-  "mlflow_experiment_id": "0",
-  "tracking_warning": null,
-  "evaluation_protocol": "Holdout evaluation...",
-  "total_duration_seconds": 1.42,
-  "package_versions": {
-    "scikit-learn": "1.7.0",
-    "pandas": "2.2.3",
-    "numpy": "2.2.6",
-    "joblib": "1.5.0",
-    "mlflow": "3.17.1"
-  },
-  "security_notice": "Joblib/pickle-based artifacts can execute arbitrary code during deserialization. AutoNexa restricts model loading to trusted internal server artifacts only and never accepts arbitrary client-provided model files."
-}
-```
-
-### 10.2 JSON Tabular Prediction (`POST /api/v1/experiments/{experiment_id}/predict`)
-
-Accepts a bounded list of tabular records, strictly verifies feature schema, and applies the fitted scikit-learn pipeline transformations without retraining:
-- **Feature Schema Enforcement**: Requires all expected `feature_names` to be present; rejects missing columns and unexpected extra columns with HTTP 400.
-- **Column Order Preservation**: Input record keys can arrive in arbitrary order; the service automatically realigns records into the exact feature order learned during model training.
-- **Leakage-Free Preprocessing**: Imputation (`SimpleImputer`), scaling (`StandardScaler`), and one-hot encoding (`OneHotEncoder`) learned during training are applied consistently.
-- **Unseen Categories & Missing Values**: Missing numeric/categorical values are imputed according to the training strategy. Unseen categories are safely encoded as zeros (`handle_unknown="ignore"`).
-- **Classification vs. Regression**:
-  - **Classification**: Returns predicted class labels (`predictions: ["yes", "no"]`) and per-record class probability distributions (`probabilities: [{"yes": 0.85, "no": 0.15}]`) when supported by the fitted estimator.
-  - **Regression**: Returns continuous numeric predictions (`predictions: [250000.0, 480000.0]`) and `probabilities: null`.
-- **Scalar Sanitization**: Non-finite values (`NaN`, `Inf`, `-Inf`) are sanitized to `null` to ensure compliant JSON responses.
-
-#### Example Request:
-```bash
-curl -X POST "http://127.0.0.1:8000/api/v1/experiments/ebd18e6e-331d-4cf5-836a-8265a6109e4a/predict" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "records": [
-      {"age": 26, "city": "Kolkata", "income": 44000},
-      {"age": 55, "city": "Siliguri", "income": 105000}
-    ]
-  }'
-```
-
-#### Example Response (Classification):
-```json
-{
-  "experiment_id": "ebd18e6e-331d-4cf5-836a-8265a6109e4a",
-  "task_type": "binary_classification",
-  "target_column": "churn",
-  "selected_model": "logistic_regression",
-  "prediction_count": 2,
-  "predictions": [0, 1],
-  "probabilities": [
-    {"0": 0.869626, "1": 0.130374},
-    {"0": 0.054008, "1": 0.945992}
-  ],
-  "class_labels": ["0", "1"],
-  "warnings": null
-}
-```
-
-### 10.3 Batch CSV Prediction (`POST /api/v1/experiments/{experiment_id}/predict-csv`)
-
-Accepts an uploaded CSV file, validates expected feature schema, executes batch prediction, and returns a downloadable CSV:
-- **Streaming & Size Bounds**: Enforces maximum CSV upload size (`MAX_PREDICTION_CSV_SIZE_BYTES`, default 5 MB) and maximum row limit (`MAX_PREDICTION_CSV_ROWS`, default 10,000 rows).
-- **Target Column Policy**: Target column is **not required** in inference inputs. If the target column is present (e.g. from an evaluation holdout test file), it is safely excluded from inference features without raising an error.
-- **Downloadable CSV**: Returns `Content-Type: text/csv` with `Content-Disposition: attachment; filename="predictions_{experiment_id}.csv"`. The downloaded CSV includes all original feature columns appended with `predicted_{target_column}` and `probability_{class}` columns.
-
-#### Example Request:
-```bash
-curl -X POST "http://127.0.0.1:8000/api/v1/experiments/ebd18e6e-331d-4cf5-836a-8265a6109e4a/predict-csv" \
-  -F "file=@batch_data.csv" \
-  --output predictions.csv
-```
-
-### 10.4 Artifact Deserialization Security Architecture
-
-> [!WARNING]
-> **Joblib / Pickle Security Advisory**: Serialized Python model artifacts (`.joblib`, `.pkl`) execute arbitrary Python bytecode during deserialization. They are **not safe** by default.
-
-To prevent remote code execution (RCE) and path traversal attacks, AutoNexa enforces strict security boundaries:
-1. **Server-Controlled Paths Only**: Model artifacts are strictly loaded from internal paths resolved inside `settings.resolved_experiments_dir`.
-2. **Rejection of External Artifacts**: The API never accepts arbitrary filesystem paths, URLs, or user-uploaded `.joblib` / `.pkl` files for deserialization.
-3. **Path Traversal Guards**: Experiment IDs are strictly validated using regex `^[a-zA-Z0-9_\-]+$`, and resolved paths are checked with `.is_relative_to(base_dir)`.
-4. **Integrity Checksums**: Artifact SHA-256 hashes and file sizes are recorded at creation time and exposed via inspection for cryptographic verification.
-
----
-
-## 11. Running Automated Tests
-
-Run the full automated test suite (83 tests) from the `backend/` directory:
-
-```bash
-python -m pytest -q
-```
-
-Or for verbose test output:
-
-```bash
-python -m pytest -v
-```
-
-The test suite covers:
-- System health and configuration integrity.
-- Dataset upload, streaming size bounds, path traversal guards, and partial file cleanup.
-- Dataset intelligence analysis, role classification, and diagnostics.
-- Target selection validation (constant, all-null, non-existent).
-- Heuristic task detection (binary classification, multiclass classification, regression).
-- Explicit task overrides and type-compatibility guards.
-- AutoML classification and regression training pipelines (holdout mode).
-- Cross-validation for classification and regression with fold-level metric aggregation.
-- Sample standard deviation calculation (`ddof=1`) and `null` handling when valid folds $< 2$.
-- Rare-class stratification fallback and strict error validation.
-- Preprocessing leakage prevention across CV folds.
-- Unbiased final holdout evaluation of winning models.
-- Cryptographic SHA-256 dataset fingerprinting.
-- Hierarchical MLflow parent runs and nested candidate runs.
-- MLflow tracking disabled behavior and exception resilience.
-- Atomic experiment metadata and model artifact persistence.
-- Experiment metadata inspection, artifact presence, and SHA-256 checksums.
-- Path traversal rejection on experiment IDs.
-- Classification predictions with class probabilities and class label mapping.
-- Regression predictions with continuous numeric outputs.
-- Rejection of missing feature columns and unexpected extra columns.
-- Feature ordering invariance across arbitrary input key orderings.
-- Missing value imputation and unseen category handling in prediction records.
-- Handling of missing or corrupted serialized model artifacts.
-- Bounded prediction batch limits and oversized payload rejection.
-- Zero retraining during inference verification.
-- Batch CSV prediction streaming, target column tolerance, and downloadable CSV response generation.
-
----
-
-## 12. Configuration Management
-
-Configuration is handled centrally using `pydantic-settings` in [`backend/app/core/config.py`](file:///c:/Users/ishit/AutoNexa/backend/app/core/config.py). Variables can be overridden via environment variables or a local `.env` file.
-
-To customize settings, copy the example environment file:
-
-```bash
-# On Windows PowerShell
-Copy-Item .env.example .env
-
-# On Unix / macOS / Git Bash
 cp .env.example .env
 ```
+Edit `.env` and assign secure, distinct 16+ character secrets for `AUTONEXA_API_KEY_READ` and `AUTONEXA_API_KEY_ADMIN`.
 
-| Variable | Default Value | Description |
-| :--- | :--- | :--- |
-| `APP_NAME` | `"AutoNexa"` | Name of the application |
-| `APP_VERSION` | `"0.1.0"` | Current semantic version |
-| `APP_DESCRIPTION` | `"An automated machine-learning research platform..."` | OpenAPI description |
-| `API_V1_PREFIX` | `"/api/v1"` | URL prefix for version 1 API routes |
-| `ENVIRONMENT` | `"development"` | Environment runtime mode |
-| `DEBUG` | `false` | Enable/disable debug diagnostics |
-| `SERVER_HOST` | `"127.0.0.1"` | Host address for server binding |
-| `SERVER_PORT` | `8000` | Port for server binding |
-| `UPLOAD_DIR` | `"uploads"` | Relative or absolute path for storing uploaded datasets |
-| `EXPERIMENTS_DIR` | `"experiments"` | Relative or absolute path for persisting experiment artifacts |
-| `ENABLE_MLFLOW_TRACKING` | `true` | Toggle for logging experiments and candidate runs to MLflow |
-| `MLFLOW_TRACKING_URI` | `null` | Custom tracking URI (defaults to local file-store under `experiments/mlruns`) |
-| `MAX_UPLOAD_SIZE_BYTES` | `10485760` (10 MB) | Maximum permitted upload size in bytes |
-| `MAX_DATASET_ROWS` | `100000` | Maximum allowable rows for AutoML training |
-| `MAX_DATASET_COLUMNS` | `500` | Maximum allowable columns for AutoML training |
-| `MAX_TRAINING_BUDGET_SECONDS` | `300` | Maximum allowable time budget in seconds |
-| `MAX_PREDICTION_RECORDS` | `1000` | Maximum permitted records in a single JSON prediction request |
-| `MAX_PREDICTION_CSV_ROWS` | `10000` | Maximum permitted rows in a single CSV batch prediction request |
-| `MAX_PREDICTION_CSV_SIZE_BYTES`| `5242880` (5 MB) | Maximum upload size for CSV batch prediction in bytes |
-| `BACKEND_CORS_ORIGINS` | `["http://localhost:3000","http://127.0.0.1:3000"]` | Allowed frontend origins |
+#### 2. Build & Launch Containers
+```bash
+docker compose up --build -d
+```
+
+#### 3. Verify Container Health
+```bash
+docker compose ps
+curl -f http://127.0.0.1:8000/api/v1/health
+```
+
+#### 4. Tear Down
+```bash
+docker compose down
+```
+*(Persistent data is safely retained in Docker volumes `autonexa-data`, `autonexa-uploads`, and `autonexa-experiments`)*.
 
 ---
 
-## 13. Current Limitations (Step 7)
+## Configuration Reference
 
-- **Synchronous Training Execution**: Training runs synchronously within the HTTP request cycle under bounded time budgets (max 300s). Asynchronous background job queues (e.g. Celery / Redis) are intentionally deferred to future iterations.
-- **Tabular Data Only**: The current pipeline exclusively supports tabular CSV inputs. Image, audio, text, and time-series modalities are not supported.
-- **Best-Effort Budget Enforcement**: Wall-clock training budgets are checked before launching each candidate estimator and fold; individual fitting algorithms in scikit-learn cannot be interrupted mid-fit without external process termination.
-- **Model Explainability & Quantum Benchmarking**: SHAP global/local attributions and PennyLane quantum benchmarking are planned for subsequent phases.
+The backend configuration is managed by `pydantic-settings` via `backend/.env`.
+
+| Variable | Type | Default Value | Required | Purpose & Constraints |
+| :--- | :--- | :--- | :---: | :--- |
+| `APP_NAME` | string | `AutoNexa` | No | Application branding identifier |
+| `APP_VERSION` | string | `0.1.0` | No | Semantic application release version |
+| `ENVIRONMENT` | string | `development` | No | `development`, `staging`, or `production`. *(In production, enforces fail-closed auth)* |
+| `DEBUG` | boolean | `false` | No | Enable verbose debug logging output |
+| `LOG_LEVEL` | string | `INFO` | No | Logging threshold (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
+| `API_V1_PREFIX` | string | `/api/v1` | No | URL routing prefix for all v1 API endpoints |
+| `SERVER_HOST` | string | `127.0.0.1` | No | Network interface binding (`0.0.0.0` for Docker) |
+| `SERVER_PORT` | integer | `8000` | No | HTTP port for incoming connections |
+| `BACKEND_CORS_ORIGINS` | JSON list | `["http://localhost:3000"]` | No | Permitted CORS origins for client browser traffic |
+| `UPLOAD_DIR` | path | `uploads` | No | Directory for storing raw ingested CSV files |
+| `EXPERIMENTS_DIR` | path | `experiments` | No | Root directory for model artifacts, manifests, and pipelines |
+| `METADATA_DB_PATH` | path | `data/metadata.db` | No | SQLite database file location for indexed metadata |
+| `MAX_UPLOAD_SIZE_BYTES`| integer | `10485760` (10 MB) | No | Strict maximum streaming file size ceiling |
+| `API_AUTH_ENABLED` | boolean | `true` | No | Global toggle for API key verification |
+| `API_KEY_READ` | string | `autonexa-read-key-secret` | Yes (in prod) | Key for read-only querying, inspection, and inference |
+| `API_KEY_ADMIN` | string | `autonexa-admin-key-secret`| Yes (in prod) | Key for uploads, training, pipeline runs, and promotion |
+| `MAX_DATASET_ROWS` | integer | `100000` | No | Resource limit: Maximum allowed tabular rows |
+| `MAX_DATASET_COLUMNS` | integer | `500` | No | Resource limit: Maximum allowed tabular columns |
+| `MAX_TRAINING_BUDGET_SECONDS` | integer | `300` | No | Maximum execution wall-clock time per AutoML run |
+| `PIPELINE_MAX_CONCURRENCY` | integer | `2` | No | Maximum concurrent end-to-end pipeline worker jobs |
+| `MONITORING_PSI_WARNING_THRESHOLD` | float | `0.1` | No | Population Stability Index warning trigger |
+| `MONITORING_PSI_CRITICAL_THRESHOLD` | float | `0.2` | No | Population Stability Index critical alert trigger |
 
 ---
 
-## 13. License
+## API Overview
 
-This project is licensed under the Apache 2.0 License.
+The AutoNexa backend exposes RESTful endpoints grouped into functional domains. All endpoints (except public liveness health) enforce Role-Based Access Control via the `X-API-Key` or `Authorization: Bearer <key>` header.
+
+### 1. System Health, Readiness & Diagnostics
+| Method | Endpoint | Access Role | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/health` | **Public** | Basic process liveness probe. Returns operational status without paths. |
+| `GET` | `/api/v1/health/readiness` | `inference` (Read) | Non-blocking probe checking DB ping, storage writeability, and worker state. |
+| `GET` | `/api/v1/health/diagnostics` | `admin` (Admin) | Detailed administrative report: table counts, Python version, PID, uptime. |
+| `GET` | `/api/v1/metrics` | `inference` (Read) | In-memory operational metrics snapshot (request counts, latencies, DB stats). |
+
+### 2. Dataset Management & Schema Intelligence
+| Method | Endpoint | Access Role | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/datasets` | `inference` (Read) | List cataloged datasets with pagination, search, and sorting. |
+| `GET` | `/api/v1/datasets/{dataset_id}` | `inference` (Read) | Retrieve dataset metadata, column types, and fingerprint by ID. |
+| `POST` | `/api/v1/datasets/upload` | `admin` (Admin) | Ingest multipart CSV, validate schema, enforce 10 MB limit, and profile. |
+| `POST` | `/api/v1/datasets/{dataset_id}/analyze` | `inference` (Read) | Audit data quality, class imbalance, missingness, and recommend ML tasks. |
+| `POST` | `/api/v1/datasets/{dataset_id}/train` | `admin` (Admin) | Launch resource-aware AutoML training across candidate models. |
+
+### 3. Experiments, Explainability & Predictions
+| Method | Endpoint | Access Role | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/experiments` | `inference` (Read) | Paginated list of completed experiments with status and task filters. |
+| `GET` | `/api/v1/experiments/{id}` | `inference` (Read) | Inspect experiment leaderboard, winning estimator, and SHA-256 hash. |
+| `GET` | `/api/v1/experiments/{id}/details` | `inference` (Read) | Retrieve candidate fold metrics, system specs, and error diagnostics. |
+| `GET` | `/api/v1/experiments/{id}/reproducibility-manifest` | `inference` (Read) | Export cryptographic JSON manifest with dependencies and seeds. |
+| `GET` | `/api/v1/experiments/{id}/artifact` | `admin` (Admin) | Download verified `.joblib` model binary with integrity headers. |
+| `DELETE` | `/api/v1/experiments/{id}` | `admin` (Admin) | Safely delete experiment directory and persisted artifacts. |
+| `POST` | `/api/v1/experiments/{id}/predict` | `inference` (Read) | Run inference on JSON records using winning pipeline with probabilities. |
+| `POST` | `/api/v1/experiments/{id}/predict-csv` | `inference` (Read) | Stream batch CSV inference and download enriched CSV with predictions. |
+| `GET` | `/api/v1/experiments/{id}/explainability/importance` | `inference` (Read) | Calculate global feature importance (native tree or permutation). |
+| `POST` | `/api/v1/experiments/{id}/explainability/prediction` | `inference` (Read) | Generate local instance SHAP explanations (`TreeExplainer` / `LinearExplainer`). |
+| `POST` | `/api/v1/experiments/{id}/error-analysis` | `inference` (Read) | Compute confusion matrices, calibration buckets, or residual distributions. |
+
+### 4. Model Registry & Serving
+| Method | Endpoint | Access Role | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/models/register` | `admin` (Admin) | Register winning model from experiment into registry with SHA-256 check. |
+| `GET` | `/api/v1/models` | `inference` (Read) | List registered model families, active stages, and versions. |
+| `POST` | `/api/v1/models/{name}/versions/{v}/stage` | `admin` (Admin) | Promote stage (`Development`, `Staging`, `Production`, `Archived`). |
+| `POST` | `/api/v1/serving/models/{name}/predict` | `inference` (Read) | High-speed inference using active Production model version. |
+
+### 5. Research Benchmarking & Optimization
+| Method | Endpoint | Access Role | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/benchmarks/compare` | `inference` (Read) | Compare experiments with strict comparability audit and baseline deltas. |
+| `POST` | `/api/v1/benchmarks/repeated-runs` | `inference` (Read) | Execute repeated-seed series (2–10 seeds) with bootstrap confidence intervals. |
+| `GET` | `/api/v1/benchmarks/dataset-catalog` | `inference` (Read) | List curated research benchmark fixtures (`wine`, `diabetes`, etc.). |
+| `POST` | `/api/v1/benchmarks/robust` | `inference` (Read) | Multi-seed matched benchmarking with Wilcoxon and paired t-tests. |
+| `POST` | `/api/v1/benchmarks/hpo` | `admin` (Admin) | Run Optuna Bayesian hyperparameter search over custom search spaces. |
+| `POST` | `/api/v1/benchmarks/multi-objective` | `inference` (Read) | Compute Pareto frontier (accuracy vs. latency vs. size) & Utopia distance. |
+
+### 6. Pipeline Orchestration & Monitoring
+| Method | Endpoint | Access Role | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/pipelines` | `admin` (Admin) | Launch asynchronous end-to-end pipeline (validate -> train -> gate). |
+| `GET` | `/api/v1/pipelines` | `inference` (Read) | Query recorded pipeline execution runs and current status. |
+| `POST` | `/api/v1/pipelines/{id}/cancel` | `admin` (Admin) | Cooperatively cancel an in-flight pipeline execution. |
+| `GET` | `/api/v1/monitoring/overview` | `inference` (Read) | Operational overview of active drift alerts, telemetry, and profiles. |
+| `POST` | `/api/v1/monitoring/drift/analyze` | `inference` (Read) | Evaluate production telemetry against baseline via KS-test and PSI. |
+
+---
+
+## ML Methodology & Scientific Reliability
+
+### 1. Estimator Portfolio
+AutoNexa provides an extensible catalog of verified scikit-learn estimators:
+
+- **Classification Estimators**:
+  - `dummy`: Dummy Baseline Classifier (`strategy="prior"`)
+  - `logistic_regression`: L2-Regularized Logistic Regression (`max_iter=1000`)
+  - `decision_tree`: Decision Tree Classifier (`max_depth=10`)
+  - `random_forest`: Random Forest Ensemble (`n_estimators=50, max_depth=10, n_jobs=1`)
+  - `hist_gradient_boosting`: Histogram-Based Gradient Boosting (`max_iter=50`)
+- **Regression Estimators**:
+  - `dummy_regressor`: Dummy Baseline Regressor (`strategy="mean"`)
+  - `linear_regression`: L2 Ridge Linear Regression (`alpha=1.0`)
+  - `decision_tree_regressor`: Decision Tree Regressor (`max_depth=10`)
+  - `random_forest_regressor`: Random Forest Regressor (`n_estimators=50, max_depth=10, n_jobs=1`)
+  - `hist_gradient_boosting_regressor`: Histogram-Based Gradient Boosting Regressor (`max_iter=50`)
+
+### 2. Preprocessing & Leakage Safeguards
+Data leakage is prevented structurally:
+- Preprocessing transformations are encapsulated entirely within a scikit-learn `Pipeline` and `ColumnTransformer`.
+- Numeric features: Imputed using **median** statistics and standardized via `StandardScaler`.
+- Categorical features: Imputed using **most-frequent** category and encoded using `OneHotEncoder(handle_unknown="ignore", max_categories=25)`.
+- All imputers, encoders, and scalers are fitted **strictly on the training partition**; they never observe the validation or holdout test partitions prior to transformation.
+
+### 3. Evaluation Protocols
+- **Holdout Validation**: Deterministic train/test split with stratification for classification tasks.
+- **Cross-Validation**: Configurable K-Fold / Stratified K-Fold splits.
+- **Rare-Class Handling**: Automatically detects classes with fewer instances than fold counts and safely adjusts splitting strategies.
+- **Sample Standard Deviation**: Metric variance across folds is computed using Bessel's correction (`ddof=1`), avoiding biased sample variance estimates.
+
+### 4. Explainable AI & Attributions
+- **SHAP Integration**:
+  - `TreeExplainer`: Utilized for native tree estimators (`DecisionTreeClassifier`, `RandomForestClassifier`), computing exact Shapley values.
+  - `LinearExplainer`: Utilized for linear models with background summary distributions.
+  - `Generic Explainer`: Utilized as a secondary fallback.
+- **Perturbation Fallback**: When SHAP cannot initialize or is unavailable, a model-agnostic leave-one-covariate-out marginal perturbation algorithm computes reliable directional feature shifts.
+
+---
+
+## Testing & Quality Assurance
+
+AutoNexa enforces comprehensive automated testing covering unit logic, integration flows, mathematical consistency, concurrency, and security boundaries.
+
+### Verified Test Suite Results
+
+```text
+============================= test session starts ==============================
+platform win32 / linux -- Python 3.11 -- pytest-9.1.1
+collected 279 items
+
+backend/tests/test_analysis.py ...............                           [  5%]
+backend/tests/test_baseline_evaluator.py ....                            [  6%]
+backend/tests/test_benchmarking.py .....                                 [  8%]
+backend/tests/test_datasets.py .............                             [ 13%]
+backend/tests/test_error_analysis.py ......                              [ 15%]
+backend/tests/test_experiment_tracking_phase12.py ...........            [ 19%]
+backend/tests/test_explainability.py ........                            [ 22%]
+backend/tests/test_health.py .....                                       [ 24%]
+backend/tests/test_hpo_optimizers.py ......                              [ 26%]
+backend/tests/test_hpo_service.py ...                                    [ 27%]
+backend/tests/test_model_monitoring_phase14.py .........                 [ 30%]
+backend/tests/test_model_registry_phase12.py ...........                 [ 34%]
+backend/tests/test_model_serving_phase13.py .........                    [ 37%]
+backend/tests/test_multi_objective_routes.py .                           [ 37%]
+backend/tests/test_multi_objective_service.py .....                      [ 39%]
+backend/tests/test_pareto_frontier.py ..............                      [ 44%]
+backend/tests/test_phase13_security_audit.py .......                     [ 47%]
+backend/tests/test_phase16b_security_audit.py ............               [ 51%]
+backend/tests/test_phase16c_lifecycle_concurrency.py ......             [ 53%]
+backend/tests/test_phase16d_metadata_and_catalog.py ........             [ 56%]
+backend/tests/test_phase16e_observability_and_diagnostics.py ...........  [ 60%]
+backend/tests/test_phase16f_remediation_and_safety.py ...............    [ 65%]
+backend/tests/test_pipeline_orchestration_phase15.py ..........          [ 69%]
+backend/tests/test_prediction.py ..............                          [ 74%]
+backend/tests/test_research_benchmarking.py ....                         [ 75%]
+backend/tests/test_resource_profiler.py ......                           [ 77%]
+backend/tests/test_robust_benchmarking.py .............                  [ 82%]
+backend/tests/test_scientific_validation.py .....                       [ 84%]
+backend/tests/test_statistical_engine.py .......                         [ 86%]
+backend/tests/test_tracking.py ..............                            [ 91%]
+backend/tests/test_training.py .....................                     [100%]
+
+======================= 279 passed, 12 warnings in 84.16s =======================
+```
+
+### Running Tests Locally
+
+#### Backend Tests
+Activate your virtual environment and run pytest:
+```bash
+pytest backend/tests -v
+```
+
+To run a specific test suite:
+```bash
+pytest backend/tests/test_pipeline_orchestration_phase15.py -v
+```
+
+#### Frontend Type Checking & Production Build
+```bash
+cd frontend
+npm run lint
+npm run build
+```
+
+---
+
+## Operational Tooling: Backup, Restore & Verification
+
+AutoNexa provides a crash-safe operational backup utility in [`backend/scripts/backup_restore.py`](file:///c:/Users/ishit/AutoNexa/backend/scripts/backup_restore.py) designed for Phase 16F disaster recovery standards.
+
+### Features
+- **Online SQLite Backup**: Connects via the SQLite Online Backup API, acquiring a consistent snapshot without blocking concurrent database readers.
+- **Archive Integrity**: Generates a cryptographic `manifest.json` containing SHA-256 hashes and byte counts for all archived files.
+- **Path Traversal Defense**: During extraction, validates every tar member against an allowlist, rejecting POSIX traversal (`../`), absolute paths, Windows drive letters (`C:`), UNC paths, and symlinks.
+
+### Commands
+
+**Create a Backup:**
+```bash
+python backend/scripts/backup_restore.py backup --base-dir backend --output-dir backups
+```
+
+**Verify an Existing Backup Archive:**
+```bash
+python backend/scripts/backup_restore.py verify --archive backups/autonexa_backup_20261024_010000.tar.gz
+```
+
+**Safely Restore from Backup:**
+```bash
+python backend/scripts/backup_restore.py restore --archive backups/autonexa_backup_20261024_010000.tar.gz --target-base-dir backend
+```
+
+---
+
+## Research Visualizations & Benchmarks
+
+The repository includes empirical research benchmark plots generated across experimental runs and stored in [`docs/research/plots/`](docs/research/plots/):
+
+| Research Domain | Visualization | Description |
+| :--- | :---: | :--- |
+| **Multi-Objective Optimization** | [Pareto Frontier](docs/research/plots/classification_pareto_frontier.png) | Trade-off curve comparing classification accuracy against inference latency and artifact size. |
+| **Statistical Reliability** | [Paired Differences](docs/research/plots/phase_11_paired_differences.png) | Distribution of paired metric deltas across multi-seed matched experimental runs. |
+| **Seed Variance Analysis** | [Seed Variability](docs/research/plots/phase_11_seed_variability.png) | Boxplots illustrating performance variance across repeated random seed evaluations. |
+| **Hyperparameter Optimization** | [HPO Convergence](docs/research/plots/classification_hpo_convergence.png) | Objective score convergence across Optuna Bayesian TPE exploration trials. |
+| **Resource Profiling** | [RSS vs. Heap](docs/research/plots/phase_11_resource_rss_vs_heap.png) | Memory footprint (RSS) and execution time benchmarks across model architectures. |
+
+---
+
+## Current Constraints & Future Roadmap
+
+To maintain technical honesty, AutoNexa distinguishes between verified capabilities and planned architecture.
+
+### Current Technical Constraints
+
+1. **Single-Worker Execution (`--workers 1`)**: In-process mutexes, pipeline worker queues, and in-memory metric buffers require running a single Uvicorn worker process per container.
+2. **In-Memory Telemetry**: Real-time request latencies and error counters reside in-memory; restarting the backend process resets operational metric counters.
+3. **Local Filesystem Artifact Storage**: Serialized `.joblib` models and raw `.csv` uploads reside on the server filesystem. In containerized environments, these must be mounted to persistent volumes.
+4. **Dataset Scale Boundaries**: Out-of-the-box defaults target tabular datasets up to 100,000 rows and 500 columns; very large out-of-core datasets require distributed frameworks.
+
+### Future Roadmap
+
+- [ ] **Distributed Task Queue**: Integration with Celery or Redis Queue (RQ) to support distributed, multi-worker model training.
+- [ ] **PostgreSQL Storage Backend**: Optional SQLAlchemy dialect support for external PostgreSQL clusters to enable multi-instance horizontal scaling.
+- [ ] **Cloud Object Storage**: S3/GCS blob storage adapters for model artifacts and dataset uploads.
+- [ ] **Quantum Machine Learning (QML) Benchmarking**: Experimental variational quantum circuit benchmarks via PennyLane against classical baselines (in research design).
+- [ ] **Automated Feature Synthesis**: Deep feature synthesis and interaction generation for complex relational tabular schemas.
+
+---
+
+## Security & Responsible Machine Learning
+
+- **Constant-Time Verification**: API tokens are compared using `secrets.compare_digest` to eliminate timing-attack vulnerabilities.
+- **Fail-Closed Production Posture**: When `ENVIRONMENT=production`, the application refuses to start if authentication is disabled or default/weak keys are detected.
+- **Path Traversal Defenses**: All filesystem operations use `resolve()` and verify containment within permitted parent directories.
+- **Sanitized Logging**: Log messages and error tracebacks are automatically scrubbed of API tokens, secrets, absolute POSIX home paths, and Windows user directories.
+- **Responsible Evaluation**: AutoNexa discourages deploying models based on raw test accuracy alone; users should inspect confusion matrices, residual outliers, and demographic slice performance in the **Error Analysis** workspace.
+
+---
+
+## Contributing & License
+
+### Contributing
+
+Contributions from the open-source and research community are welcome. Please adhere to these guidelines:
+1. Fork the repository and create a feature branch (`git checkout -b feature/improved-hpo-space`).
+2. Ensure all changes adhere to existing type hints and pass linting (`npm run lint` and `ruff`/`mypy`).
+3. Run the automated test suite to ensure 100% pass rate (`pytest backend/tests`).
+4. Submit a clear Pull Request detailing the problem solved, methodology, and verification steps.
+
+### License
+
+> [!NOTE]
+> The AutoNexa repository does not currently specify an open-source license. All rights are reserved by the repository owner ([Ishitadas03](https://github.com/Ishitadas03)). An open-source license (such as MIT or Apache 2.0) will be added in a future update.
+
+---
+
+## Acknowledgments & Contact
+
+- **Author & Maintainer**: Ishita Das ([@Ishitadas03](https://github.com/Ishitadas03))
+- **GitHub Repository**: [https://github.com/Ishitadas03/AutoNexa](https://github.com/Ishitadas03/AutoNexa)
+- **Live Platform**: [https://autonexa-orpin.vercel.app](https://autonexa-orpin.vercel.app/)
+
+*AutoNexa — From Raw Data to Reliable Models.*
