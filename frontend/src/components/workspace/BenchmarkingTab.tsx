@@ -3008,7 +3008,7 @@ export default function BenchmarkingTab({
                     &middot; <strong>Peak Heap:</strong> Python object allocations via tracemalloc.
                   </div>
                   <div>
-                    Degrees of freedom for sample standard deviation ddof=1 (Bessel's correction).
+                    Degrees of freedom for sample standard deviation ddof=1 (Bessel&apos;s correction).
                   </div>
                 </div>
               </div>

@@ -318,7 +318,7 @@ All routes except the public liveness health check enforce constant-time API-key
 ### Automated Test Suite
 
 ```text
-======================= 279 passed, 12 warnings in 84.16s =======================
+======================= 299 passed, 12 warnings in 94.75s =======================
 ```
 
 Run test suite locally:
