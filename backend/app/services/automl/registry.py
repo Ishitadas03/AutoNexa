@@ -133,6 +133,8 @@ class ModelRegistry:
             "decision_tree": "decision_tree_regressor" if task == TaskType.REGRESSION else "decision_tree",
             "random_forest": "random_forest_regressor" if task == TaskType.REGRESSION else "random_forest",
             "hist_gradient_boosting": "hist_gradient_boosting_regressor" if task == TaskType.REGRESSION else "hist_gradient_boosting",
+            "ridge": "linear_regression" if task == TaskType.REGRESSION else "linear_regression",
+            "ridge_regression": "linear_regression" if task == TaskType.REGRESSION else "linear_regression",
         }
 
         if not requested_models:

@@ -969,3 +969,49 @@ def test_h_api_security_rbac_and_path_traversal_sanitization(e2e_env):
     assert res_bad_key.status_code == 401
     assert "Invalid API key" in res_bad_key.json()["detail"]
 
+
+# ==============================================================================
+# PHASE 17B: Frontend Integration Contracts
+# ==============================================================================
+
+def test_phase17b_frontend_regression_model_selection_contract(e2e_env):
+    """Test 17B: Verify that frontend default regression model selection ('ridge') resolves and trains."""
+    client, _, _, _, _ = e2e_env
+
+    # 1. Upload regression dataset
+    csv_bytes = b"feat1,feat2,target\n1.0,10.0,100.0\n2.0,20.0,200.0\n3.0,30.0,300.0\n4.0,40.0,400.0\n5.0,50.0,500.0\n6.0,60.0,600.0\n7.0,70.0,700.0\n8.0,80.0,800.0\n"
+    res_up = client.post(
+        "/api/v1/datasets/upload",
+        files={"file": ("frontend_reg.csv", csv_bytes, "text/csv")},
+        headers=ADMIN_HEADERS,
+    )
+    assert res_up.status_code == 201
+    ds_id = res_up.json()["dataset_id"]
+
+    # 2. Submit training with frontend exact default regression selection
+    # In TrainingTab.tsx: setSelectedModels(["random_forest", "hist_gradient_boosting", "ridge"])
+    train_payload = {
+        "target_column": "target",
+        "task_type": "regression",
+        "evaluation_strategy": "holdout",
+        "test_size": 0.25,
+        "random_state": 42,
+        "time_budget_seconds": 60,
+        "primary_metric": "r2",
+        "models": ["random_forest", "hist_gradient_boosting", "ridge"],
+    }
+    res_train = client.post(
+        f"/api/v1/datasets/{ds_id}/train",
+        json=train_payload,
+        headers=ADMIN_HEADERS,
+    )
+    assert res_train.status_code == 201
+    train_data = res_train.json()
+    assert train_data["task_type"] == "regression"
+    assert len(train_data["models_evaluated"]) == 3
+    evaluated_ids = {m["model_id"] for m in train_data["models_evaluated"]}
+    assert "linear_regression" in evaluated_ids
+    assert "random_forest_regressor" in evaluated_ids
+    assert "hist_gradient_boosting_regressor" in evaluated_ids
+
+
