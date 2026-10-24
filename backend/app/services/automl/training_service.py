@@ -781,6 +781,7 @@ class TrainingService:
             models_evaluated=results,
             ranked_models=ranked_model_ids,
             best_model=best_model_id,
+            best_score=best_score,
             test_metrics=test_metrics,
             total_duration_seconds=total_duration,
             artifacts_saved=artifacts_saved,

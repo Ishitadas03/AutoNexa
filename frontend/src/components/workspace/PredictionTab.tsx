@@ -403,16 +403,9 @@ export default function PredictionTab({ activeExperiment, onNavigateTab }: Predi
         });
       }
     } catch (err: any) {
-      console.warn("Prediction fallback active:", err);
-      setPredictionResult({
-        experiment_id: activeExperiment?.experiment_id || "exp_demo",
-        task_type: activeExperiment?.task_type || "classification",
-        target_column: activeExperiment?.target_column || "churn",
-        selected_model: activeExperiment?.best_model || "Random Forest Classifier",
-        prediction_count: 1,
-        predictions: [0],
-        probabilities: [{ "0": 0.82, "1": 0.18 }],
-      });
+      console.warn("Single prediction error:", err);
+      setPredictError(err.detail || err.message || "Failed to generate prediction.");
+      setPredictionResult(null);
     } finally {
       setIsPredicting(false);
     }
@@ -454,7 +447,7 @@ export default function PredictionTab({ activeExperiment, onNavigateTab }: Predi
       }
     } catch (err: any) {
       console.error("Batch scoring failed:", err);
-      setBatchError(err.message || "Failed to generate batch predictions.");
+      setBatchError(err.detail || err.message || "Failed to generate batch predictions.");
     } finally {
       setIsBatchPredicting(false);
     }
@@ -1173,7 +1166,17 @@ print("Latency:", data["latency_ms"], "ms")
                 </span>
               </div>
 
-              {predictionResult ? (
+              {predictError ? (
+                <div className="py-4 space-y-3 font-mono">
+                  <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs space-y-1">
+                    <div className="flex items-center gap-1.5 font-bold">
+                      <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+                      <span>Inference Error</span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed break-words">{predictError}</p>
+                  </div>
+                </div>
+              ) : predictionResult ? (
                 <div className="py-4 text-center space-y-3 font-mono">
                   <span className="text-[11px] text-[#64748B] uppercase tracking-wider block">
                     Predicted Class Output
@@ -1234,6 +1237,16 @@ print("Latency:", data["latency_ms"], "ms")
               Upload any matching CSV tabular file
             </p>
           </div>
+
+          {batchError && (
+            <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-mono space-y-1">
+              <div className="flex items-center gap-1.5 font-bold">
+                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+                <span>Batch Scoring Error</span>
+              </div>
+              <p className="text-[11px] leading-relaxed break-words">{batchError}</p>
+            </div>
+          )}
 
           {csvFile && (
             <div className="flex items-center justify-between pt-2">

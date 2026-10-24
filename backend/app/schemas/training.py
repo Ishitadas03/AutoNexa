@@ -179,6 +179,10 @@ class TrainingResponse(BaseModel):
         default=None,
         description="Identifier of the top-performing candidate model",
     )
+    best_score: Optional[float] = Field(
+        default=None,
+        description="Primary validation score of the top-performing candidate model",
+    )
     test_metrics: Optional[Dict[str, Any]] = Field(
         default=None,
         description="Final independent performance metrics of the best model evaluated on the untouched holdout test set",

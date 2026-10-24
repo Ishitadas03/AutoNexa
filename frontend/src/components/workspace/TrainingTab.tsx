@@ -273,7 +273,7 @@ export default function TrainingTab({
                     </>
                   ) : (
                     <>
-                      {["r2", "rmse", "mae", "evs"].map((m) => (
+                      {["r2", "rmse", "mae"].map((m) => (
                         <button
                           key={m}
                           type="button"

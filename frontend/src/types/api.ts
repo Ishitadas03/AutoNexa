@@ -5,9 +5,10 @@
 export interface HealthResponse {
   status: string;
   app_name: string;
-  app_version: string;
-  environment: string;
-  debug: boolean;
+  version?: string;
+  app_version?: string;
+  environment?: string;
+  debug?: boolean;
 }
 
 export interface DatasetProfileResponse {
