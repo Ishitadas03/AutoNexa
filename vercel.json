@@ -34,7 +34,7 @@
       "source": "/health",
       "destination": {
         "service": "backend",
-        "path": "/api/v1/health"
+        "path": "/health"
       }
     },
     {

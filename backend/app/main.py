@@ -113,6 +113,10 @@ def create_application() -> FastAPI:
     application.add_middleware(MetricsMiddleware)
     application.add_middleware(CorrelationIdMiddleware)
 
+    # Root health probes
+    from app.api.routes.health import router as health_router
+    application.include_router(health_router)
+
     # Mount API v1 router
     application.include_router(api_router, prefix=settings.api_v1_prefix)
 
