@@ -1,6 +1,6 @@
 # AutoNexa Backend Production Dockerfile
-# Base Image: Official pinned Python 3.11 slim bookworm
-FROM python:3.11.3-slim-bookworm
+# Base Image: Official Python 3.11 slim bookworm
+FROM python:3.11-slim-bookworm
 
 # Prevent Python from writing .pyc files and enable unbuffered terminal logging
 ENV PYTHONDONTWRITEBYTECODE=1 \

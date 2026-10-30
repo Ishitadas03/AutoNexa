@@ -40,7 +40,7 @@ Ephemeral container filesystems are strictly temporary and are destroyed upon co
 AutoNexa provides production-hardened container specifications for both backend and frontend services.
 
 ### 2.1 Backend Container (`backend/Dockerfile`)
-- **Base Image:** Pinned `python:3.11.3-slim-bookworm` for minimal CVE exposure and reproducible builds.
+- **Base Image:** `python:3.11-slim-bookworm` for minimal CVE exposure and reproducible builds.
 - **Security:** Runs as non-root user `autonexa` (UID `10001`, GID `10001`).
 - **Secrets Hygiene:** Secrets and `.env` files are excluded from image layers via `backend/.dockerignore`.
 - **Health Probing:** Embedded Docker `HEALTHCHECK` testing `GET /api/v1/health` with 30s interval, 5s timeout, 15s start period, and 3 retries.
