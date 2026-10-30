@@ -31,10 +31,24 @@
       }
     },
     {
+      "source": "/health",
+      "destination": {
+        "service": "backend",
+        "path": "/api/v1/health"
+      }
+    },
+    {
       "source": "/docs",
       "destination": {
         "service": "backend",
         "path": "/docs"
+      }
+    },
+    {
+      "source": "/redoc",
+      "destination": {
+        "service": "backend",
+        "path": "/redoc"
       }
     },
     {

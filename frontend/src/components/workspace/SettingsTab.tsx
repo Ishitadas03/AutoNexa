@@ -33,7 +33,14 @@ export default function SettingsTab({
   onReloadBenchmarks,
   onRefreshHealth,
 }: SettingsTabProps) {
-  const [apiUrl, setApiUrl] = useState(() => api.getBaseUrl() || "http://127.0.0.1:8000");
+  const [apiUrl, setApiUrl] = useState(() => {
+    const stored = api.getStoredBaseUrl();
+    if (stored) return stored;
+    if (typeof window !== "undefined" && window.location.origin && window.location.origin !== "null") {
+      return window.location.origin;
+    }
+    return api.getBaseUrl() || "http://127.0.0.1:8000";
+  });
   const [isPinging, setIsPinging] = useState(false);
   const [pingResult, setPingResult] = useState<{ status: string; latencyMs: number } | null>(null);
   const [urlSavedMessage, setUrlSavedMessage] = useState<string | null>(null);
@@ -83,7 +90,10 @@ export default function SettingsTab({
 
   const handleResetApiUrl = () => {
     api.clearStoredBaseUrl();
-    const defaultUrl = api.getBaseUrl() || "http://127.0.0.1:8000";
+    const defaultUrl =
+      typeof window !== "undefined" && window.location.origin && window.location.origin !== "null"
+        ? window.location.origin
+        : api.getBaseUrl() || "http://127.0.0.1:8000";
     setApiUrl(defaultUrl);
     setUrlSavedMessage("Backend URL reset to system default.");
     setTimeout(() => setUrlSavedMessage(null), 3500);
@@ -100,6 +110,22 @@ export default function SettingsTab({
     e.preventDefault();
     api.setStoredApiKey(apiKey);
     setKeySavedMessage(apiKey.trim() ? "API Key saved to browser storage." : "API Key cleared.");
+    setTimeout(() => setKeySavedMessage(null), 3000);
+  };
+
+  const handleLoadDemoAdminKey = () => {
+    const key = "autonexa-admin-key-secret";
+    setApiKey(key);
+    api.setStoredApiKey(key);
+    setKeySavedMessage("Demo Admin key loaded and activated.");
+    setTimeout(() => setKeySavedMessage(null), 3000);
+  };
+
+  const handleLoadDemoReadKey = () => {
+    const key = "autonexa-read-key-secret";
+    setApiKey(key);
+    api.setStoredApiKey(key);
+    setKeySavedMessage("Demo Read/Inference key loaded and activated.");
     setTimeout(() => setKeySavedMessage(null), 3000);
   };
 
@@ -343,10 +369,20 @@ export default function SettingsTab({
                 <Check className="w-3.5 h-3.5" />
                 <span>{keySavedMessage}</span>
               </span>
+            ) : apiKey.trim() === "autonexa-admin-key-secret" ? (
+              <span className="px-2.5 py-0.5 rounded-full bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] text-[10px] font-mono font-medium flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                <span>Demo Admin Active</span>
+              </span>
+            ) : apiKey.trim() === "autonexa-read-key-secret" ? (
+              <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-mono font-medium flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                <span>Demo Read Active</span>
+              </span>
             ) : apiKey.trim() ? (
               <span className="px-2.5 py-0.5 rounded-full bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] text-[10px] font-mono font-medium flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" />
-                <span>Key Active</span>
+                <span>Custom Key Active</span>
               </span>
             ) : (
               <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-mono font-medium flex items-center gap-1">
@@ -395,6 +431,23 @@ export default function SettingsTab({
                     Clear
                   </button>
                 )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2 pt-2">
+                <span className="text-[11px] font-mono text-[#64748B]">Quick presets:</span>
+                <button
+                  type="button"
+                  onClick={handleLoadDemoAdminKey}
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-[#1D4ED8] hover:text-white text-[#334155] text-[10px] font-mono font-medium transition-colors cursor-pointer"
+                >
+                  Load Demo Admin Key
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLoadDemoReadKey}
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-[#1D4ED8] hover:text-white text-[#334155] text-[10px] font-mono font-medium transition-colors cursor-pointer"
+                >
+                  Load Demo Read Key
+                </button>
               </div>
             </div>
 

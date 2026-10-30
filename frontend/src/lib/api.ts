@@ -126,6 +126,8 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export const DEFAULT_DEMO_API_KEY = "autonexa-admin-key-secret";
+
 function getAuthHeaders(apiKey?: string, extraHeaders?: Record<string, string>): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: "application/json",
@@ -135,7 +137,9 @@ function getAuthHeaders(apiKey?: string, extraHeaders?: Record<string, string>):
     apiKey ||
     (typeof window !== "undefined"
       ? localStorage.getItem("autonexa_api_key") || localStorage.getItem("autonexa_serving_api_key") || ""
-      : "");
+      : "") ||
+    process.env.NEXT_PUBLIC_API_KEY ||
+    DEFAULT_DEMO_API_KEY;
   if (key) {
     headers["X-API-Key"] = key;
   }
@@ -178,12 +182,22 @@ export const api = {
     }
   },
 
-  /** Get currently configured API key from browser localStorage */
+  /** Get currently configured API key from browser localStorage, falling back to default demo key */
   getStoredApiKey(): string {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("autonexa_api_key") || localStorage.getItem("autonexa_serving_api_key") || "";
+      const stored = localStorage.getItem("autonexa_api_key") || localStorage.getItem("autonexa_serving_api_key");
+      if (stored) return stored;
     }
-    return "";
+    return DEFAULT_DEMO_API_KEY;
+  },
+
+  /** Check if currently using default demo credentials */
+  isUsingDefaultKey(): boolean {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("autonexa_api_key") || localStorage.getItem("autonexa_serving_api_key");
+      return !stored || stored === DEFAULT_DEMO_API_KEY;
+    }
+    return true;
   },
 
   /** Store API key in browser localStorage for authorized calls */
