@@ -1,0 +1,703 @@
+{
+  "metadata": {
+    "timestamp": "2026-10-31T06:10:02Z",
+    "python_version": "3.11.3",
+    "platform": "win32",
+    "auto_nexa_version": "0.1.0"
+  },
+  "datasets": {
+    "breast_cancer_binary": {
+      "name": "Breast Cancer Wisconsin Diagnostic",
+      "provenance": "Wolberg, Street, & Mangasarian (1995), UCI Machine Learning Repository / OpenML ID 15",
+      "license": "CC BY 4.0",
+      "rows": 569,
+      "columns": 31,
+      "feature_columns": 30,
+      "sha256": "f2ed900773c616005085756d19c8a5b99ae8c41fe6a4e0aea393f38ab9894254",
+      "target": "target",
+      "task_type_expected": "binary_classification",
+      "task_type_detected": "binary_classification",
+      "missing_values_count": 0,
+      "missing_values_rate": 0.0,
+      "target_distribution": {
+        "1": 357,
+        "0": 212
+      }
+    },
+    "wine_multiclass": {
+      "name": "Wine Recognition Benchmark",
+      "provenance": "Forina et al. (1991), Genoa / OpenML ID 187",
+      "license": "CC BY 4.0",
+      "rows": 178,
+      "columns": 14,
+      "feature_columns": 13,
+      "sha256": "0ee18636804d9b0623a71b3f7e6d4b53a34eba03821c2db6e525e593a0580723",
+      "target": "target",
+      "task_type_expected": "multiclass_classification",
+      "task_type_detected": "multiclass_classification",
+      "missing_values_count": 0,
+      "missing_values_rate": 0.0,
+      "target_distribution": {
+        "1": 71,
+        "0": 59,
+        "2": 48
+      }
+    },
+    "diabetes_regression": {
+      "name": "Diabetes Disease Progression",
+      "provenance": "Efron et al. (2004), LARS / OpenML ID 531",
+      "license": "Public Domain / CC0",
+      "rows": 442,
+      "columns": 11,
+      "feature_columns": 10,
+      "sha256": "628ac10ad7a59a6d9929771095fd50c2e27084b1104a2ea53683b0273f6bf13b",
+      "target": "target",
+      "task_type_expected": "regression",
+      "task_type_detected": "regression",
+      "missing_values_count": 0,
+      "missing_values_rate": 0.0,
+      "target_distribution": {
+        "mean": 152.133484,
+        "std": 77.093005,
+        "min": 25.0,
+        "25%": 87.0,
+        "50%": 140.5,
+        "75%": 211.5,
+        "max": 346.0
+      }
+    },
+    "california_housing": {
+      "name": "California Housing Valuation (10% Sample)",
+      "provenance": "Pace & Barry (1997), StatLib / OpenML ID 534",
+      "license": "Public Domain / CC0",
+      "rows": 2064,
+      "columns": 9,
+      "feature_columns": 8,
+      "sha256": "7a1433de069ddea500329587595fd02a2ba764f66d8575f21ab90b03580b6b80",
+      "target": "MedHouseVal",
+      "task_type_expected": "regression",
+      "task_type_detected": "regression",
+      "missing_values_count": 0,
+      "missing_values_rate": 0.0,
+      "target_distribution": {
+        "mean": 2.068025,
+        "std": 1.1551,
+        "min": 0.3,
+        "25%": 1.19175,
+        "50%": 1.8075,
+        "75%": 2.644,
+        "max": 5.00001
+      }
+    }
+  },
+  "experiments": {
+    "breast_cancer_binary": {
+      "experiment_id": "c1d7eb88-d248-407b-8fb3-6f74f18ed218",
+      "best_model": "logistic_regression",
+      "best_score": 0.9825,
+      "primary_metric": "accuracy",
+      "greater_is_better": 1,
+      "candidates_attempted": 5,
+      "candidates_successful": 5,
+      "training_duration_seconds": 1.924947,
+      "peak_memory_mb": 2.079957,
+      "artifact_size_kb": 5.369141,
+      "mean_inference_latency_ms": 10.576661,
+      "p95_inference_latency_ms": 16.631645,
+      "top_predictive_features": [
+        "radius_error",
+        "worst_texture",
+        "area_error"
+      ],
+      "error_analysis_summary": {
+        "misclassified_count": 2,
+        "error_rate": 0.0175,
+        "accuracy": 0.9825
+      },
+      "candidate_models": [
+        {
+          "model_id": "dummy",
+          "model_name": "Dummy Baseline Classifier",
+          "status": "successful",
+          "metrics": {
+            "accuracy": 0.6316,
+            "precision_weighted": 0.3989,
+            "recall_weighted": 0.6316,
+            "f1_weighted": 0.489,
+            "f1_macro": 0.3871,
+            "roc_auc": 0.5,
+            "confusion_matrix": [
+              [
+                0,
+                42
+              ],
+              [
+                0,
+                72
+              ]
+            ]
+          },
+          "duration_seconds": 0.032
+        },
+        {
+          "model_id": "logistic_regression",
+          "model_name": "Logistic Regression",
+          "status": "successful",
+          "metrics": {
+            "accuracy": 0.9825,
+            "precision_weighted": 0.9825,
+            "recall_weighted": 0.9825,
+            "f1_weighted": 0.9825,
+            "f1_macro": 0.9812,
+            "roc_auc": 0.9954,
+            "confusion_matrix": [
+              [
+                41,
+                1
+              ],
+              [
+                1,
+                71
+              ]
+            ]
+          },
+          "duration_seconds": 0.047
+        },
+        {
+          "model_id": "decision_tree",
+          "model_name": "Decision Tree Classifier",
+          "status": "successful",
+          "metrics": {
+            "accuracy": 0.9123,
+            "precision_weighted": 0.9161,
+            "recall_weighted": 0.9123,
+            "f1_weighted": 0.913,
+            "f1_macro": 0.9075,
+            "roc_auc": 0.9157,
+            "confusion_matrix": [
+              [
+                39,
+                3
+              ],
+              [
+                7,
+                65
+              ]
+            ]
+          },
+          "duration_seconds": 0.031
+        },
+        {
+          "model_id": "random_forest",
+          "model_name": "Random Forest Classifier",
+          "status": "successful",
+          "metrics": {
+            "accuracy": 0.9561,
+            "precision_weighted": 0.9561,
+            "recall_weighted": 0.9561,
+            "f1_weighted": 0.956,
+            "f1_macro": 0.9526,
+            "roc_auc": 0.9919,
+            "confusion_matrix": [
+              [
+                39,
+                3
+              ],
+              [
+                2,
+                70
+              ]
+            ]
+          },
+          "duration_seconds": 0.438
+        },
+        {
+          "model_id": "hist_gradient_boosting",
+          "model_name": "Histogram Gradient Boosting Classifier",
+          "status": "successful",
+          "metrics": {
+            "accuracy": 0.9649,
+            "precision_weighted": 0.9652,
+            "recall_weighted": 0.9649,
+            "f1_weighted": 0.9647,
+            "f1_macro": 0.9619,
+            "roc_auc": 0.9911,
+            "confusion_matrix": [
+              [
+                39,
+                3
+              ],
+              [
+                1,
+                71
+              ]
+            ]
+          },
+          "duration_seconds": 0.391
+        }
+      ]
+    },
+    "wine_multiclass": {
+      "experiment_id": "73a14c9e-bdcf-47f9-bfd9-57e217568595",
+      "best_model": "random_forest",
+      "best_score": 1.0,
+      "primary_metric": "accuracy",
+      "greater_is_better": 1,
+      "candidates_attempted": 5,
+      "candidates_successful": 5,
+      "training_duration_seconds": 1.93834,
+      "peak_memory_mb": 1.656731,
+      "artifact_size_kb": 103.06543,
+      "mean_inference_latency_ms": 25.98298,
+      "p95_inference_latency_ms": 32.39698,
+      "top_predictive_features": [
+        "flavanoids",
+        "color_intensity",
+        "proline"
+      ],
+      "error_analysis_summary": {
+        "misclassified_count": 0,
+        "error_rate": 0.0,
+        "accuracy": 1.0
+      },
+      "candidate_models": [
+        {
+          "model_id": "dummy",
+          "model_name": "Dummy Baseline Classifier",
+          "status": "successful",
+          "metrics": {
+            "accuracy": 0.3889,
+            "precision_weighted": 0.1512,
+            "recall_weighted": 0.3889,
+            "f1_weighted": 0.2178,
+            "f1_macro": 0.1867,
+            "roc_auc": 0.5,
+            "confusion_matrix": [
+              [
+                0,
+                12,
+                0
+              ],
+              [
+                0,
+                14,
+                0
+              ],
+              [
+                0,
+                10,
+                0
+              ]
+            ]
+          },
+          "duration_seconds": 0.015
+        },
+        {
+          "model_id": "logistic_regression",
+          "model_name": "Logistic Regression",
+          "status": "successful",
+          "metrics": {
+            "accuracy": 0.9722,
+            "precision_weighted": 0.9741,
+            "recall_weighted": 0.9722,
+            "f1_weighted": 0.972,
+            "f1_macro": 0.971,
+            "roc_auc": 1.0,
+            "confusion_matrix": [
+              [
+                12,
+                0,
+                0
+              ],
+              [
+                0,
+                14,
+                0
+              ],
+              [
+                0,
+                1,
+                9
+              ]
+            ]
+          },
+          "duration_seconds": 0.047
+        },
+        {
+          "model_id": "decision_tree",
+          "model_name": "Decision Tree Classifier",
+          "status": "successful",
+          "metrics": {
+            "accuracy": 0.9444,
+            "precision_weighted": 0.9514,
+            "recall_weighted": 0.9444,
+            "f1_weighted": 0.945,
+            "f1_macro": 0.9457,
+            "roc_auc": 0.9545,
+            "confusion_matrix": [
+              [
+                11,
+                1,
+                0
+              ],
+              [
+                0,
+                14,
+                0
+              ],
+              [
+                0,
+                1,
+                9
+              ]
+            ]
+          },
+          "duration_seconds": 0.031
+        },
+        {
+          "model_id": "random_forest",
+          "model_name": "Random Forest Classifier",
+          "status": "successful",
+          "metrics": {
+            "accuracy": 1.0,
+            "precision_weighted": 1.0,
+            "recall_weighted": 1.0,
+            "f1_weighted": 1.0,
+            "f1_macro": 1.0,
+            "roc_auc": 1.0,
+            "confusion_matrix": [
+              [
+                12,
+                0,
+                0
+              ],
+              [
+                0,
+                14,
+                0
+              ],
+              [
+                0,
+                0,
+                10
+              ]
+            ]
+          },
+          "duration_seconds": 0.406
+        },
+        {
+          "model_id": "hist_gradient_boosting",
+          "model_name": "Histogram Gradient Boosting Classifier",
+          "status": "successful",
+          "metrics": {
+            "accuracy": 1.0,
+            "precision_weighted": 1.0,
+            "recall_weighted": 1.0,
+            "f1_weighted": 1.0,
+            "f1_macro": 1.0,
+            "roc_auc": 1.0,
+            "confusion_matrix": [
+              [
+                12,
+                0,
+                0
+              ],
+              [
+                0,
+                14,
+                0
+              ],
+              [
+                0,
+                0,
+                10
+              ]
+            ]
+          },
+          "duration_seconds": 0.344
+        }
+      ]
+    },
+    "diabetes_regression": {
+      "experiment_id": "4d16203b-165a-4c39-87c8-8f034c48789b",
+      "best_model": "linear_regression",
+      "best_score": 53.7775,
+      "primary_metric": "r2",
+      "greater_is_better": 1,
+      "candidates_attempted": 5,
+      "candidates_successful": 5,
+      "training_duration_seconds": 1.265104,
+      "peak_memory_mb": 1.488935,
+      "artifact_size_kb": 2.798828,
+      "mean_inference_latency_ms": 6.01632,
+      "p95_inference_latency_ms": 8.32686,
+      "top_predictive_features": [
+        "s1",
+        "s5",
+        "bmi"
+      ],
+      "error_analysis_summary": {
+        "mean_residual": 3.9461,
+        "mae": 42.812,
+        "rmse": 53.7775
+      },
+      "candidate_models": [
+        {
+          "model_id": "dummy_regressor",
+          "model_name": "Dummy Baseline Regressor",
+          "status": "successful",
+          "metrics": {
+            "mae": 64.0065,
+            "rmse": 73.2225,
+            "r2": -0.012
+          },
+          "duration_seconds": 0.016
+        },
+        {
+          "model_id": "linear_regression",
+          "model_name": "Ridge Linear Regression",
+          "status": "successful",
+          "metrics": {
+            "mae": 42.812,
+            "rmse": 53.7775,
+            "r2": 0.4541
+          },
+          "duration_seconds": 0.032
+        },
+        {
+          "model_id": "decision_tree_regressor",
+          "model_name": "Decision Tree Regressor",
+          "status": "successful",
+          "metrics": {
+            "mae": 52.4512,
+            "rmse": 66.2418,
+            "r2": 0.1718
+          },
+          "duration_seconds": 0.031
+        },
+        {
+          "model_id": "random_forest_regressor",
+          "model_name": "Random Forest Regressor",
+          "status": "successful",
+          "metrics": {
+            "mae": 45.0403,
+            "rmse": 55.461,
+            "r2": 0.4194
+          },
+          "duration_seconds": 0.375
+        },
+        {
+          "model_id": "hist_gradient_boosting_regressor",
+          "model_name": "Histogram Gradient Boosting Regressor",
+          "status": "successful",
+          "metrics": {
+            "mae": 44.7883,
+            "rmse": 55.0346,
+            "r2": 0.4283
+          },
+          "duration_seconds": 0.266
+        }
+      ]
+    },
+    "california_housing": {
+      "experiment_id": "d044c58a-5f3a-4daf-be1d-c4b168be8d53",
+      "best_model": "hist_gradient_boosting_regressor",
+      "best_score": 0.5256,
+      "primary_metric": "r2",
+      "greater_is_better": 1,
+      "candidates_attempted": 5,
+      "candidates_successful": 5,
+      "training_duration_seconds": 2.17728,
+      "peak_memory_mb": 1.871665,
+      "artifact_size_kb": 195.767578,
+      "mean_inference_latency_ms": 15.953111,
+      "p95_inference_latency_ms": 18.324135,
+      "top_predictive_features": [
+        "MedInc",
+        "Latitude",
+        "Longitude"
+      ],
+      "error_analysis_summary": {
+        "mean_residual": -0.0146,
+        "mae": 0.3461,
+        "rmse": 0.5256
+      },
+      "candidate_models": [
+        {
+          "model_id": "dummy_regressor",
+          "model_name": "Dummy Baseline Regressor",
+          "status": "successful",
+          "metrics": {
+            "mae": 0.8987,
+            "rmse": 1.1361,
+            "r2": -0.0032
+          },
+          "duration_seconds": 0.016
+        },
+        {
+          "model_id": "linear_regression",
+          "model_name": "Ridge Linear Regression",
+          "status": "successful",
+          "metrics": {
+            "mae": 0.5624,
+            "rmse": 1.5777,
+            "r2": -0.9347
+          },
+          "duration_seconds": 0.016
+        },
+        {
+          "model_id": "decision_tree_regressor",
+          "model_name": "Decision Tree Regressor",
+          "status": "successful",
+          "metrics": {
+            "mae": 0.5169,
+            "rmse": 0.7423,
+            "r2": 0.5718
+          },
+          "duration_seconds": 0.031
+        },
+        {
+          "model_id": "random_forest_regressor",
+          "model_name": "Random Forest Regressor",
+          "status": "successful",
+          "metrics": {
+            "mae": 0.4015,
+            "rmse": 0.5848,
+            "r2": 0.7342
+          },
+          "duration_seconds": 0.766
+        },
+        {
+          "model_id": "hist_gradient_boosting_regressor",
+          "model_name": "Histogram Gradient Boosting Regressor",
+          "status": "successful",
+          "metrics": {
+            "mae": 0.3461,
+            "rmse": 0.5256,
+            "r2": 0.7853
+          },
+          "duration_seconds": 0.672
+        }
+      ]
+    }
+  },
+  "leakage_audits": {
+    "breast_cancer_binary": {
+      "target_excluded_from_features": 1,
+      "preprocessor_fitted_on_train_only": 1,
+      "test_transform_finite": 1,
+      "features_count_in": 30,
+      "transformed_feature_dimension": 30
+    },
+    "wine_multiclass": {
+      "target_excluded_from_features": 1,
+      "preprocessor_fitted_on_train_only": 1,
+      "test_transform_finite": 1,
+      "features_count_in": 13,
+      "transformed_feature_dimension": 13
+    },
+    "diabetes_regression": {
+      "target_excluded_from_features": 1,
+      "preprocessor_fitted_on_train_only": 1,
+      "test_transform_finite": 1,
+      "features_count_in": 10,
+      "transformed_feature_dimension": 10
+    },
+    "california_housing": {
+      "target_excluded_from_features": 1,
+      "preprocessor_fitted_on_train_only": 1,
+      "test_transform_finite": 1,
+      "features_count_in": 8,
+      "transformed_feature_dimension": 8
+    }
+  },
+  "dirty_data_resilience": {
+    "rows": 110,
+    "columns": 5,
+    "detected_warnings_count": 4,
+    "warning_rule_codes": [
+      "CONSTANT_COLUMN",
+      "HIGH_CARDINALITY",
+      "HIGH_MISSINGNESS",
+      "DUPLICATE_ROWS"
+    ],
+    "constant_detected": 1,
+    "missing_detected": 1,
+    "high_cardinality_detected": 1,
+    "automl_training_successful": 1,
+    "automl_best_model": "decision_tree"
+  },
+  "reproducibility": {
+    "dataset_tested": "breast_cancer_binary",
+    "seed": 42,
+    "run1_best_model": "logistic_regression",
+    "run2_best_model": "logistic_regression",
+    "run1_best_score": 0.9825,
+    "run2_best_score": 0.9825,
+    "scores_identical": 1,
+    "models_identical": 1,
+    "test_sample_predictions_identical": 1
+  },
+  "seed_variance": {
+    "breast_cancer_binary": {
+      "seeds_tested": [
+        42,
+        100,
+        2026
+      ],
+      "metric": "accuracy",
+      "scores": [
+        0.9825,
+        0.9825,
+        0.9736
+      ],
+      "models_selected": [
+        "logistic_regression",
+        "logistic_regression",
+        "logistic_regression"
+      ],
+      "mean": 0.9795,
+      "std_sample": 0.0051,
+      "min": 0.9736,
+      "max": 0.9825,
+      "ci_95_t": [
+        0.9668,
+        0.9923
+      ],
+      "ci_95_bootstrap": [
+        0.9736,
+        0.9825
+      ]
+    },
+    "diabetes_regression": {
+      "seeds_tested": [
+        42,
+        100,
+        2026
+      ],
+      "metric": "r2",
+      "scores": [
+        53.7775,
+        51.2864,
+        52.3097
+      ],
+      "models_selected": [
+        "linear_regression",
+        "linear_regression",
+        "linear_regression"
+      ],
+      "mean": 52.4579,
+      "std_sample": 1.2521,
+      "min": 51.2864,
+      "max": 53.7775,
+      "ci_95_t": [
+        49.3474,
+        55.5684
+      ],
+      "ci_95_bootstrap": [
+        51.2864,
+        53.7775
+      ]
+    }
+  }
+}
