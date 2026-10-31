@@ -1,0 +1,21 @@
+dataset_id,dataset_name,model_id,model_name,is_winner,primary_metric,score,duration_s
+breast_cancer_binary,Breast Cancer Wisconsin Diagnostic,dummy,Dummy Baseline Classifier,False,accuracy,0.6316,0.032
+breast_cancer_binary,Breast Cancer Wisconsin Diagnostic,logistic_regression,Logistic Regression,False,accuracy,0.9825,0.047
+breast_cancer_binary,Breast Cancer Wisconsin Diagnostic,decision_tree,Decision Tree Classifier,False,accuracy,0.9123,0.031
+breast_cancer_binary,Breast Cancer Wisconsin Diagnostic,random_forest,Random Forest Classifier,False,accuracy,0.9561,0.438
+breast_cancer_binary,Breast Cancer Wisconsin Diagnostic,hist_gradient_boosting,Histogram Gradient Boosting Classifier,False,accuracy,0.9649,0.391
+wine_multiclass,Wine Recognition Benchmark,dummy,Dummy Baseline Classifier,False,accuracy,0.3889,0.015
+wine_multiclass,Wine Recognition Benchmark,logistic_regression,Logistic Regression,False,accuracy,0.9722,0.047
+wine_multiclass,Wine Recognition Benchmark,decision_tree,Decision Tree Classifier,False,accuracy,0.9444,0.031
+wine_multiclass,Wine Recognition Benchmark,random_forest,Random Forest Classifier,False,accuracy,1.0,0.406
+wine_multiclass,Wine Recognition Benchmark,hist_gradient_boosting,Histogram Gradient Boosting Classifier,False,accuracy,1.0,0.344
+diabetes_regression,Diabetes Disease Progression,dummy_regressor,Dummy Baseline Regressor,False,r2,-0.012,0.016
+diabetes_regression,Diabetes Disease Progression,linear_regression,Ridge Linear Regression,False,r2,0.4541,0.032
+diabetes_regression,Diabetes Disease Progression,decision_tree_regressor,Decision Tree Regressor,False,r2,0.1718,0.031
+diabetes_regression,Diabetes Disease Progression,random_forest_regressor,Random Forest Regressor,False,r2,0.4194,0.375
+diabetes_regression,Diabetes Disease Progression,hist_gradient_boosting_regressor,Histogram Gradient Boosting Regressor,False,r2,0.4283,0.266
+california_housing,California Housing Valuation (10% Sample),dummy_regressor,Dummy Baseline Regressor,False,r2,-0.0032,0.016
+california_housing,California Housing Valuation (10% Sample),linear_regression,Ridge Linear Regression,False,r2,-0.9347,0.016
+california_housing,California Housing Valuation (10% Sample),decision_tree_regressor,Decision Tree Regressor,False,r2,0.5718,0.031
+california_housing,California Housing Valuation (10% Sample),random_forest_regressor,Random Forest Regressor,False,r2,0.7342,0.766
+california_housing,California Housing Valuation (10% Sample),hist_gradient_boosting_regressor,Histogram Gradient Boosting Regressor,False,r2,0.7853,0.672
