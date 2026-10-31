@@ -1,0 +1,30 @@
+{
+  "manifest_version": "1.0.0",
+  "phase": "17D",
+  "timestamp": "2026-10-31T06:48:29Z",
+  "environment": {
+    "platform": "win32",
+    "python": "3.11.3",
+    "psutil": "7.2.2",
+    "cpu_cores": 12,
+    "ram_gb": 7.34
+  },
+  "file_checksums": {
+    "phase_17d_results_json": "d0f71ea8337b6ae0dbf356a123cc1d38f86da2644914c656165430efc1459d0b",
+    "phase_17d_results_csv": "9e55350290d8df0b96ddff7435a206707c035a78e16a9d52bc0cb9d58ced0fcf"
+  },
+  "scenarios_evaluated": [
+    "small_clf_baseline",
+    "small_reg_baseline",
+    "med_clf_increased",
+    "med_reg_increased",
+    "large_clf_supported",
+    "large_reg_supported",
+    "wide_clf_features",
+    "wide_reg_features",
+    "dirty_data_challenge"
+  ],
+  "boundary_checks_passed": 6,
+  "total_boundary_checks": 6,
+  "overall_status": "PASS_WITH_LIMITATIONS"
+}
