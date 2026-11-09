@@ -60,15 +60,17 @@ export default function DatasetsTab({
     setDragOver(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
-      if (file.name.toLowerCase().endsWith(".csv")) {
-        await onUploadFile(file);
-      }
+      await onUploadFile(file);
     }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      await onUploadFile(e.target.files[0]);
+      const file = e.target.files[0];
+      await onUploadFile(file);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -179,7 +181,7 @@ export default function DatasetsTab({
             {isLoading ? "Ingesting & Validating CSV..." : "Click or drag & drop CSV file"}
           </h3>
           <p className="text-xs text-[#64748B] max-w-sm mb-4 leading-relaxed font-sans">
-            Tabular streaming parser supports CSV files up to 50 MB with automatic encoding sniffing and zero target leakage.
+            Tabular streaming parser supports CSV files up to 10 MB with automatic encoding sniffing and zero target leakage.
           </p>
           <div className="flex items-center gap-2">
             <span className="text-[10.5px] font-mono px-3 py-1 rounded-md bg-[#F1F5F9] border border-[#E2E8F0] text-[#475569]">

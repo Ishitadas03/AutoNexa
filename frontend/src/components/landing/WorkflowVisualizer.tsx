@@ -94,7 +94,7 @@ const STAGE_DETAILS: StageDetail[] = [
     title: "Dataset Intelligence & Profiling",
     description:
       "Automated schema inference, nullity distribution analysis, duplicate detection, and statistical profiling of uploaded CSV datasets.",
-    inputs: ["Raw CSV file (up to 50 MB)"],
+    inputs: ["Raw CSV file (up to 10 MB)"],
     outputs: [
       "Column types & roles",
       "Missing value distribution",
@@ -441,7 +441,7 @@ export default function WorkflowVisualizer({
                     Drop or drag your CSV data here
                   </p>
                   <p className="text-[10px] text-slate-500 mt-0.5">
-                    Tabular CSV format • Up to 50 MB
+                    Tabular CSV format • Up to 10 MB
                   </p>
                 </div>
               </div>
@@ -494,7 +494,7 @@ export default function WorkflowVisualizer({
             </div>
 
             <div className="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] font-mono text-slate-500">
-              <span>Max 50 MB</span>
+              <span>Max 10 MB</span>
               <span>SHA-256 verified</span>
             </div>
           </div>

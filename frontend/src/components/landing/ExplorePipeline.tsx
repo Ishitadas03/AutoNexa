@@ -46,7 +46,7 @@ const WORKFLOW_INDICATORS: IndicatorDetail[] = [
     title: "Dataset Intelligence & Profiling",
     description:
       "Automated schema inference, nullity distribution analysis, duplicate detection, and cryptographic SHA-256 fingerprinting.",
-    input: "Raw tabular CSV file (streaming upload up to 50 MB)",
+    input: "Raw tabular CSV file (streaming upload up to 10 MB)",
     processing:
       "Tabular integrity check, statistical summary calculations, missing value ratios, memory profiling.",
     output: "Dataset profile with shape (rows × columns), data types, and SHA-256 fingerprint.",

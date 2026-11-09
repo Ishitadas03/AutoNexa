@@ -1,0 +1,147 @@
+{
+  "phase": "17E",
+  "document_id": "ANX-VAL-PHASE17E-2026",
+  "timestamp": "2026-11-07T14:55:00Z",
+  "overall_verdict": "PASS_WITH_LIMITATIONS",
+  "environment": {
+    "os": "Windows 11",
+    "python_version": "3.11.3",
+    "node_version": "v20.18.0",
+    "pytest_version": "9.1.1",
+    "next_version": "16.4.2",
+    "docker_cli_version": "29.5.3",
+    "docker_compose_version": "5.1.4",
+    "docker_engine_status": "INACTIVE_LOCAL"
+  },
+  "stage_1_audit_previous_evidence": {
+    "phase_17d_budget_semantics": {
+      "finding": "Cooperative checkpoint-based timeout. TrainingService checks time_budget before candidate training and between cross-validation folds. If fit() is actively running in Scikit-Learn OpenMP C-code, it completes before the timeout skips remaining candidates.",
+      "observed_duration_vs_budget": "Configured 5.0s budget resulted in 5.67s total execution with 4 candidates evaluated and 1 candidate safely marked as SKIPPED_TIMEOUT."
+    },
+    "phase_17d_concurrent_training_timing": {
+      "finding": "The 1.01s measurement evaluated 2 concurrent in-process Python thread submissions to TrainingService.train_experiment on distinct datasets with lightweight models (dummy and logistic_regression).",
+      "clarification": "It verified SQLite WAL non-blocking concurrency, thread-safety, and unique experiment ID generation; it was not a full multi-candidate tree ensemble training or HTTP network roundtrip."
+    },
+    "frontend_lint_warnings": {
+      "total_warnings": 158,
+      "total_errors": 0,
+      "classification": "157 unused variables/imports/types (@typescript-eslint/no-unused-vars), 1 hook dependency warning (react-hooks/exhaustive-deps in TrainingTab.tsx). All non-breaking."
+    },
+    "phase_17d_manifest_csv_json_agreement": {
+      "status": "PASS",
+      "checksums_verified": true,
+      "results_json_sha256": "d0f71ea8337b6ae0dbf356a123cc1d38f86da2644914c656165430efc1459d0b",
+      "results_csv_sha256": "9e55350290d8df0b96ddff7435a206707c035a78e16a9d52bc0cb9d58ced0fcf",
+      "discrepancies_found": 0
+    }
+  },
+  "audit_checks": [
+    {
+      "test_name": "docker_cli_and_compose_availability",
+      "status": "PASS",
+      "execution_mode": "local_cli",
+      "environment": "Windows 11",
+      "command": "docker --version && docker compose version",
+      "observed_result": "Docker version 29.5.3, build d1c06ef; Docker Compose version v5.1.4",
+      "evidence_path": "CLI inspection output",
+      "limitation": null
+    },
+    {
+      "test_name": "docker_engine_daemon_status",
+      "status": "BLOCKED",
+      "execution_mode": "local_cli",
+      "environment": "Windows 11",
+      "command": "docker info",
+      "observed_result": "failed to connect to docker API at npipe:////./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified",
+      "evidence_path": "CLI inspection output",
+      "limitation": "Docker Desktop daemon was not running on local workstation. Local container spin-up blocked."
+    },
+    {
+      "test_name": "docker_static_configuration_audit",
+      "status": "PASS",
+      "execution_mode": "static_analysis",
+      "environment": "Local repository",
+      "command": "inspect backend/Dockerfile, frontend/Dockerfile, docker-compose.yml, .dockerignore",
+      "observed_result": "Multi-stage builds configured; non-root users (autonexa 10001, nextjs 10001); curl/wget healthchecks defined; volumes declared for data, uploads, experiments; .dockerignore excludes virtualenvs, local DBs, secrets, and caches.",
+      "evidence_path": "backend/Dockerfile, frontend/Dockerfile, docker-compose.yml",
+      "limitation": null
+    },
+    {
+      "test_name": "security_and_environment_audit",
+      "status": "PASS",
+      "execution_mode": "static_and_schema_inspection",
+      "environment": "Local repository",
+      "command": "inspect .env.example, backend/.env.example, frontend/.env.example, backend/app/core/config.py",
+      "observed_result": ".env.example files contain placeholders only; local .env and .env.local are gitignored; Settings model enforces fail-closed authentication in production (min 16 chars, non-default, distinct admin/read keys).",
+      "evidence_path": "backend/app/core/config.py, .env.example",
+      "limitation": null
+    },
+    {
+      "test_name": "remote_ci_workflow_verification",
+      "status": "PASS",
+      "execution_mode": "remote_api_query",
+      "environment": "GitHub Actions (ubuntu-latest)",
+      "command": "curl https://api.github.com/repos/Ishitadas03/AutoNexa/actions/runs/41180111383/jobs",
+      "observed_result": "Run 41180111383 (commit 6151268): Frontend Build & Typecheck (success), Backend Test Suite (success), Container Build & Health Validation (success).",
+      "evidence_path": "https://github.com/Ishitadas03/AutoNexa/actions/runs/41180111383",
+      "limitation": "Remote CI validated Docker container buildx and healthcheck on Linux; local Windows Docker daemon was inactive."
+    },
+    {
+      "test_name": "backup_and_restore_verification",
+      "status": "PASS",
+      "execution_mode": "isolated_runtime_execution",
+      "environment": "Local Python 3.11 / SQLite WAL",
+      "command": "python scratch/test_phase17e_backup_recovery.py",
+      "observed_result": "SQLite online backup created .tar.gz with SHA-256 database manifest; restored to separate directory; database records, foreign keys, uploads, and model joblib binaries restored with 100% byte fidelity; tampered manifests, hash mismatches, and path traversal attempts successfully rejected with explicit exceptions.",
+      "evidence_path": "backend/scripts/backup_restore.py",
+      "limitation": null
+    },
+    {
+      "test_name": "operational_readiness_and_lifecycle_audit",
+      "status": "PASS",
+      "execution_mode": "code_and_schema_inspection",
+      "environment": "Local backend",
+      "command": "inspect backend/app/main.py, backend/app/api/routes/health.py, backend/app/core/logging.py",
+      "observed_result": "Public liveness probe /health; authenticated /health/readiness checking DB latency and storage writeability; bounded graceful shutdown with 10s worker draining; logging sanitization redacts API tokens and user filesystem paths.",
+      "evidence_path": "backend/app/api/routes/health.py, backend/app/core/logging.py",
+      "limitation": null
+    },
+    {
+      "test_name": "full_backend_test_suite_regression",
+      "status": "PASS",
+      "execution_mode": "local_pytest",
+      "environment": "Python 3.11.3 (win32)",
+      "command": "pytest backend/tests -q",
+      "observed_result": "309 passed, 12 warnings in 223.15s (0 failures, 0 errors).",
+      "evidence_path": "backend/tests",
+      "limitation": null
+    },
+    {
+      "test_name": "frontend_linter_audit",
+      "status": "PASS_WITH_WARNINGS",
+      "execution_mode": "local_npm_cli",
+      "environment": "Node.js v20.18.0",
+      "command": "npm --prefix frontend run lint",
+      "observed_result": "0 errors, 158 warnings (157 unused variables/imports, 1 hook dependency). Exit code 0.",
+      "evidence_path": "frontend/src",
+      "limitation": "158 non-breaking lint warnings present."
+    },
+    {
+      "test_name": "frontend_production_build",
+      "status": "PASS",
+      "execution_mode": "local_npm_cli",
+      "environment": "Next.js 16.4.2",
+      "command": "npx next build --webpack",
+      "observed_result": "Compiled in 4.0s; TypeScript in 3.8s; Static pages generated (4/4); Exit code 0.",
+      "evidence_path": "frontend/.next",
+      "limitation": null
+    }
+  ],
+  "limitations": [
+    "Local Docker Desktop daemon was not running on the Windows workstation during the audit; container execution was verified in remote GitHub Actions CI instead of locally.",
+    "158 non-breaking ESLint warnings remain across frontend workspace components.",
+    "FastAPI TestClient on Windows requires loopback network socketpair permission; blocked under strict sandbox without bypass.",
+    "Single-worker operational constraint: In-process LRU cache and SQLite write serialization require single-worker deployment or architectural migration before multi-node horizontal scaling."
+  ]
+}
+

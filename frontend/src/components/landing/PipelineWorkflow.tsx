@@ -59,7 +59,7 @@ const STAGE_CONTROLS: StageInfo[] = [
     title: "1. Dataset Ingestion & Profiling",
     description:
       "Automated schema inference, nullity distribution analysis, duplicate detection, and cryptographic SHA-256 dataset fingerprinting.",
-    input: "Raw tabular CSV (up to 50 MB, streaming upload)",
+    input: "Raw tabular CSV (up to 10 MB, streaming upload)",
     processing:
       "UTF-8 tabular integrity validation, automatic type inference (numeric, categorical, datetime), missing value distribution, memory profiling.",
     output:

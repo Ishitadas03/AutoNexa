@@ -36,7 +36,7 @@ const PIPELINE_STAGES: PipelineStage[] = [
     number: 1,
     title: "CSV Dataset Upload",
     icon: Upload,
-    input: "Raw CSV file (up to 50 MB)",
+    input: "Raw CSV file (up to 10 MB)",
     processing:
       "File validation, tabular integrity check, SHA-256 fingerprinting, and automated schema inference with column type detection.",
     output:
@@ -49,7 +49,7 @@ const PIPELINE_STAGES: PipelineStage[] = [
     ],
     limitations: [
       "CSV format only (no Excel, Parquet, etc.)",
-      "50 MB file size limit",
+      "10 MB file size limit",
       "Tabular data only — no images, text corpora, or time series",
     ],
     apiEndpoint: "POST /api/v1/datasets/upload",

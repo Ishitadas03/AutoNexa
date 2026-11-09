@@ -1006,7 +1006,7 @@ export default function InteractivePipeline({ onLaunchWorkspace }: InteractivePi
                   >
                     <UploadCloud className="w-8 h-8 text-[#1D4ED8] mx-auto mb-2 group-hover:scale-110 transition-transform" />
                     <p className="text-xs font-semibold text-[#0F172A] mb-0.5">Drop tabular CSV file here</p>
-                    <p className="text-[11px] text-[#64748B]">Supports up to 50 MB. UTF-8 tabular format.</p>
+                    <p className="text-[11px] text-[#64748B]">Supports up to 10 MB. UTF-8 tabular format.</p>
                   </div>
                 </div>
               )}

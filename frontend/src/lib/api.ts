@@ -95,6 +95,11 @@ function resolveBaseUrl(overrideUrl?: string): string {
 
 function getEffectiveUrl(endpoint: string, overrideUrl?: string): string {
   const base = resolveBaseUrl(overrideUrl);
+  if (!base && endpoint.startsWith("/api/v1/")) {
+    // In production without direct base URL override, route via secure Next.js BFF proxy
+    // to attach server-side credentials without exposing secrets to client browser
+    return endpoint.replace(/^\/api\/v1\//, "/api/bff/");
+  }
   return `${base}${endpoint}`;
 }
 
@@ -126,7 +131,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export const DEFAULT_DEMO_API_KEY = "autonexa-admin-key-secret";
+export const DEFAULT_DEMO_API_KEY = "";
 
 function getAuthHeaders(apiKey?: string, extraHeaders?: Record<string, string>): Record<string, string> {
   const headers: Record<string, string> = {
@@ -137,9 +142,7 @@ function getAuthHeaders(apiKey?: string, extraHeaders?: Record<string, string>):
     apiKey ||
     (typeof window !== "undefined"
       ? localStorage.getItem("autonexa_api_key") || localStorage.getItem("autonexa_serving_api_key") || ""
-      : "") ||
-    process.env.NEXT_PUBLIC_API_KEY ||
-    DEFAULT_DEMO_API_KEY;
+      : "");
   if (key) {
     headers["X-API-Key"] = key;
   }
@@ -182,20 +185,20 @@ export const api = {
     }
   },
 
-  /** Get currently configured API key from browser localStorage, falling back to default demo key */
+  /** Get currently configured API key from browser localStorage */
   getStoredApiKey(): string {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("autonexa_api_key") || localStorage.getItem("autonexa_serving_api_key");
       if (stored) return stored;
     }
-    return DEFAULT_DEMO_API_KEY;
+    return "";
   },
 
-  /** Check if currently using default demo credentials */
+  /** Check if currently using default unauthenticated credentials */
   isUsingDefaultKey(): boolean {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("autonexa_api_key") || localStorage.getItem("autonexa_serving_api_key");
-      return !stored || stored === DEFAULT_DEMO_API_KEY;
+      return !stored;
     }
     return true;
   },
@@ -289,7 +292,19 @@ export const api = {
   },
 
   /** Upload a CSV dataset file */
-  async uploadDataset(file: File, apiKey?: string): Promise<DatasetProfileResponse> {
+  async uploadDataset(file: File, apiKey?: string, overrideUrl?: string): Promise<DatasetProfileResponse> {
+    // 1. Client-side pre-validations
+    if (!file.name.toLowerCase().endsWith(".csv") || file.name.trim() === ".csv") {
+      throw new ApiError(400, "Invalid file format: Only CSV files (.csv) are supported.");
+    }
+    if (file.size === 0) {
+      throw new ApiError(400, "Uploaded file is empty (0 bytes).");
+    }
+    const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB limit strictly reconciled across frontend and backend
+    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+      throw new ApiError(413, "File size exceeds maximum permitted limit of 10.0 MB.");
+    }
+
     const formData = new FormData();
     formData.append("file", file, file.name);
 
@@ -303,7 +318,9 @@ export const api = {
       headers["X-API-Key"] = key;
     }
 
-    const url = getEffectiveUrl("/api/v1/datasets/upload");
+    const customBase = resolveBaseUrl(overrideUrl);
+    const url = customBase ? `${customBase}/api/v1/datasets/upload` : "/api/datasets/upload";
+
     const res = await fetch(url, {
       method: "POST",
       headers,
@@ -313,10 +330,10 @@ export const api = {
   },
 
   /** Upload dataset from raw CSV string */
-  async uploadDatasetContent(csvContent: string, filename: string, apiKey?: string): Promise<DatasetProfileResponse> {
+  async uploadDatasetContent(csvContent: string, filename: string, apiKey?: string, overrideUrl?: string): Promise<DatasetProfileResponse> {
     const blob = new Blob([csvContent], { type: "text/csv" });
     const file = new File([blob], filename, { type: "text/csv" });
-    return this.uploadDataset(file, apiKey);
+    return this.uploadDataset(file, apiKey, overrideUrl);
   },
 
   /** Analyze dataset intelligence & task detection */
@@ -364,7 +381,14 @@ export const api = {
   },
 
   /** Batch predict on uploaded CSV file and return CSV Blob */
-  async predictCsv(experimentId: string, file: File, apiKey?: string): Promise<{ blob: Blob; filename: string }> {
+  async predictCsv(experimentId: string, file: File, apiKey?: string, overrideUrl?: string): Promise<{ blob: Blob; filename: string }> {
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+      throw new ApiError(400, "Invalid file format: Only CSV files (.csv) are supported.");
+    }
+    if (file.size === 0) {
+      throw new ApiError(400, "Uploaded file is empty (0 bytes).");
+    }
+
     const formData = new FormData();
     formData.append("file", file, file.name);
 
@@ -378,7 +402,11 @@ export const api = {
       headers["X-API-Key"] = key;
     }
 
-    const url = getEffectiveUrl(`/api/v1/experiments/${experimentId}/predict-csv`);
+    const customBase = resolveBaseUrl(overrideUrl);
+    const url = customBase
+      ? `${customBase}/api/v1/experiments/${encodeURIComponent(experimentId)}/predict-csv`
+      : `/api/bff/experiments/${encodeURIComponent(experimentId)}/predict-csv`;
+
     const res = await fetch(url, {
       method: "POST",
       headers,
