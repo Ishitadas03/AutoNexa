@@ -98,6 +98,18 @@ def init_db(engine: Optional[Engine] = None, db_path: Optional[Path] = None) -> 
                 session.add(record)
                 session.commit()
                 logger.info("Initialized metadata database schema version 1.")
+
+            stmt_v2 = select(SchemaVersionModel).where(SchemaVersionModel.version == 2)
+            existing_v2 = session.execute(stmt_v2).scalar_one_or_none()
+            if existing_v2 is None:
+                record_v2 = SchemaVersionModel(
+                    version=2,
+                    applied_at=utc_now(),
+                    description="Phase 17F secure email authentication and user identity foundation (users, sessions, auth_tokens)",
+                )
+                session.add(record_v2)
+                session.commit()
+                logger.info("Initialized metadata database schema version 2 (Phase 17F Identity).")
         except Exception as exc:
             session.rollback()
             logger.error("Error verifying schema version: %s", exc)

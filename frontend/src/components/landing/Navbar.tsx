@@ -1,7 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import { ArrowRight, Menu, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowRight, LogOut, Menu, X } from "lucide-react";
+import { api } from "@/lib/api";
+import { UserPublicProfile } from "@/types/api";
 
 interface NavbarProps {
   onLaunchWorkspace: () => void;
@@ -11,6 +14,30 @@ interface NavbarProps {
 export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeLink, setActiveLink] = useState<"home" | "features" | "how-it-works" | "docs" | "workspace">("home");
+  const [currentUser, setCurrentUser] = useState<UserPublicProfile | null>(null);
+
+  useEffect(() => {
+    // Check active session on mount
+    api
+      .getMe()
+      .then((res) => {
+        if (res && res.user) {
+          setCurrentUser(res.user);
+        }
+      })
+      .catch(() => {
+        setCurrentUser(null);
+      });
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+      setCurrentUser(null);
+    } catch {
+      setCurrentUser(null);
+    }
+  };
 
   const scrollTo = (id: string, link: "home" | "features" | "how-it-works" | "docs" | "workspace") => {
     setActiveLink(link);
@@ -135,6 +162,35 @@ export default function Navbar({ onLaunchWorkspace, apiConnected }: NavbarProps)
                   : "Checking API…"}
               </span>
             </div>
+
+            {/* User Session Pill or Sign In CTA */}
+            {currentUser ? (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#CBD5E1] text-xs">
+                <div className="w-5 h-5 rounded-full bg-[#1D4ED8] text-white flex items-center justify-center text-[10px] font-bold">
+                  {currentUser.name.charAt(0).toUpperCase()}
+                </div>
+                <span className="font-semibold text-[#0F172A] max-w-[110px] truncate">{currentUser.name}</span>
+                {currentUser.role === "admin" && (
+                  <span className="px-1.5 py-0.5 rounded-md bg-blue-50 text-[#1D4ED8] text-[9.5px] font-mono font-bold">
+                    Admin
+                  </span>
+                )}
+                <button
+                  onClick={handleLogout}
+                  title="Log out"
+                  className="p-1 hover:text-rose-600 text-[#64748B] transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="px-4 py-2 rounded-full bg-white border border-[#CBD5E1] hover:border-[#1D4ED8] text-[#0F172A] font-semibold text-xs transition-colors cursor-pointer"
+              >
+                Sign In
+              </Link>
+            )}
 
             {/* Launch Workspace Button - Cobalt pill button from reference */}
             <button

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Home,
   Database,
@@ -21,8 +22,11 @@ import {
   GitCompare,
   Gauge,
   GitBranch,
+  LogOut,
 } from "lucide-react";
 import { WorkspaceTab } from "@/lib/store";
+import { api } from "@/lib/api";
+import { UserPublicProfile } from "@/types/api";
 
 interface WorkspaceLayoutProps {
   activeTab: WorkspaceTab;
@@ -83,6 +87,29 @@ export default function WorkspaceLayout({
   children,
 }: WorkspaceLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserPublicProfile | null>(null);
+
+  useEffect(() => {
+    api
+      .getMe()
+      .then((res) => {
+        if (res && res.user) {
+          setCurrentUser(res.user);
+        }
+      })
+      .catch(() => {
+        setCurrentUser(null);
+      });
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+      setCurrentUser(null);
+    } catch {
+      setCurrentUser(null);
+    }
+  };
 
   // Normalize details tab to experiments
   const effectiveTab = activeTab === "details" ? "experiments" : activeTab;
@@ -128,6 +155,37 @@ export default function WorkspaceLayout({
               {apiConnected === true ? "API Online" : apiConnected === false ? "Local Demo" : "Connecting..."}
             </span>
           </div>
+
+          {/* User Session Pill or Sign In Link */}
+          {currentUser ? (
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-[#CBD5E1] text-xs shadow-xs">
+              <div className="w-5 h-5 rounded-full bg-[#1D4ED8] text-white flex items-center justify-center text-[10px] font-bold">
+                {currentUser.name.charAt(0).toUpperCase()}
+              </div>
+              <span className="font-semibold text-[#0F172A] hidden md:inline max-w-[100px] truncate">
+                {currentUser.name}
+              </span>
+              {currentUser.role === "admin" && (
+                <span className="px-1.5 py-0.5 rounded-md bg-blue-50 text-[#1D4ED8] text-[9.5px] font-mono font-bold">
+                  Admin
+                </span>
+              )}
+              <button
+                onClick={handleLogout}
+                title="Sign out of session"
+                className="p-1 hover:text-rose-600 text-[#64748B] transition-colors cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="px-3.5 py-1 rounded-full bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-xs font-semibold shadow-xs transition-colors"
+            >
+              Sign In
+            </Link>
+          )}
 
           {/* Mobile hamburger */}
           <button

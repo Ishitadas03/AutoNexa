@@ -1686,3 +1686,89 @@ export interface PipelineListResponse {
   offset: number;
   pipelines: PipelineResponse[];
 }
+
+// =============================================================================
+// Phase 17F: Authentication, Identity, and Session Types
+// =============================================================================
+
+export interface UserPublicProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: "user" | "admin";
+  status: "pending_verification" | "active" | "suspended" | "disabled";
+  is_email_verified: boolean;
+  created_at: string;
+  last_login_at?: string | null;
+}
+
+export interface UserRegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface UserRegisterResponse {
+  message: string;
+  user_id: string;
+  email: string;
+  status: string;
+  requires_verification: boolean;
+}
+
+export interface VerifyEmailRequest {
+  token: string;
+}
+
+export interface VerifyEmailResponse {
+  message: string;
+  verified: boolean;
+  email: string;
+}
+
+export interface ResendVerificationRequest {
+  email: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  message: string;
+  user: UserPublicProfile;
+  session_id: string;
+}
+
+export interface UserSessionRecord {
+  id: string;
+  user_id: string;
+  created_at: string;
+  expires_at: string;
+  last_activity_at: string;
+  ip_address?: string | null;
+  user_agent?: string | null;
+  is_current?: boolean;
+}
+
+export interface SessionListResponse {
+  sessions: UserSessionRecord[];
+  total: number;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  new_password: string;
+}
+
+export interface UserMeResponse {
+  user: UserPublicProfile;
+  active_sessions_count: number;
+  data_access_restricted: boolean;
+  restriction_message: string;
+}

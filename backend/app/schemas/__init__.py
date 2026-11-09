@@ -1,5 +1,20 @@
 """Pydantic data models and schemas."""
 
+from app.schemas.auth import (
+    ForgotPasswordRequest,
+    LoginRequest,
+    LoginResponse,
+    ResendVerificationRequest,
+    ResetPasswordRequest,
+    SessionListResponse,
+    UserMeResponse,
+    UserPublicProfile,
+    UserRegisterRequest,
+    UserRegisterResponse,
+    UserSessionRecord,
+    VerifyEmailRequest,
+    VerifyEmailResponse,
+)
 from app.schemas.analysis import (
     AnalysisRequest,
     AnalysisResponse,

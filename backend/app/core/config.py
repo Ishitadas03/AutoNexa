@@ -286,6 +286,83 @@ class Settings(BaseSettings):
         description="Maximum execution timeout for an entire pipeline run in seconds (default 600)",
     )
 
+    # Phase 17F: Secure Email Authentication & User Identity Foundation Settings
+    auth_public_registration_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("AUTH_PUBLIC_REGISTRATION_ENABLED", "PUBLIC_REGISTRATION_ENABLED"),
+        description="Safety gate feature flag: when False, public signups are disabled pending Phase 17G data isolation",
+    )
+    auth_session_cookie_name: str = Field(
+        default="autonexa_session",
+        validation_alias=AliasChoices("AUTH_SESSION_COOKIE_NAME", "SESSION_COOKIE_NAME"),
+        description="Cookie name for authenticated user session token",
+    )
+    auth_session_max_age_seconds: int = Field(
+        default=604800,  # 7 days
+        validation_alias=AliasChoices("AUTH_SESSION_MAX_AGE_SECONDS", "SESSION_MAX_AGE_SECONDS"),
+        description="Maximum session validity duration in seconds (default 7 days)",
+    )
+    auth_email_verification_expiry_seconds: int = Field(
+        default=86400,  # 24 hours
+        validation_alias=AliasChoices("AUTH_EMAIL_VERIFICATION_EXPIRY_SECONDS"),
+        description="Expiration time for email verification tokens in seconds (default 24h)",
+    )
+    auth_password_reset_expiry_seconds: int = Field(
+        default=3600,  # 1 hour
+        validation_alias=AliasChoices("AUTH_PASSWORD_RESET_EXPIRY_SECONDS"),
+        description="Expiration time for password reset tokens in seconds (default 1h)",
+    )
+    auth_frontend_url: str = Field(
+        default="http://localhost:3000",
+        validation_alias=AliasChoices("AUTH_FRONTEND_URL", "FRONTEND_URL"),
+        description="Base URL of frontend web app for generating verification & reset links",
+    )
+    email_backend: str = Field(
+        default="console",
+        validation_alias=AliasChoices("EMAIL_BACKEND"),
+        description="Email delivery backend: 'console' (stdout/logs), 'memory' (testing queue), 'smtp'",
+    )
+    smtp_host: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("SMTP_HOST"),
+        description="SMTP server hostname for outbound email delivery",
+    )
+    smtp_port: int = Field(
+        default=587,
+        validation_alias=AliasChoices("SMTP_PORT"),
+        description="SMTP server port (default 587)",
+    )
+    smtp_user: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("SMTP_USER"),
+        description="SMTP authentication username",
+    )
+    smtp_password: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("SMTP_PASSWORD"),
+        description="SMTP authentication password",
+    )
+    smtp_from: str = Field(
+        default="no-reply@autonexa.ai",
+        validation_alias=AliasChoices("SMTP_FROM"),
+        description="From email address for outbound transactional messages",
+    )
+    smtp_tls: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("SMTP_TLS"),
+        description="Whether to use STARTTLS for SMTP connections",
+    )
+    auth_rate_limit_login_attempts: int = Field(
+        default=5,
+        validation_alias=AliasChoices("AUTH_RATE_LIMIT_LOGIN_ATTEMPTS"),
+        description="Maximum failed login attempts before temporary lockout window",
+    )
+    auth_rate_limit_window_seconds: int = Field(
+        default=300,  # 5 minutes
+        validation_alias=AliasChoices("AUTH_RATE_LIMIT_WINDOW_SECONDS"),
+        description="Lockout duration window in seconds for repeated failed logins (default 5m)",
+    )
+
     @model_validator(mode="after")
     def validate_and_sync_security_settings(self) -> "Settings":
         """Validate fail-closed security configuration in production."""

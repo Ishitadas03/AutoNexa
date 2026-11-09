@@ -36,7 +36,6 @@ import {
   RobustBenchmarkRequest,
   RobustBenchmarkResponse,
   ArtifactVerificationResponse,
-  ExperimentCompareRequest,
   ExperimentComparisonResponse,
   ExperimentDetailResponse,
   ExperimentListResponse,
@@ -71,6 +70,17 @@ import {
   PipelineEvent,
   PipelineListResponse,
   PipelineResponse,
+  UserRegisterRequest,
+  UserRegisterResponse,
+  VerifyEmailRequest,
+  VerifyEmailResponse,
+  ResendVerificationRequest,
+  LoginRequest,
+  LoginResponse,
+  SessionListResponse,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  UserMeResponse,
 } from "@/types/api";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -1351,5 +1361,131 @@ export const api = {
       cache: "no-store",
     });
     return handleResponse<PipelineEvent[]>(res);
+  },
+
+  // ===========================================================================
+  // Phase 17F: Authentication, Identity, and Session API Client
+  // ===========================================================================
+
+  /** Register a new user account */
+  async register(payload: UserRegisterRequest, overrideUrl?: string): Promise<UserRegisterResponse> {
+    const url = getEffectiveUrl("/api/v1/auth/register", overrideUrl);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return handleResponse<UserRegisterResponse>(res);
+  },
+
+  /** Verify email address with single-use verification token */
+  async verifyEmail(payload: VerifyEmailRequest, overrideUrl?: string): Promise<VerifyEmailResponse> {
+    const url = getEffectiveUrl("/api/v1/auth/verify-email", overrideUrl);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return handleResponse<VerifyEmailResponse>(res);
+  },
+
+  /** Resend verification email link */
+  async resendVerification(payload: ResendVerificationRequest, overrideUrl?: string): Promise<{ message: string }> {
+    const url = getEffectiveUrl("/api/v1/auth/resend-verification", overrideUrl);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return handleResponse<{ message: string }>(res);
+  },
+
+  /** Log in and establish authenticated session */
+  async login(payload: LoginRequest, overrideUrl?: string): Promise<LoginResponse> {
+    const url = getEffectiveUrl("/api/v1/auth/login", overrideUrl);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    return handleResponse<LoginResponse>(res);
+  },
+
+  /** Revoke current session and log out */
+  async logout(overrideUrl?: string): Promise<{ message: string }> {
+    const url = getEffectiveUrl("/api/v1/auth/logout", overrideUrl);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      credentials: "include",
+    });
+    return handleResponse<{ message: string }>(res);
+  },
+
+  /** Revoke all active sessions across devices */
+  async logoutAll(overrideUrl?: string): Promise<{ message: string; revoked_sessions_count: number }> {
+    const url = getEffectiveUrl("/api/v1/auth/logout-all", overrideUrl);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      credentials: "include",
+    });
+    return handleResponse<{ message: string; revoked_sessions_count: number }>(res);
+  },
+
+  /** Retrieve currently authenticated user profile */
+  async getMe(overrideUrl?: string): Promise<UserMeResponse> {
+    const url = getEffectiveUrl("/api/v1/auth/me", overrideUrl);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      credentials: "include",
+    });
+    return handleResponse<UserMeResponse>(res);
+  },
+
+  /** List active user sessions */
+  async listSessions(overrideUrl?: string): Promise<SessionListResponse> {
+    const url = getEffectiveUrl("/api/v1/auth/sessions", overrideUrl);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      credentials: "include",
+    });
+    return handleResponse<SessionListResponse>(res);
+  },
+
+  /** Revoke a specific session */
+  async revokeSession(sessionId: string, overrideUrl?: string): Promise<{ message: string }> {
+    const url = getEffectiveUrl(`/api/v1/auth/sessions/${sessionId}`, overrideUrl);
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: { Accept: "application/json" },
+      credentials: "include",
+    });
+    return handleResponse<{ message: string }>(res);
+  },
+
+  /** Request password reset email */
+  async forgotPassword(payload: ForgotPasswordRequest, overrideUrl?: string): Promise<{ message: string }> {
+    const url = getEffectiveUrl("/api/v1/auth/forgot-password", overrideUrl);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return handleResponse<{ message: string }>(res);
+  },
+
+  /** Reset password using verification token */
+  async resetPassword(payload: ResetPasswordRequest, overrideUrl?: string): Promise<{ message: string }> {
+    const url = getEffectiveUrl("/api/v1/auth/reset-password", overrideUrl);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return handleResponse<{ message: string }>(res);
   },
 };

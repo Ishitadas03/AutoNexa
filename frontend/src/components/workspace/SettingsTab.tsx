@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Settings,
   Server,
@@ -17,8 +17,16 @@ import {
   Lock,
   Eye,
   EyeOff,
+  User,
+  LogOut,
+  ChevronDown,
+  ChevronRight,
+  UserCheck,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import type { UserPublicProfile } from "@/types/api";
 
 interface SettingsTabProps {
   apiConnected: boolean | null;
@@ -33,6 +41,7 @@ export default function SettingsTab({
   onReloadBenchmarks,
   onRefreshHealth,
 }: SettingsTabProps) {
+  const router = useRouter();
   const [apiUrl, setApiUrl] = useState(() => {
     const stored = api.getStoredBaseUrl();
     if (stored) return stored;
@@ -52,10 +61,50 @@ export default function SettingsTab({
   const [defaultSeed, setDefaultSeed] = useState(42);
   const [savedSettings, setSavedSettings] = useState(false);
 
-  // API Authentication & RBAC Key
+  // Phase 17F User Identity & Session
+  const [currentUser, setCurrentUser] = useState<UserPublicProfile | null>(null);
+  const [userLoading, setUserLoading] = useState(true);
+  const [showDevApiKeys, setShowDevApiKeys] = useState(false);
+
+  // Legacy Developer API Authentication & RBAC Key
   const [apiKey, setApiKey] = useState(() => api.getStoredApiKey());
   const [showKey, setShowKey] = useState(false);
   const [keySavedMessage, setKeySavedMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchUser = async () => {
+      try {
+        const res = await api.getMe();
+        if (mounted && res?.user) {
+          setCurrentUser(res.user);
+        }
+      } catch {
+        if (mounted) {
+          setCurrentUser(null);
+        }
+      } finally {
+        if (mounted) {
+          setUserLoading(false);
+        }
+      }
+    };
+    fetchUser();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+    } catch {
+      // Ignore network errors on logout
+    } finally {
+      setCurrentUser(null);
+      router.push("/login");
+    }
+  };
 
   const handlePingBackend = async () => {
     setIsPinging(true);
@@ -355,121 +404,187 @@ export default function SettingsTab({
           </div>
         </form>
 
-        {/* Card 3: API Authentication & Role-Based Access Control (RBAC) */}
-        <form onSubmit={handleSaveApiKey} className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-xs space-y-4">
+        {/* Card 3: User Identity & Session Status (Phase 17F Primary) */}
+        <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0]">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#1D4ED8]" />
               <h3 className="text-sm font-bold text-[#0F172A]">
-                API Security &amp; Access Control (RBAC)
+                User Identity &amp; Session Management
               </h3>
             </div>
-            {keySavedMessage ? (
-              <span className="text-xs font-mono text-[#15803D] flex items-center gap-1 font-bold">
-                <Check className="w-3.5 h-3.5" />
-                <span>{keySavedMessage}</span>
+            {userLoading ? (
+              <span className="text-xs font-mono text-[#64748B] flex items-center gap-1">
+                <RefreshCw className="w-3 h-3 animate-spin" />
+                <span>Checking...</span>
               </span>
-            ) : apiKey.trim() === "autonexa-admin-key-secret" ? (
+            ) : currentUser ? (
               <span className="px-2.5 py-0.5 rounded-full bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] text-[10px] font-mono font-medium flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" />
-                <span>Demo Admin Active</span>
-              </span>
-            ) : apiKey.trim() === "autonexa-read-key-secret" ? (
-              <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-mono font-medium flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" />
-                <span>Demo Read Active</span>
-              </span>
-            ) : apiKey.trim() ? (
-              <span className="px-2.5 py-0.5 rounded-full bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] text-[10px] font-mono font-medium flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" />
-                <span>Custom Key Active</span>
+                <span>Active Session</span>
               </span>
             ) : (
-              <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-mono font-medium flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" />
-                <span>No Key Set</span>
+              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300 text-[10px] font-mono font-medium flex items-center gap-1">
+                <AlertCircle className="w-3 h-3 text-slate-500" />
+                <span>Unauthenticated</span>
               </span>
             )}
           </div>
 
+          {/* User Status Content */}
           <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-mono text-[#0F172A] font-semibold mb-1">
-                Client API Key (<code className="text-[#1D4ED8]">X-API-Key</code>):
-              </label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <input
-                    type={showKey ? "text" : "password"}
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Enter Admin or Inference/Read API key..."
-                    className="w-full px-3 py-2 pr-10 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-[#0F172A] text-xs font-mono focus:border-[#1D4ED8] focus:bg-white focus:outline-none"
-                  />
+            {currentUser ? (
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 text-[#1D4ED8] flex items-center justify-center font-bold text-xs font-mono">
+                      {currentUser.name ? currentUser.name.slice(0, 2).toUpperCase() : currentUser.email.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-[#0F172A]">
+                        {currentUser.name || currentUser.email}
+                      </p>
+                      <p className="text-[11px] font-mono text-[#64748B]">
+                        {currentUser.email}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-mono font-semibold uppercase">
+                      {currentUser.role}
+                    </span>
+                    {currentUser.is_email_verified ? (
+                      <span className="text-[10px] text-emerald-600 flex items-center gap-1 font-medium">
+                        <UserCheck className="w-3 h-3" />
+                        Verified
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-amber-600 flex items-center gap-1 font-medium">
+                        <AlertCircle className="w-3 h-3" />
+                        Unverified
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+                  <span className="text-[11px] text-[#64748B]">
+                    Protected via HttpOnly session cookies.
+                  </span>
                   <button
                     type="button"
-                    onClick={() => setShowKey(!showKey)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#0F172A] cursor-pointer"
-                    title={showKey ? "Hide key" : "Show key"}
+                    onClick={handleLogout}
+                    className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
-                    {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out</span>
                   </button>
                 </div>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer shrink-0"
-                >
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>Save Key</span>
-                </button>
-                {apiKey && (
-                  <button
-                    type="button"
-                    onClick={handleClearApiKey}
-                    className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer shrink-0"
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                <div className="flex items-start gap-2.5">
+                  <User className="w-4 h-4 text-[#1D4ED8] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-semibold text-[#0F172A]">
+                      No active user session detected
+                    </p>
+                    <p className="text-[11px] text-[#64748B] mt-0.5 leading-relaxed">
+                      AutoNexa Phase 17F introduces secure email authentication with HttpOnly cookies. Sign in or register to authenticate without storing root admin API keys in your browser.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 pt-1">
+                  <Link
+                    href="/login"
+                    className="px-3.5 py-1.5 rounded-lg bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
                   >
-                    Clear
-                  </button>
-                )}
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+                  >
+                    Register
+                  </Link>
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2 pt-2">
-                <span className="text-[11px] font-mono text-[#64748B]">Quick presets:</span>
-                <button
-                  type="button"
-                  onClick={handleLoadDemoAdminKey}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-[#1D4ED8] hover:text-white text-[#334155] text-[10px] font-mono font-medium transition-colors cursor-pointer"
-                >
-                  Load Demo Admin Key
-                </button>
-                <button
-                  type="button"
-                  onClick={handleLoadDemoReadKey}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-[#1D4ED8] hover:text-white text-[#334155] text-[10px] font-mono font-medium transition-colors cursor-pointer"
-                >
-                  Load Demo Read Key
-                </button>
-              </div>
-            </div>
+            )}
 
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-[#475569] space-y-1.5 font-sans">
-              <div className="flex items-start gap-1.5 font-mono text-[11px] text-[#334155]">
-                <Key className="w-3.5 h-3.5 text-[#1D4ED8] shrink-0 mt-0.5" />
-                <span>
-                  <strong>Admin Key:</strong> Required for dataset uploads, training, experiment deletion, model promotion, and benchmarking.
+            {/* Collapsible Developer Override Section */}
+            <div className="pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowDevApiKeys(!showDevApiKeys)}
+                className="w-full flex items-center justify-between text-left text-xs font-mono text-[#64748B] hover:text-[#0F172A] py-1 transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-1.5">
+                  <Key className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Developer API Key Override (Local/Automated Testing)</span>
                 </span>
-              </div>
-              <div className="flex items-start gap-1.5 font-mono text-[11px] text-[#334155]">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
-                <span>
-                  <strong>Inference/Read Key:</strong> Permitted for querying models, metrics, status, explanations, and predictions.
-                </span>
-              </div>
-              <p className="text-[10px] text-[#64748B] pt-1 border-t border-slate-200">
-                <strong>Security Architecture Note:</strong> API keys saved here reside in browser <code className="font-mono">localStorage</code> for local workstation and single-tenant workflows. For multi-tenant production architectures, administrative mutations must be invoked from trusted backend services rather than storing root admin credentials in browser client storage.
-              </p>
+                {showDevApiKeys ? (
+                  <ChevronDown className="w-3.5 h-3.5" />
+                ) : (
+                  <ChevronRight className="w-3.5 h-3.5" />
+                )}
+              </button>
+
+              {showDevApiKeys && (
+                <form onSubmit={handleSaveApiKey} className="mt-3 space-y-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="text-[11px] text-[#64748B] leading-relaxed">
+                    <strong>Note:</strong> In production, users authenticate via secure sessions. Direct API keys are only required for headless API automation or local scripts. Storing admin keys in browser storage is not recommended.
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono text-[#0F172A] font-semibold mb-1">
+                      Override API Key (<code className="text-[#1D4ED8]">X-API-Key</code>):
+                    </label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type={showKey ? "text" : "password"}
+                          value={apiKey}
+                          onChange={(e) => setApiKey(e.target.value)}
+                          placeholder="Optional dev API key..."
+                          className="w-full px-3 py-2 pr-10 rounded-xl bg-white border border-[#CBD5E1] text-[#0F172A] text-xs font-mono focus:border-[#1D4ED8] focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowKey(!showKey)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#0F172A] cursor-pointer"
+                          title={showKey ? "Hide key" : "Show key"}
+                        >
+                          {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                      <button
+                        type="submit"
+                        className="px-3.5 py-2 rounded-xl bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer shrink-0"
+                      >
+                        <Lock className="w-3.5 h-3.5" />
+                        <span>Save</span>
+                      </button>
+                      {apiKey && (
+                        <button
+                          type="button"
+                          onClick={handleClearApiKey}
+                          className="px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold transition-colors cursor-pointer shrink-0"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    {keySavedMessage && (
+                      <p className="mt-1.5 text-xs font-mono text-[#15803D]">
+                        {keySavedMessage}
+                      </p>
+                    )}
+                  </div>
+                </form>
+              )}
             </div>
           </div>
-        </form>
+        </div>
 
         {/* Card 4: Storage & Cache Management */}
         <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-xs space-y-4">

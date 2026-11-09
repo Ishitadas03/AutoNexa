@@ -1,8 +1,10 @@
 """SQLAlchemy ORM models for AutoNexa Phase 16D metadata catalog and indexing."""
 
 from datetime import datetime, timezone
+import enum
 import json
 from typing import Any, Dict, List, Optional
+import uuid
 
 from sqlalchemy import (
     BigInteger,
@@ -10,13 +12,14 @@ from sqlalchemy import (
     Column,
     DateTime,
     Float,
+    ForeignKey,
     Index,
     Integer,
     String,
     Text,
 )
 from sqlalchemy.dialects.sqlite import JSON
-from sqlalchemy.orm import declarative_base, synonym
+from sqlalchemy.orm import declarative_base, relationship, synonym
 
 Base = declarative_base()
 
@@ -120,4 +123,98 @@ class PipelineModel(Base):
     __table_args__ = (
         Index("ix_pipelines_created_at_desc", created_at.desc(), pipeline_id.desc()),
         Index("ix_pipelines_status_created_at", status, created_at.desc()),
+    )
+
+
+class UserRole(str, enum.Enum):
+    """User access control roles."""
+    USER = "user"
+    ADMIN = "admin"
+
+
+class UserStatus(str, enum.Enum):
+    """Lifecycle status for user accounts."""
+    PENDING_VERIFICATION = "pending_verification"
+    ACTIVE = "active"
+    SUSPENDED = "suspended"
+    DISABLED = "disabled"
+
+
+class TokenType(str, enum.Enum):
+    """Types of secure single-use auth tokens."""
+    EMAIL_VERIFICATION = "email_verification"
+    PASSWORD_RESET = "password_reset"
+
+
+class UserModel(Base):
+    """User identity model for authentication and access control."""
+
+    __tablename__ = "users"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=False)
+    normalized_email = Column(String(255), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(32), nullable=False, default=UserRole.USER.value)
+    status = Column(String(32), nullable=False, default=UserStatus.PENDING_VERIFICATION.value)
+    is_email_verified = Column(Boolean, nullable=False, default=False)
+    email_verified_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
+    last_login_at = Column(DateTime(timezone=True), nullable=True)
+
+    sessions = relationship("SessionModel", back_populates="user", cascade="all, delete-orphan")
+    auth_tokens = relationship("AuthTokenModel", back_populates="user", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        Index("ix_users_normalized_email", normalized_email, unique=True),
+        Index("ix_users_status", status),
+        Index("ix_users_created_at_desc", created_at.desc(), id.desc()),
+    )
+
+
+class SessionModel(Base):
+    """Persistent session record for authenticated users."""
+
+    __tablename__ = "sessions"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    token_hash = Column(String(64), unique=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    last_activity_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
+    revoked_at = Column(DateTime(timezone=True), nullable=True)
+    ip_address = Column(String(64), nullable=True)
+    user_agent = Column(String(512), nullable=True)
+
+    user = relationship("UserModel", back_populates="sessions")
+
+    __table_args__ = (
+        Index("ix_sessions_token_hash", token_hash, unique=True),
+        Index("ix_sessions_user_id_expires_at", user_id, expires_at),
+        Index("ix_sessions_expires_at", expires_at),
+    )
+
+
+class AuthTokenModel(Base):
+    """Cryptographic verification and password reset token ledger."""
+
+    __tablename__ = "auth_tokens"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    token_hash = Column(String(64), unique=True, nullable=False)
+    token_type = Column(String(32), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    used_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
+
+    user = relationship("UserModel", back_populates="auth_tokens")
+
+    __table_args__ = (
+        Index("ix_auth_tokens_token_hash", token_hash, unique=True),
+        Index("ix_auth_tokens_user_type", user_id, token_type),
+        Index("ix_auth_tokens_expires_at", expires_at),
     )
